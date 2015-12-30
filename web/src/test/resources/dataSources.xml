@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<list>
+	<!--
+		<dataSource name="" dbConnectionRef="">
+			<sql>
+
+			</sql>
+
+			<fields>
+				<field name="" type="" title="" filterType=""/>
+			</fields>
+		</dataSource>
+	-->
+
+	<dataSource name="ItemDS" dbConnectionRef="main">
+		<sql>
+			<![CDATA[
+			select
+				it.c_id,
+				it.c_name,
+				it.c_english_name,
+				to_number(it.c_active) c_active,
+				it.c_technical_code
+			from
+				t_item it
+			]]>
+		</sql>
+
+		<fields>
+			<field name="c_id" type="Integer" title="شناسه"/>
+			<field name="c_name" type="String" filterType="Contain" title="نام"/>
+			<field name="c_english_name" filterType="Contain" type="String" title="نام انگلیسی"/>
+			<field name="c_active" type="Boolean" title="فعال"/>
+			<field name="c_technical_code" type="String" title="کد فنی"/>
+		</fields>
+
+		<!--<params>
+			<param name="" type="" title=""/>
+		</params>-->
+	</dataSource>
+</list>

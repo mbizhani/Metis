@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<list>
+	<!--<dbConnection name="" driver="" url="" username="" password=""/>-->
+	<dbConnection
+			name="main" driver="oracle.jdbc.driver.OracleDriver"
+			url="jdbc:oracle:thin:@oradb.fanrp:1521:oradb"
+			username="bijani"
+			password="SalamBIJ"
+			schema="payam5"/>
+</list>

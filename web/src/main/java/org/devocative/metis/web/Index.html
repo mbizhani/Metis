@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<head>
+    <meta charset="UTF-8">
+
+    <link rel="stylesheet" href="css/fontawesome/css/font-awesome.min.css"/>
+
+    <link rel="stylesheet" href="js/jeasyui/themes/default/easyui.css"/>
+    <script type="text/javascript" src="js/jeasyui/jquery.easyui.min.js"></script>
+</head>
+
+<body>
+<div class="easyui-layout" style="width:100%; height:800px;">
+    <div data-options="region:'west',split:true" title="Search" style="width:300px;">
+        <form wicket:id="dynamicForm">
+            <table>
+                <tr wicket:id="fields">
+                    <th><span wicket:id="label"></span></th>
+                    <td>
+                        <div wicket:id="field"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="submit" wicket:id="save" value="Search"/>
+                        <input type="reset" value="Clear"/>
+                    </td>
+                </tr>
+            </table>
+
+        </form>
+    </div>
+    <div data-options="region:'center',title:'Main Title'">
+        <div wicket:id="grid"></div>
+    </div>
+</div>
+</body>
+</html>
