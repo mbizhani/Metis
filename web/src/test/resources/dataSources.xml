@@ -21,7 +21,8 @@
 				it.c_name,
 				it.c_english_name,
 				to_number(it.c_active) c_active,
-				it.c_technical_code
+				it.c_technical_code,
+				to_date('1970-01-01 00','yyyy-mm-dd hh24') + (it.c_insertTime)/1000/60/60/24 as c_insertTime
 			from
 				t_item it
 			]]>
@@ -31,8 +32,13 @@
 			<field name="c_id" type="Integer" title="شناسه"/>
 			<field name="c_name" type="String" filterType="Contain" title="نام"/>
 			<field name="c_english_name" filterType="Contain" type="String" title="نام انگلیسی"/>
-			<field name="c_active" type="Boolean" title="فعال"/>
+			<field name="c_active" type="Boolean" title="فعال">
+				<!--<mapOpt>{"0":"False","1":"True"}</mapOpt>
+				<listOpt></listOpt>
+				<sqlOpt></sqlOpt>-->
+			</field>
 			<field name="c_technical_code" type="String" title="کد فنی"/>
+			<field name="c_insertTime" type="DateTime" title="تاریخ ایجاد"/>
 		</fields>
 
 		<!--<params>

@@ -13,22 +13,33 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.devocative.metis.entity.dataSource.DSField;
+import org.devocative.metis.entity.dataSource.DSFieldType;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.service.DataSourceService;
+import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WDataSource;
 import org.devocative.wickomp.data.WSortField;
+import org.devocative.wickomp.form.WBooleanInput;
+import org.devocative.wickomp.form.WDateInput;
 import org.devocative.wickomp.form.WNumberInput;
 import org.devocative.wickomp.form.WTextInput;
+import org.devocative.wickomp.formatter.OBooleanFormatter;
+import org.devocative.wickomp.formatter.ODateFormatter;
+import org.devocative.wickomp.formatter.ONumberFormatter;
 import org.devocative.wickomp.grid.OGrid;
 import org.devocative.wickomp.grid.WDataGrid;
+import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
+import org.devocative.wickomp.grid.toolbar.OGroupFieldButton;
 import org.devocative.wickomp.html.icon.FontAwesome;
+import org.devocative.wickomp.opt.OCalendar;
 import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -59,26 +70,35 @@ public class Index extends WebPage {
 		dynamicForm.add(new ListView<DSField>("fields", dataSource.getFields()) {
 			@Override
 			protected void populateItem(ListItem<DSField> item) {
-				DSField field = item.getModelObject();
-				item.add(new Label("label", field.getTitle()));
-				//item.add(new TextField<String>("field"));
+				DSField dsField = item.getModelObject();
+				item.add(new Label("label", dsField.getTitle()));
 
 				RepeatingView view = new RepeatingView("field");
-				switch (field.getType()) {
+				switch (dsField.getType()) {
 
 					case String:
-						view.add(new WTextInput(field.getName()));
+						view.add(new WTextInput(dsField.getName()));
 						break;
 
 					case Integer:
-						view.add(new WNumberInput(field.getName()).setGroupSeparator(","));
+						view.add(new WNumberInput(dsField.getName(), Long.class)
+							.setThousandSeparator(","));
 						break;
 
 					case Real:
-						view.add(new WNumberInput(field.getName()).setPrecision(2).setGroupSeparator(","));
+						view.add(new WNumberInput(dsField.getName(), BigDecimal.class).setPrecision(2)
+							.setThousandSeparator(",")
+							.setPrecision(3));
 						break;
 
 					case Boolean:
+						view.add(new WBooleanInput(dsField.getName()));
+						break;
+
+					case Date:
+					case DateTime:
+						view.add(new WDateInput(dsField.getName(), OCalendar.Persian)
+							.setTimePartVisible(DSFieldType.DateTime == dsField.getType()));
 						break;
 				}
 
@@ -97,27 +117,63 @@ public class Index extends WebPage {
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 		for (DSField dsField : dataSource.getFields()) {
-			columns.add(new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName()));
+			OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName())
+				.setSortable(true);
+			switch (dsField.getType()) {
+				case Integer:
+					column.setFormatter(ONumberFormatter.integer());
+					break;
+				case Real:
+					column.setFormatter(ONumberFormatter.real());
+					break;
+				case Date:
+					column.setFormatter(ODateFormatter.prDate());
+					break;
+				case DateTime:
+					column.setFormatter(ODateFormatter.prDateTime());
+					break;
+				case Boolean:
+					column.setFormatter(OBooleanFormatter.bool());
+					break;
+			}
+			columns.add(column);
 		}
 
 		OGrid<Map<String, Object>> gridOptions = new OGrid<>();
 		gridOptions
 			.setColumns(columns)
 			.setMultiSort(true)
+			.setGroupStyle("background-color:#dddddd")
 			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				new FontAwesome("file-excel-o", "green", new Model<>("Export to excel")),
 				String.format("%s-Export.xlsx", dataSourceName),
-				10000));
-		gridOptions.setHeight(OSize.percent(100));
+				10000))
+			.addToolbarButton(new OGroupFieldButton<Map<String, Object>>());
+		gridOptions.setHeight(OSize.fixed(500));
 
 		add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
 	}
 
 	private class SearchDataSource extends WDataSource<Map<String, Object>> {
 		@Override
-		public List<Map<String, Object>> list(long l, long l1, List<WSortField> list) {
+		public List<Map<String, Object>> list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
 			try {
-				return DataSourceService.get().executeDataSource(dataSourceName, null, filters, null, null, null);
+				Map<String, String> sortFieldsMap = null;
+				if (sortFieldList != null && sortFieldList.size() > 0) {
+					sortFieldsMap = new HashMap<>();
+					for (WSortField sortField : sortFieldList) {
+						sortFieldsMap.put(sortField.getField(), sortField.getOrder());
+					}
+				}
+
+				Map<String, Object> filtersCloned = new HashMap<>();
+				for (Map.Entry<String, Object> entry : filters.entrySet()) {
+					if (entry.getValue() != null) {
+						filtersCloned.put(entry.getKey(), entry.getValue());
+					}
+				}
+				return DataSourceService.get().executeDataSource(dataSourceName, filtersCloned, sortFieldsMap,
+					pageIndex, pageSize);
 			} catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
@@ -126,7 +182,13 @@ public class Index extends WebPage {
 		@Override
 		public long count() {
 			try {
-				return DataSourceService.get().getCountForDataSource(dataSourceName, filters);
+				Map<String, Object> filtersCloned = new HashMap<>();
+				for (Map.Entry<String, Object> entry : filters.entrySet()) {
+					if (entry.getValue() != null) {
+						filtersCloned.put(entry.getKey(), entry.getValue());
+					}
+				}
+				return DataSourceService.get().getCountForDataSource(dataSourceName, filtersCloned);
 			} catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
@@ -134,20 +196,7 @@ public class Index extends WebPage {
 
 		@Override
 		public IModel<Map<String, Object>> model(final Map<String, Object> objectMap) {
-			return new IModel<Map<String, Object>>() {
-				@Override
-				public Map<String, Object> getObject() {
-					return objectMap;
-				}
-
-				@Override
-				public void setObject(Map<String, Object> object) {
-				}
-
-				@Override
-				public void detach() {
-				}
-			};
+			return new WModel<>(objectMap);
 		}
 	}
 }

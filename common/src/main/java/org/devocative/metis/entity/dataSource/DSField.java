@@ -20,13 +20,19 @@ public class DSField implements Serializable {
 	private String format;
 
 	@XStreamAsAttribute
-	private DSFieldFilterType filterType = DSFieldFilterType.Equal;
+	private DSFieldFilterType filterType;
 
 	@XStreamAsAttribute
-	private DSFieldPlaceType placeType = DSFieldPlaceType.Both;
+	private DSFieldPlaceType placeType;
+
+	private String mapOpt;
+
+	private String listOpt;
+
+	private String sqlOpt;
 
 	public String getName() {
-		return name;
+		return name != null ? name.toLowerCase() : null;
 	}
 
 	public void setName(String name) {
@@ -57,12 +63,50 @@ public class DSField implements Serializable {
 		this.format = format;
 	}
 
+	// Has Default
 	public DSFieldFilterType getFilterType() {
-		return filterType;
+		return filterType != null ? filterType : DSFieldFilterType.Equal;
 	}
 
 	public DSField setFilterType(DSFieldFilterType filterType) {
 		this.filterType = filterType;
+		return this;
+	}
+
+	// Has Default
+	public DSFieldPlaceType getPlaceType() {
+		return placeType != null ? placeType : DSFieldPlaceType.Both;
+	}
+
+	public DSField setPlaceType(DSFieldPlaceType placeType) {
+		this.placeType = placeType;
+		return this;
+	}
+
+	public String getMapOpt() {
+		return mapOpt;
+	}
+
+	public DSField setMapOpt(String mapOpt) {
+		this.mapOpt = mapOpt;
+		return this;
+	}
+
+	public String getListOpt() {
+		return listOpt;
+	}
+
+	public DSField setListOpt(String listOpt) {
+		this.listOpt = listOpt;
+		return this;
+	}
+
+	public String getSqlOpt() {
+		return sqlOpt;
+	}
+
+	public DSField setSqlOpt(String sqlOpt) {
+		this.sqlOpt = sqlOpt;
 		return this;
 	}
 }

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,54 +65,67 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	public List<Map<String, Object>> executeDataSource(String name,
-													   List<DSField> columns,
 													   Map<String, Object> filters,
 													   Map<String, String> sortFields,
-													   Long first,
-													   Long size) throws SQLException {
+													   Long pageIndex,
+													   Long pageSize) throws SQLException {
 		DataSource dataSource = DATA_SOURCE_MAP.get(name);
 
-		if (columns == null) {
-			columns = dataSource.getFields();
+		List<DSField> selectFields = new ArrayList<>();
+		for (DSField field : dataSource.getFields()) {
+			switch (field.getPlaceType()) {
+				case Result:
+				case Both:
+					selectFields.add(field);
+			}
 		}
 
-		StringBuilder builder = new StringBuilder();
-		builder.append("select ").append(columns.get(0).getName());
+		StringBuilder mainQueryBuilder = new StringBuilder();
+		mainQueryBuilder.append("select ").append(selectFields.get(0).getName());
 
-		for (int i = 1; i < columns.size(); i++) {
-			DSField field = columns.get(i);
-			builder.append(",").append(field.getName());
+		for (int i = 1; i < selectFields.size(); i++) {
+			DSField field = selectFields.get(i);
+			mainQueryBuilder.append(",").append(field.getName());
 		}
 
-		builder
+		mainQueryBuilder
 			.append(" from (")
 			.append(dataSource.getSql()) //TODO: the sql must be process by FreeMarker template engine
 			.append(")");
 
-		appendWhere(filters, dataSource, builder);
+		appendWhere(filters, dataSource, mainQueryBuilder);
 
 		if (sortFields != null && sortFields.size() > 0) {
-			builder.append(" order by ");
+			mainQueryBuilder.append(" order by ");
 			boolean firstAdded = false;
 			for (Map.Entry<String, String> sortField : sortFields.entrySet()) {
 				//TODO check field
 				if (firstAdded) {
-					builder.append(",");
+					mainQueryBuilder.append(",");
 				} else {
 					firstAdded = true;
 				}
-				builder
+				mainQueryBuilder
 					.append(sortField.getKey())
 					.append(" ")
 					.append(sortField.getValue());
 			}
 		}
 
-		//TODO add pagination
+		logger.debug("executeDataSource: MAIN SQL: {}", mainQueryBuilder.toString());
 
-		logger.debug("executeDataSource: FINAL SQL: {}", builder.toString());
+		if (pageIndex != null && pageSize != null) {
+			mainQueryBuilder.insert(0, "select * from (select rownum rnum_pg, a.* from (");
+			mainQueryBuilder.append(") a) where rnum_pg between :pg_first and :pg_last");
 
-		return dbConnectionService.executeQuery(dataSource.getDbConnectionRef(), builder.toString(), filters);
+			filters = new HashMap<>(filters);
+			filters.put("pg_first", (pageIndex - 1) * pageSize + 1);
+			filters.put("pg_last", pageIndex * pageSize);
+
+			logger.debug("executeDataSource: PAGING SQL: {}", mainQueryBuilder.toString());
+		}
+
+		return dbConnectionService.executeQuery(dataSource.getDbConnectionRef(), mainQueryBuilder.toString(), filters);
 	}
 
 	private void appendWhere(Map<String, Object> filters, DataSource dataSource, StringBuilder builder) {
@@ -127,10 +141,22 @@ public class DataSourceService implements IDataSourceService {
 					} else {
 						firstAdded = true;
 					}
-					builder
-						.append(field.getName())
-						.append(" = :")
-						.append(field.getName());
+					builder.append(field.getName());
+					switch (field.getFilterType()) {
+
+						case Equal:
+							builder.append(" = :").append(field.getName());
+							break;
+						case Contain:
+							builder.append(" like :").append(field.getName());
+							break;
+						case Range:
+							//TODO
+							break;
+						case List:
+							builder.append(" in :").append(field.getName());
+							break;
+					}
 				} // TODO else check in params
 			}
 		}

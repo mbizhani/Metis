@@ -5,5 +5,6 @@ public enum DSFieldType {
 	Integer,
 	Real,
 	Date,
+	DateTime,
 	Boolean
 }
