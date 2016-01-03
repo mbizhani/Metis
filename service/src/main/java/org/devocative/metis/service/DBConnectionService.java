@@ -3,11 +3,13 @@ package org.devocative.metis.service;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.DBConnectionInfo;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -103,5 +105,25 @@ public class DBConnectionService implements IDBConnectionService {
 			}
 			return result;
 		}
+	}
+
+	public List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(String name, String query) throws SQLException {
+		List<KeyValueVO<Serializable, String>> result = new ArrayList<>();
+
+		try (Connection connection = getConnection(name)) {
+			NamedParameterStatement nps = new NamedParameterStatement(connection);
+			nps.setSchema(CONNECTION_MAP.get(name).getSchema());
+			nps.setQuery(query);
+			ResultSet rs = nps.executeQuery();
+			ResultSetMetaData metaData = rs.getMetaData();
+			while (rs.next()) {
+				Serializable key = (Serializable) rs.getObject(1);
+				String value = metaData.getColumnCount() > 1 ?
+					rs.getString(2) :
+					rs.getString(1);
+				result.add(new KeyValueVO<>(key, value));
+			}
+		}
+		return result;
 	}
 }

@@ -12,17 +12,16 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.dataSource.DSField;
+import org.devocative.metis.entity.dataSource.DSFieldFilterType;
 import org.devocative.metis.entity.dataSource.DSFieldType;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.service.DataSourceService;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WDataSource;
 import org.devocative.wickomp.data.WSortField;
-import org.devocative.wickomp.form.WBooleanInput;
-import org.devocative.wickomp.form.WDateInput;
-import org.devocative.wickomp.form.WNumberInput;
-import org.devocative.wickomp.form.WTextInput;
+import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
 import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.formatter.ONumberFormatter;
@@ -39,8 +38,8 @@ import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +99,11 @@ public class Index extends WebPage {
 						view.add(new WDateInput(dsField.getName(), OCalendar.Persian)
 							.setTimePartVisible(DSFieldType.DateTime == dsField.getType()));
 						break;
+
+					case LookUp:
+						List<KeyValueVO<Serializable, String>> lookUpList = DataSourceService.get().getLookUpList(dataSource, dsField);
+						view.add(new WSelectionInput(dsField.getName(), lookUpList, dsField.getFilterType() == DSFieldFilterType.List));
+						break;
 				}
 
 				item.add(view);
@@ -117,26 +121,28 @@ public class Index extends WebPage {
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 		for (DSField dsField : dataSource.getFields()) {
-			OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName())
-				.setSortable(true);
-			switch (dsField.getType()) {
-				case Integer:
-					column.setFormatter(ONumberFormatter.integer());
-					break;
-				case Real:
-					column.setFormatter(ONumberFormatter.real());
-					break;
-				case Date:
-					column.setFormatter(ODateFormatter.prDate());
-					break;
-				case DateTime:
-					column.setFormatter(ODateFormatter.prDateTime());
-					break;
-				case Boolean:
-					column.setFormatter(OBooleanFormatter.bool());
-					break;
+			if (DSFieldType.LookUp != dsField.getType()) {
+				OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName())
+					.setSortable(true);
+				switch (dsField.getType()) {
+					case Integer:
+						column.setFormatter(ONumberFormatter.integer());
+						break;
+					case Real:
+						column.setFormatter(ONumberFormatter.real());
+						break;
+					case Date:
+						column.setFormatter(ODateFormatter.prDate());
+						break;
+					case DateTime:
+						column.setFormatter(ODateFormatter.prDateTime());
+						break;
+					case Boolean:
+						column.setFormatter(OBooleanFormatter.bool());
+						break;
+				}
+				columns.add(column);
 			}
-			columns.add(column);
 		}
 
 		OGrid<Map<String, Object>> gridOptions = new OGrid<>();
@@ -157,41 +163,33 @@ public class Index extends WebPage {
 	private class SearchDataSource extends WDataSource<Map<String, Object>> {
 		@Override
 		public List<Map<String, Object>> list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
-			try {
-				Map<String, String> sortFieldsMap = null;
-				if (sortFieldList != null && sortFieldList.size() > 0) {
-					sortFieldsMap = new HashMap<>();
-					for (WSortField sortField : sortFieldList) {
-						sortFieldsMap.put(sortField.getField(), sortField.getOrder());
-					}
+			Map<String, String> sortFieldsMap = null;
+			if (sortFieldList != null && sortFieldList.size() > 0) {
+				sortFieldsMap = new HashMap<>();
+				for (WSortField sortField : sortFieldList) {
+					sortFieldsMap.put(sortField.getField(), sortField.getOrder());
 				}
-
-				Map<String, Object> filtersCloned = new HashMap<>();
-				for (Map.Entry<String, Object> entry : filters.entrySet()) {
-					if (entry.getValue() != null) {
-						filtersCloned.put(entry.getKey(), entry.getValue());
-					}
-				}
-				return DataSourceService.get().executeDataSource(dataSourceName, filtersCloned, sortFieldsMap,
-					pageIndex, pageSize);
-			} catch (SQLException e) {
-				throw new RuntimeException(e);
 			}
+
+			Map<String, Object> filtersCloned = new HashMap<>();
+			for (Map.Entry<String, Object> entry : filters.entrySet()) {
+				if (entry.getValue() != null) {
+					filtersCloned.put(entry.getKey(), entry.getValue());
+				}
+			}
+			return DataSourceService.get().executeDataSource(dataSourceName, filtersCloned, sortFieldsMap,
+				pageIndex, pageSize);
 		}
 
 		@Override
 		public long count() {
-			try {
-				Map<String, Object> filtersCloned = new HashMap<>();
-				for (Map.Entry<String, Object> entry : filters.entrySet()) {
-					if (entry.getValue() != null) {
-						filtersCloned.put(entry.getKey(), entry.getValue());
-					}
+			Map<String, Object> filtersCloned = new HashMap<>();
+			for (Map.Entry<String, Object> entry : filters.entrySet()) {
+				if (entry.getValue() != null) {
+					filtersCloned.put(entry.getKey(), entry.getValue());
 				}
-				return DataSourceService.get().getCountForDataSource(dataSourceName, filtersCloned);
-			} catch (SQLException e) {
-				throw new RuntimeException(e);
 			}
+			return DataSourceService.get().getCountForDataSource(dataSourceName, filtersCloned);
 		}
 
 		@Override

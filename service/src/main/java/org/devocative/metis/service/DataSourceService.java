@@ -1,6 +1,7 @@
 package org.devocative.metis.service;
 
 import com.thoughtworks.xstream.XStream;
+import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.dataSource.DSField;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -8,6 +9,7 @@ import org.devocative.metis.iservice.IDataSourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -47,7 +49,7 @@ public class DataSourceService implements IDataSourceService {
 		return DATA_SOURCE_MAP.get(name);
 	}
 
-	public long getCountForDataSource(String name, Map<String, Object> filters) throws SQLException {
+	public long getCountForDataSource(String name, Map<String, Object> filters) {
 		DataSource dataSource = DATA_SOURCE_MAP.get(name);
 
 		StringBuilder builder = new StringBuilder();
@@ -56,19 +58,23 @@ public class DataSourceService implements IDataSourceService {
 			.append(dataSource.getSql())
 			.append(")");
 
-		appendWhere(filters, dataSource, builder);
+		Map<String, Object> queryParams = appendWhere(filters, dataSource, builder);
 
 		logger.debug("executeDataSource: FINAL SQL: {}", builder.toString());
 
-		List<Map<String, Object>> list = dbConnectionService.executeQuery(dataSource.getDbConnectionRef(), builder.toString(), filters);
-		return ((BigDecimal) list.get(0).get("cnt")).longValue();
+		try {
+			List<Map<String, Object>> list = dbConnectionService.executeQuery(dataSource.getDbConnectionRef(), builder.toString(), queryParams);
+			return ((BigDecimal) list.get(0).get("cnt")).longValue();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public List<Map<String, Object>> executeDataSource(String name,
 													   Map<String, Object> filters,
 													   Map<String, String> sortFields,
 													   Long pageIndex,
-													   Long pageSize) throws SQLException {
+													   Long pageSize) {
 		DataSource dataSource = DATA_SOURCE_MAP.get(name);
 
 		List<DSField> selectFields = new ArrayList<>();
@@ -93,7 +99,7 @@ public class DataSourceService implements IDataSourceService {
 			.append(dataSource.getSql()) //TODO: the sql must be process by FreeMarker template engine
 			.append(")");
 
-		appendWhere(filters, dataSource, mainQueryBuilder);
+		Map<String, Object> queryParams = appendWhere(filters, dataSource, mainQueryBuilder);
 
 		if (sortFields != null && sortFields.size() > 0) {
 			mainQueryBuilder.append(" order by ");
@@ -118,47 +124,72 @@ public class DataSourceService implements IDataSourceService {
 			mainQueryBuilder.insert(0, "select * from (select rownum rnum_pg, a.* from (");
 			mainQueryBuilder.append(") a) where rnum_pg between :pg_first and :pg_last");
 
-			filters = new HashMap<>(filters);
-			filters.put("pg_first", (pageIndex - 1) * pageSize + 1);
-			filters.put("pg_last", pageIndex * pageSize);
+			queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
+			queryParams.put("pg_last", pageIndex * pageSize);
 
 			logger.debug("executeDataSource: PAGING SQL: {}", mainQueryBuilder.toString());
 		}
 
-		return dbConnectionService.executeQuery(dataSource.getDbConnectionRef(), mainQueryBuilder.toString(), filters);
+		try {
+			return dbConnectionService.executeQuery(dataSource.getDbConnectionRef(), mainQueryBuilder.toString(), queryParams);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
-	private void appendWhere(Map<String, Object> filters, DataSource dataSource, StringBuilder builder) {
+	public List<KeyValueVO<Serializable, String>> getLookUpList(DataSource dataSource, DSField field) {
+		try {
+			return dbConnectionService.executeQueryAsKeyValues(dataSource.getDbConnectionRef(), field.getSqlOpt());
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Map<String, Object> appendWhere(Map<String, Object> filters, DataSource dataSource, StringBuilder builder) {
+		Map<String, Object> queryParams = new HashMap<>();
+
 		if (filters != null && filters.size() > 0) {
 			builder.append(" where ");
 			boolean firstAdded = false;
 			for (Map.Entry<String, Object> filter : filters.entrySet()) {
-				DSField field = dataSource.getField(filter.getKey());
-				if (field != null) {
+				DSField dsField = dataSource.getField(filter.getKey());
+				if (dsField != null) {
 					//TODO: consider field.filterType
 					if (firstAdded) {
 						builder.append(" and ");
 					} else {
 						firstAdded = true;
 					}
-					builder.append(field.getName());
-					switch (field.getFilterType()) {
+					builder.append(dsField.getName());
+
+					switch (dsField.getFilterType()) {
 
 						case Equal:
-							builder.append(" = :").append(field.getName());
+							builder.append(" = :").append(dsField.getName());
+							queryParams.put(dsField.getName(), filter.getValue());
 							break;
 						case Contain:
-							builder.append(" like :").append(field.getName());
+							builder.append(" like :").append(dsField.getName());
+							queryParams.put(dsField.getName(), filter.getValue());
 							break;
 						case Range:
 							//TODO
-							break;
+							throw new RuntimeException("Range not supported!");
+							//break;
 						case List:
-							builder.append(" in :").append(field.getName());
+							builder.append(" in (:").append(dsField.getName()).append(")");
+							List<Serializable> items = new ArrayList<>();
+							List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
+							for (KeyValueVO<Serializable, String> keyValue : list) {
+								items.add(keyValue.getKey());
+							}
+							queryParams.put(dsField.getName(), items);
 							break;
 					}
 				} // TODO else check in params
 			}
 		}
+
+		return queryParams;
 	}
 }

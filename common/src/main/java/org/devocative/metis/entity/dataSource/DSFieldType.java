@@ -6,5 +6,6 @@ public enum DSFieldType {
 	Real,
 	Date,
 	DateTime,
-	Boolean
+	Boolean,
+	LookUp
 }
