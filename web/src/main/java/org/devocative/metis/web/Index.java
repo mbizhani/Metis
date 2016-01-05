@@ -11,6 +11,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.dataSource.DSField;
@@ -33,7 +34,6 @@ import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
 import org.devocative.wickomp.grid.toolbar.OGroupFieldButton;
 import org.devocative.wickomp.html.icon.FontAwesome;
-import org.devocative.wickomp.opt.OCalendar;
 import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,8 +96,11 @@ public class Index extends WebPage {
 
 					case Date:
 					case DateTime:
-						view.add(new WDateInput(dsField.getName(), OCalendar.Persian)
-							.setTimePartVisible(DSFieldType.DateTime == dsField.getType()));
+						if (DSFieldFilterType.Range.equals(dsField.getFilterType())) {
+							view.add(new WDateRangeInput(dsField.getName()).setTimePartVisible(DSFieldType.DateTime == dsField.getType()));
+						} else {
+							view.add(new WDateInput(dsField.getName()).setTimePartVisible(DSFieldType.DateTime == dsField.getType()));
+						}
 						break;
 
 					case LookUp:
@@ -109,9 +112,10 @@ public class Index extends WebPage {
 				item.add(view);
 			}
 		});
-		dynamicForm.add(new AjaxButton("save") {
+		dynamicForm.add(new AjaxButton("search") {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				logger.debug("Map: {}", filters);
 				gridDS.setEnabled(true);
 				grid.loadData(target);
 			}
@@ -151,11 +155,11 @@ public class Index extends WebPage {
 			.setMultiSort(true)
 			.setGroupStyle("background-color:#dddddd")
 			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
-				new FontAwesome("file-excel-o", "green", new Model<>("Export to excel")),
+				new FontAwesome("file-excel-o", "green", new ResourceModel("label.export.excel")),
 				String.format("%s-Export.xlsx", dataSourceName),
 				10000))
 			.addToolbarButton(new OGroupFieldButton<Map<String, Object>>());
-		gridOptions.setHeight(OSize.fixed(500));
+		gridOptions.setHeight(OSize.fixed(800));
 
 		add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
 	}

@@ -2,6 +2,7 @@ package org.devocative.metis.service;
 
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.vo.KeyValueVO;
+import org.devocative.adroit.vo.RangeVO;
 import org.devocative.metis.entity.dataSource.DSField;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -149,35 +150,40 @@ public class DataSourceService implements IDataSourceService {
 		Map<String, Object> queryParams = new HashMap<>();
 
 		if (filters != null && filters.size() > 0) {
-			builder.append(" where ");
-			boolean firstAdded = false;
+			builder.append(" where 1=1 ");
 			for (Map.Entry<String, Object> filter : filters.entrySet()) {
 				DSField dsField = dataSource.getField(filter.getKey());
 				if (dsField != null) {
-					//TODO: consider field.filterType
-					if (firstAdded) {
-						builder.append(" and ");
-					} else {
-						firstAdded = true;
-					}
-					builder.append(dsField.getName());
-
 					switch (dsField.getFilterType()) {
 
-						case Equal:
-							builder.append(" = :").append(dsField.getName());
+						case Equal: // All types
+							Object value = filter.getValue();
+							if (value instanceof KeyValueVO) {
+								value = ((KeyValueVO) value).getKey();
+							}
+							builder.append(String.format("and %1$s  = :%1$s ", dsField.getName()));
+							queryParams.put(dsField.getName(), value);
+							break;
+
+						case Contain: // Only String
+							builder.append(String.format("and %1$s like :%1$s ", dsField.getName()));
 							queryParams.put(dsField.getName(), filter.getValue());
 							break;
-						case Contain:
-							builder.append(" like :").append(dsField.getName());
-							queryParams.put(dsField.getName(), filter.getValue());
+
+						case Range: // Date & Number
+							RangeVO rangeVO = (RangeVO) filter.getValue();
+							if (rangeVO.getLower() != null) {
+								builder.append(String.format("and %1$s >= :%1$s_l ", dsField.getName()));
+								queryParams.put(dsField.getName() + "_l", rangeVO.getLower());
+							}
+							if (rangeVO.getUpper() != null) {
+								builder.append(String.format("and %1$s < :%1$s_u ", dsField.getName()));
+								queryParams.put(dsField.getName() + "_u", rangeVO.getUpper());
+							}
 							break;
-						case Range:
-							//TODO
-							throw new RuntimeException("Range not supported!");
-							//break;
-						case List:
-							builder.append(" in (:").append(dsField.getName()).append(")");
+
+						case List: // All types (except boolean)
+							builder.append(String.format("and %1$s in (:%1$s) ", dsField.getName()));
 							List<Serializable> items = new ArrayList<>();
 							List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
 							for (KeyValueVO<Serializable, String> keyValue : list) {

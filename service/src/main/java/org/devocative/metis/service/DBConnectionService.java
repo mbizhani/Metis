@@ -10,10 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +80,7 @@ public class DBConnectionService implements IDBConnectionService {
 			NamedParameterStatement nps = new NamedParameterStatement(connection);
 			nps.setSchema(CONNECTION_MAP.get(name).getSchema());
 			nps.setQuery(query);
+			nps.setDateClassReplacement(Timestamp.class);
 			if (params != null) {
 				nps.setParameters(params);
 			}
@@ -114,6 +112,8 @@ public class DBConnectionService implements IDBConnectionService {
 			NamedParameterStatement nps = new NamedParameterStatement(connection);
 			nps.setSchema(CONNECTION_MAP.get(name).getSchema());
 			nps.setQuery(query);
+			nps.setDateClassReplacement(Timestamp.class);
+
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
 			while (rs.next()) {
