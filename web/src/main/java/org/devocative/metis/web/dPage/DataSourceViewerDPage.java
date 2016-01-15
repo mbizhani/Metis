@@ -1,4 +1,4 @@
-package org.devocative.metis.web.panel;
+package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -6,19 +6,18 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.request.IRequestParameters;
 import org.devocative.adroit.vo.KeyValueVO;
+import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.dataSource.DSField;
 import org.devocative.metis.entity.dataSource.DSFieldFilterType;
 import org.devocative.metis.entity.dataSource.DSFieldType;
 import org.devocative.metis.entity.dataSource.DataSource;
-import org.devocative.metis.service.DataSourceService;
+import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WDataSource;
 import org.devocative.wickomp.data.WSortField;
@@ -38,14 +37,18 @@ import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DataSourceViewerPanel extends Panel {
-	private static final Logger logger = LoggerFactory.getLogger(DataSourceViewerPanel.class);
+public class DataSourceViewerDPage extends DPage {
+	private static final Logger logger = LoggerFactory.getLogger(DataSourceViewerDPage.class);
+
+	@Inject
+	private IDataSourceService dataSourceService;
 
 	private SearchDataSource gridDS;
 	private Map<String, Object> filters;
@@ -53,19 +56,18 @@ public class DataSourceViewerPanel extends Panel {
 
 	private String dataSourceName;
 
-	public DataSourceViewerPanel(String id) {
-		super(id);
+	public DataSourceViewerDPage(String id, List<String> params) {
+		super(id, params);
 
 		filters = new HashMap<>();
 		gridDS = new SearchDataSource();
 		gridDS.setEnabled(false);
 
-		IRequestParameters parameters = getRequest().getRequestParameters();
-		dataSourceName = parameters.getParameterValue("ds").toString("ItemDS");
+		dataSourceName = params.get(0);
 		logger.info("DataSource param = {}", dataSourceName);
 
 
-		final DataSource dataSource = DataSourceService.get().getDataSource(dataSourceName);
+		final DataSource dataSource = dataSourceService.getDataSource(dataSourceName);
 
 		Form<Map<String, Object>> dynamicForm = new Form<>("dynamicForm", new CompoundPropertyModel<>(filters));
 		dynamicForm.add(new ListView<DSField>("fields", dataSource.getFields()) {
@@ -106,7 +108,7 @@ public class DataSourceViewerPanel extends Panel {
 						break;
 
 					case LookUp:
-						List<KeyValueVO<Serializable, String>> lookUpList = DataSourceService.get().getLookUpList(dataSource, dsField);
+						List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dataSource, dsField);
 						view.add(new WSelectionInput(dsField.getName(), lookUpList, dsField.getFilterType() == DSFieldFilterType.List));
 						break;
 				}
@@ -184,7 +186,7 @@ public class DataSourceViewerPanel extends Panel {
 					filtersCloned.put(entry.getKey(), entry.getValue());
 				}
 			}
-			return DataSourceService.get().executeDataSource(dataSourceName, filtersCloned, sortFieldsMap,
+			return dataSourceService.executeDataSource(dataSourceName, filtersCloned, sortFieldsMap,
 				pageIndex, pageSize);
 		}
 
@@ -196,7 +198,7 @@ public class DataSourceViewerPanel extends Panel {
 					filtersCloned.put(entry.getKey(), entry.getValue());
 				}
 			}
-			return DataSourceService.get().getCountForDataSource(dataSourceName, filtersCloned);
+			return dataSourceService.getCountForDataSource(dataSourceName, filtersCloned);
 		}
 
 		@Override

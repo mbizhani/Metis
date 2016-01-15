@@ -9,22 +9,16 @@
 		<artifactId>metis-parent</artifactId>
 		<version>1.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>metis-common</artifactId>
+	<artifactId>metis-module</artifactId>
 	<packaging>jar</packaging>
 
-	<name>Metis Common</name>
+	<name>Metis Module</name>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.devocative</groupId>
-			<artifactId>adroit</artifactId>
-			<version>${adroit.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.thoughtworks.xstream</groupId>
-			<artifactId>xstream</artifactId>
-			<version>1.4.8</version>
+			<artifactId>demeter-common</artifactId>
+			<version>${demeter.version}</version>
 		</dependency>
 	</dependencies>
 </project>

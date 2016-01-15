@@ -8,6 +8,7 @@ import org.devocative.metis.entity.DBConnectionInfo;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.sql.*;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Service("mtsDBConnectionService")
 public class DBConnectionService implements IDBConnectionService {
 	private static final Logger logger = LoggerFactory.getLogger(DBConnectionService.class);
 
@@ -30,16 +32,6 @@ public class DBConnectionService implements IDBConnectionService {
 			logger.debug("DBConnectionInfo: {}", connection);
 			CONNECTION_MAP.put(connection.getName(), connection);
 		}
-	}
-
-	//------------------------------- SINGLETON
-	private static DBConnectionService instance = new DBConnectionService();
-
-	private DBConnectionService() {
-	}
-
-	public static DBConnectionService get() {
-		return instance;
 	}
 
 	//------------------------------- METHODS

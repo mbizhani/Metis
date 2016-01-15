@@ -8,6 +8,7 @@ import org.devocative.wickomp.opt.OUserPreference;
 
 import java.util.Locale;
 
+@Deprecated
 public class MetisWebSession extends WebSession implements OUserPreference {
 	public MetisWebSession(Request request) {
 		super(request);

@@ -6,6 +6,7 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 
+@Deprecated
 public class MetisWebApplication extends WebApplication {
 
 	@Override

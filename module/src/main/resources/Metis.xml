@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE module PUBLIC
+		"Devocative/Demeter Module"
+		"http://www.devocative.org/dtd/demeter-module.dtd">
+
+<module
+		shortName="MTS"
+		mainClass="org.devocative.metis.module.MetisDModule">
+
+	<entities>
+		<entity type="org.devocative.metis.entity.DBConnectionInfo"/>
+		<!--<entity type="org.devocative.metis.entity.dataSource.DataSource"/>-->
+	</entities>
+
+	<dPages>
+		<dPage type="" title="" uri=""/>
+	</dPages>
+</module>

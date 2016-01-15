@@ -9,6 +9,8 @@ import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Service("mtsDataSourceService")
 public class DataSourceService implements IDataSourceService {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceService.class);
 	private static final Map<String, DataSource> DATA_SOURCE_MAP = new HashMap<>();
@@ -32,19 +35,10 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
-	//------------------------ SINGLETON
-	private static DataSourceService instance = new DataSourceService();
-
-	private DataSourceService() {
-	}
-
-	public static DataSourceService get() {
-		return instance;
-	}
-
 	//------------------------ METHODS
 
-	private IDBConnectionService dbConnectionService = DBConnectionService.get();
+	@Autowired
+	private IDBConnectionService dbConnectionService;
 
 	public DataSource getDataSource(String name) {
 		return DATA_SOURCE_MAP.get(name);

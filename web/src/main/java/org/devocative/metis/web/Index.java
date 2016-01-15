@@ -1,10 +1,10 @@
 package org.devocative.metis.web;
 
 import org.apache.wicket.markup.html.WebPage;
-import org.devocative.metis.web.panel.DataSourceViewerPanel;
 
+@Deprecated
 public class Index extends WebPage {
 	public Index() {
-		add(new DataSourceViewerPanel("dataSource"));
+		//add(new DataSourceViewerDPage("dataSource"));
 	}
 }
