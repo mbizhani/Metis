@@ -6,14 +6,15 @@
 
 <module
 		shortName="MTS"
-		mainClass="org.devocative.metis.module.MetisDModule">
+		mainClass="org.devocative.metis.module.MetisDModule"
+		mainResource="org.devocative.metis.web.MetisDModule">
 
-	<entities>
+	<!--<entities>
 		<entity type="org.devocative.metis.entity.DBConnectionInfo"/>
-		<!--<entity type="org.devocative.metis.entity.dataSource.DataSource"/>-->
-	</entities>
+		<entity type="org.devocative.metis.entity.dataSource.DataSource"/>
+	</entities>-->
 
 	<dPages>
-		<dPage type="" title="" uri=""/>
+		<dPage type="org.devocative.metis.web.dPage.DataSourceViewerDPage" title="DataSourceViewer" uri="/dsviewer"/>
 	</dPages>
 </module>

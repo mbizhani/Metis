@@ -17,8 +17,8 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.devocative</groupId>
-			<artifactId>adroit</artifactId>
-			<version>${adroit.version}</version>
+			<artifactId>demeter-common</artifactId>
+			<version>${demeter.version}</version>
 		</dependency>
 
 		<dependency>

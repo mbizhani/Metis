@@ -12,7 +12,6 @@
 
 	<properties>
 		<demeter.version>1.0-SNAPSHOT</demeter.version>
-		<adroit.version>1.0-SNAPSHOT</adroit.version>
 
 		<spring.version>4.2.4.RELEASE</spring.version>
 		<jetty.version>8.1.16.v20140903</jetty.version>
