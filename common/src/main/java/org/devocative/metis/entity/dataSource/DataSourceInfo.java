@@ -1,6 +1,8 @@
-package org.devocative.metis.entity;
+package org.devocative.metis.entity.dataSource;
 
 import org.devocative.demeter.entity.*;
+import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.DBConnectionInfo;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -9,36 +11,32 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_db_conn_info")
-public class DBConnectionInfo implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+@Table(name = "t_mts_data_src_info")
+public class DataSourceInfo implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
-	@GeneratedValue(generator = "mts_db_conn_info")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_db_conn_info", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+	@GeneratedValue(generator = "mts_data_src_info")
+	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src_info", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 		parameters = {
 			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
 			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
 			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_db_conn_info")
+			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_data_src_info")
 		})
 	private Long id;
 
 	@Column(name = "c_name", nullable = false, unique = true)
 	private String name;
 
-	@Column(name = "c_driver", nullable = false)
-	private String driver;
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "datasrc2cfglob"))
+	private ConfigLob config;
 
-	@Column(name = "c_url", nullable = false)
-	private String url;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "f_conn_info", foreignKey = @ForeignKey(name = "datasrc2dbconn"))
+	private DBConnectionInfo connectionInfo;
 
-	@Column(name = "c_username")
-	private String username;
-
-	@Column(name = "c_password")
-	private String password;
-
-	@Column(name = "c_schema")
-	private String schema;
+	@Column(name = "f_conn_info", insertable = false, updatable = false)
+	private Long connectionInfoId;
 
 	//----------------------------- CREATE / MODIFY
 
@@ -86,44 +84,24 @@ public class DBConnectionInfo implements ICreationDate, ICreatorUser, IModificat
 		this.name = name;
 	}
 
-	public String getDriver() {
-		return driver;
+	public ConfigLob getConfig() {
+		return config;
 	}
 
-	public void setDriver(String driver) {
-		this.driver = driver;
+	public void setConfig(ConfigLob config) {
+		this.config = config;
 	}
 
-	public String getUrl() {
-		return url;
+	public DBConnectionInfo getConnectionInfo() {
+		return connectionInfo;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public void setConnectionInfo(DBConnectionInfo connectionInfo) {
+		this.connectionInfo = connectionInfo;
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getSchema() {
-		return schema;
-	}
-
-	public void setSchema(String schema) {
-		this.schema = schema;
+	public Long getConnectionInfoId() {
+		return connectionInfoId;
 	}
 
 	@Override
@@ -195,9 +173,9 @@ public class DBConnectionInfo implements ICreationDate, ICreatorUser, IModificat
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (!(o instanceof DBConnectionInfo)) return false;
+		if (!(o instanceof DataSourceInfo)) return false;
 
-		DBConnectionInfo that = (DBConnectionInfo) o;
+		DataSourceInfo that = (DataSourceInfo) o;
 
 		return !(getId() != null ? !getId().equals(that.getId()) : that.getId() != null);
 

@@ -1,4 +1,4 @@
-package org.devocative.metis.entity.dataSource;
+package org.devocative.metis.entity.dataSource.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -6,7 +6,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import java.io.Serializable;
 
 @XStreamAlias("field")
-public class DSField implements Serializable {
+public class XDSField implements Serializable {
 	@XStreamAsAttribute
 	private String name;
 
@@ -14,16 +14,16 @@ public class DSField implements Serializable {
 	private String title;
 
 	@XStreamAsAttribute
-	private DSFieldType type;
+	private XDSFieldType type;
 
 	@XStreamAsAttribute
 	private String format;
 
 	@XStreamAsAttribute
-	private DSFieldFilterType filterType;
+	private XDSFieldFilterType filterType;
 
 	@XStreamAsAttribute
-	private DSFieldPlaceType placeType;
+	private XDSFieldPlaceType placeType;
 
 	private String mapOpt;
 
@@ -47,11 +47,11 @@ public class DSField implements Serializable {
 		this.title = title;
 	}
 
-	public DSFieldType getType() {
+	public XDSFieldType getType() {
 		return type;
 	}
 
-	public void setType(DSFieldType type) {
+	public void setType(XDSFieldType type) {
 		this.type = type;
 	}
 
@@ -64,21 +64,21 @@ public class DSField implements Serializable {
 	}
 
 	// Has Default
-	public DSFieldFilterType getFilterType() {
-		return filterType != null ? filterType : DSFieldFilterType.Equal;
+	public XDSFieldFilterType getFilterType() {
+		return filterType != null ? filterType : XDSFieldFilterType.Equal;
 	}
 
-	public DSField setFilterType(DSFieldFilterType filterType) {
+	public XDSField setFilterType(XDSFieldFilterType filterType) {
 		this.filterType = filterType;
 		return this;
 	}
 
 	// Has Default
-	public DSFieldPlaceType getPlaceType() {
-		return placeType != null ? placeType : DSFieldPlaceType.Both;
+	public XDSFieldPlaceType getPlaceType() {
+		return placeType != null ? placeType : XDSFieldPlaceType.Both;
 	}
 
-	public DSField setPlaceType(DSFieldPlaceType placeType) {
+	public XDSField setPlaceType(XDSFieldPlaceType placeType) {
 		this.placeType = placeType;
 		return this;
 	}
@@ -87,7 +87,7 @@ public class DSField implements Serializable {
 		return mapOpt;
 	}
 
-	public DSField setMapOpt(String mapOpt) {
+	public XDSField setMapOpt(String mapOpt) {
 		this.mapOpt = mapOpt;
 		return this;
 	}
@@ -96,7 +96,7 @@ public class DSField implements Serializable {
 		return listOpt;
 	}
 
-	public DSField setListOpt(String listOpt) {
+	public XDSField setListOpt(String listOpt) {
 		this.listOpt = listOpt;
 		return this;
 	}
@@ -105,7 +105,7 @@ public class DSField implements Serializable {
 		return sqlOpt;
 	}
 
-	public DSField setSqlOpt(String sqlOpt) {
+	public XDSField setSqlOpt(String sqlOpt) {
 		this.sqlOpt = sqlOpt;
 		return this;
 	}

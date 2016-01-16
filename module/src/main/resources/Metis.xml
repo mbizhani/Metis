@@ -9,12 +9,15 @@
 		mainClass="org.devocative.metis.module.MetisDModule"
 		mainResource="org.devocative.metis.web.MetisDModule">
 
-	<!--<entities>
+	<entities>
 		<entity type="org.devocative.metis.entity.DBConnectionInfo"/>
-		<entity type="org.devocative.metis.entity.dataSource.DataSource"/>
-	</entities>-->
+		<entity type="org.devocative.metis.entity.ConfigLob"/>
+		<entity type="org.devocative.metis.entity.dataSource.DataSourceInfo"/>
+	</entities>
 
 	<dPages>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceViewerDPage" title="DataSourceViewer" uri="/dsviewer"/>
+		<dPage type="org.devocative.metis.web.dPage.DataSourceViewerDPage" title="Data Source Viewer" uri="/dsviewer"/>
+		<dPage type="org.devocative.metis.web.dPage.DataSourceList" title="Data Source List" uri="/dslist"/>
+		<dPage type="org.devocative.metis.web.dPage.DBConnectionForm" title="DB Connection Form" uri="/dbcform"/>
 	</dPages>
 </module>

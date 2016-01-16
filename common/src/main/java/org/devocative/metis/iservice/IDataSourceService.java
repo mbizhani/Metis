@@ -1,15 +1,22 @@
 package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
-import org.devocative.metis.entity.dataSource.DSField;
-import org.devocative.metis.entity.dataSource.DataSource;
+import org.devocative.metis.entity.dataSource.DataSourceInfo;
+import org.devocative.metis.entity.dataSource.config.XDSField;
+import org.devocative.metis.entity.dataSource.config.XDataSource;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 public interface IDataSourceService {
-	DataSource getDataSource(String name);
+	void saveOrUpdate(DataSourceInfo dataSourceInfo);
+
+	List<DataSourceInfo> search(long firstResult, long maxResults);
+
+	long count();
+
+	XDataSource getDataSource(String name);
 
 	long getCountForDataSource(String name, Map<String, Object> filters);
 
@@ -19,5 +26,5 @@ public interface IDataSourceService {
 												Long pageIndex,
 												Long pageSize);
 
-	List<KeyValueVO<Serializable, String>> getLookUpList(DataSource dataSource, DSField field);
+	List<KeyValueVO<Serializable, String>> getLookUpList(XDataSource dataSource, XDSField field);
 }

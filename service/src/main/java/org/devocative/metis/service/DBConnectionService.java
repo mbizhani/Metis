@@ -1,13 +1,14 @@
 package org.devocative.metis.service;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
+import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.DBConnectionInfo;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -20,30 +21,21 @@ import java.util.Map;
 @Service("mtsDBConnectionService")
 public class DBConnectionService implements IDBConnectionService {
 	private static final Logger logger = LoggerFactory.getLogger(DBConnectionService.class);
+	private static final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new HashMap<>();
+	private static final Map<Long, String> CONNECTION_SCHEMA_MAP = new HashMap<>();
 
-	private static final Map<String, DBConnectionInfo> CONNECTION_MAP = new HashMap<>();
-	private static final Map<String, ComboPooledDataSource> CONNECTION_POOL_MAP = new HashMap<>();
+	@Autowired
+	private IPersistorService persistorService;
 
-	static {
-		XStream xstream = new XStream();
-		xstream.processAnnotations(DBConnectionInfo.class);
-		List<DBConnectionInfo> list = (List<DBConnectionInfo>) xstream.fromXML(DBConnectionService.class.getResourceAsStream("/dbConnections.xml"));
-		for (DBConnectionInfo connection : list) {
-			logger.debug("DBConnectionInfo: {}", connection);
-			CONNECTION_MAP.put(connection.getName(), connection);
-		}
+	public void saveOrUpdate(DBConnectionInfo connectionInfo) {
+		persistorService.saveOrUpdate(connectionInfo);
+		persistorService.commitOrRollback();
 	}
 
-	//------------------------------- METHODS
-
-	public Connection getConnection(String name) {
-		if (!CONNECTION_MAP.containsKey(name)) {
-			throw new RuntimeException("Invalid connection name: " + name);
-		}
-
+	public Connection getConnection(Long id) {
 		try {
-			if (!CONNECTION_POOL_MAP.containsKey(name)) {
-				DBConnectionInfo info = CONNECTION_MAP.get(name);
+			if (!CONNECTION_POOL_MAP.containsKey(id)) {
+				DBConnectionInfo info = persistorService.get(DBConnectionInfo.class, id);
 
 				ComboPooledDataSource cpds = new ComboPooledDataSource();
 				cpds.setDriverClass(info.getDriver());
@@ -51,10 +43,11 @@ public class DBConnectionService implements IDBConnectionService {
 				cpds.setUser(info.getUsername());
 				cpds.setPassword(info.getPassword());
 
-				CONNECTION_POOL_MAP.put(name, cpds);
+				CONNECTION_POOL_MAP.put(id, cpds);
+				CONNECTION_SCHEMA_MAP.put(id, info.getSchema());
 			}
 
-			return CONNECTION_POOL_MAP.get(name).getConnection();
+			return CONNECTION_POOL_MAP.get(id).getConnection();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -66,11 +59,11 @@ public class DBConnectionService implements IDBConnectionService {
 		}
 	}
 
-	public List<Map<String, Object>> executeQuery(String name, String query, Map<String, Object> params) throws SQLException {
+	public List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params) throws SQLException {
 
-		try (Connection connection = getConnection(name)) {
+		try (Connection connection = getConnection(id)) {
 			NamedParameterStatement nps = new NamedParameterStatement(connection);
-			nps.setSchema(CONNECTION_MAP.get(name).getSchema());
+			nps.setSchema(CONNECTION_SCHEMA_MAP.get(id));
 			nps.setQuery(query);
 			nps.setDateClassReplacement(Timestamp.class);
 			if (params != null) {
@@ -97,12 +90,12 @@ public class DBConnectionService implements IDBConnectionService {
 		}
 	}
 
-	public List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(String name, String query) throws SQLException {
+	public List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long id, String query) throws SQLException {
 		List<KeyValueVO<Serializable, String>> result = new ArrayList<>();
 
-		try (Connection connection = getConnection(name)) {
+		try (Connection connection = getConnection(id)) {
 			NamedParameterStatement nps = new NamedParameterStatement(connection);
-			nps.setSchema(CONNECTION_MAP.get(name).getSchema());
+			nps.setSchema(CONNECTION_SCHEMA_MAP.get(id));
 			nps.setQuery(query);
 			nps.setDateClassReplacement(Timestamp.class);
 

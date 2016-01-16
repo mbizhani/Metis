@@ -3,8 +3,10 @@ package org.devocative.metis.service;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
-import org.devocative.metis.entity.dataSource.DSField;
-import org.devocative.metis.entity.dataSource.DataSource;
+import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.entity.dataSource.DataSourceInfo;
+import org.devocative.metis.entity.dataSource.config.XDSField;
+import org.devocative.metis.entity.dataSource.config.XDataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.slf4j.Logger;
@@ -23,29 +25,55 @@ import java.util.Map;
 @Service("mtsDataSourceService")
 public class DataSourceService implements IDataSourceService {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceService.class);
-	private static final Map<String, DataSource> DATA_SOURCE_MAP = new HashMap<>();
 
-	static {
-		XStream xstream = new XStream();
-		xstream.processAnnotations(DataSource.class);
-		List<DataSource> list = (List<DataSource>) xstream.fromXML(DBConnectionService.class.getResourceAsStream("/dataSources.xml"));
-		for (DataSource dataSource : list) {
-			logger.debug("DataSource: {}", dataSource);
-			DATA_SOURCE_MAP.put(dataSource.getName(), dataSource);
-		}
+	private XStream xstream;
+
+	public DataSourceService() {
+		xstream = new XStream();
+		xstream.processAnnotations(XDataSource.class);
 	}
-
-	//------------------------ METHODS
 
 	@Autowired
 	private IDBConnectionService dbConnectionService;
 
-	public DataSource getDataSource(String name) {
-		return DATA_SOURCE_MAP.get(name);
+	@Autowired
+	private IPersistorService persistorService;
+
+	public void saveOrUpdate(DataSourceInfo dataSourceInfo) {
+		persistorService.saveOrUpdate(dataSourceInfo);
+		persistorService.commitOrRollback();
+	}
+
+	public List<DataSourceInfo> search(long firstResult, long maxResults) {
+		return persistorService
+			.createQueryBuilder()
+			.addFrom(DataSourceInfo.class, "ent")
+			.list((firstResult - 1) * maxResults, firstResult * maxResults);
+	}
+
+	@Override
+	public long count() {
+		return persistorService
+			.createQueryBuilder()
+			.addSelect("select count(1)")
+			.addFrom(DataSourceInfo.class, "ent")
+			.object();
+	}
+
+	public XDataSource getDataSource(String name) {
+		DataSourceInfo dataSourceInfo = persistorService
+			.createQueryBuilder()
+			.addFrom(DataSourceInfo.class, "ent")
+			.addWhere("and ent.name = :name")
+			.addParam("name", name)
+			.object();
+		XDataSource xDataSource = (XDataSource) xstream.fromXML(dataSourceInfo.getConfig().getValue());
+		xDataSource.setConnectionInfoId(dataSourceInfo.getConnectionInfoId());
+		return xDataSource;
 	}
 
 	public long getCountForDataSource(String name, Map<String, Object> filters) {
-		DataSource dataSource = DATA_SOURCE_MAP.get(name);
+		XDataSource dataSource = getDataSource(name);
 
 		StringBuilder builder = new StringBuilder();
 		builder
@@ -58,7 +86,7 @@ public class DataSourceService implements IDataSourceService {
 		logger.debug("executeDataSource: FINAL SQL: {}", builder.toString());
 
 		try {
-			List<Map<String, Object>> list = dbConnectionService.executeQuery(dataSource.getDbConnectionRef(), builder.toString(), queryParams);
+			List<Map<String, Object>> list = dbConnectionService.executeQuery(dataSource.getConnectionInfoId(), builder.toString(), queryParams);
 			return ((BigDecimal) list.get(0).get("cnt")).longValue();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
@@ -70,10 +98,10 @@ public class DataSourceService implements IDataSourceService {
 													   Map<String, String> sortFields,
 													   Long pageIndex,
 													   Long pageSize) {
-		DataSource dataSource = DATA_SOURCE_MAP.get(name);
+		XDataSource dataSource = getDataSource(name);
 
-		List<DSField> selectFields = new ArrayList<>();
-		for (DSField field : dataSource.getFields()) {
+		List<XDSField> selectFields = new ArrayList<>();
+		for (XDSField field : dataSource.getFields()) {
 			switch (field.getPlaceType()) {
 				case Result:
 				case Both:
@@ -85,7 +113,7 @@ public class DataSourceService implements IDataSourceService {
 		mainQueryBuilder.append("select ").append(selectFields.get(0).getName());
 
 		for (int i = 1; i < selectFields.size(); i++) {
-			DSField field = selectFields.get(i);
+			XDSField field = selectFields.get(i);
 			mainQueryBuilder.append(",").append(field.getName());
 		}
 
@@ -126,27 +154,27 @@ public class DataSourceService implements IDataSourceService {
 		}
 
 		try {
-			return dbConnectionService.executeQuery(dataSource.getDbConnectionRef(), mainQueryBuilder.toString(), queryParams);
+			return dbConnectionService.executeQuery(dataSource.getConnectionInfoId(), mainQueryBuilder.toString(), queryParams);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public List<KeyValueVO<Serializable, String>> getLookUpList(DataSource dataSource, DSField field) {
+	public List<KeyValueVO<Serializable, String>> getLookUpList(XDataSource dataSource, XDSField field) {
 		try {
-			return dbConnectionService.executeQueryAsKeyValues(dataSource.getDbConnectionRef(), field.getSqlOpt());
+			return dbConnectionService.executeQueryAsKeyValues(dataSource.getConnectionInfoId(), field.getSqlOpt());
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private Map<String, Object> appendWhere(Map<String, Object> filters, DataSource dataSource, StringBuilder builder) {
+	private Map<String, Object> appendWhere(Map<String, Object> filters, XDataSource dataSource, StringBuilder builder) {
 		Map<String, Object> queryParams = new HashMap<>();
 
 		if (filters != null && filters.size() > 0) {
 			builder.append(" where 1=1 ");
 			for (Map.Entry<String, Object> filter : filters.entrySet()) {
-				DSField dsField = dataSource.getField(filter.getKey());
+				XDSField dsField = dataSource.getField(filter.getKey());
 				if (dsField != null) {
 					switch (dsField.getFilterType()) {
 

@@ -9,36 +9,22 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_db_conn_info")
-public class DBConnectionInfo implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+@Table(name = "t_mts_data_src_cfg")
+public class ConfigLob implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
-	@GeneratedValue(generator = "mts_db_conn_info")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_db_conn_info", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+	@GeneratedValue(generator = "mts_data_src_info")
+	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src_info", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 		parameters = {
 			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
 			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
 			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_db_conn_info")
+			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_data_src_info")
 		})
 	private Long id;
 
-	@Column(name = "c_name", nullable = false, unique = true)
-	private String name;
-
-	@Column(name = "c_driver", nullable = false)
-	private String driver;
-
-	@Column(name = "c_url", nullable = false)
-	private String url;
-
-	@Column(name = "c_username")
-	private String username;
-
-	@Column(name = "c_password")
-	private String password;
-
-	@Column(name = "c_schema")
-	private String schema;
+	@Lob
+	@Column(name = "c_value", nullable = false)
+	private String value;
 
 	//----------------------------- CREATE / MODIFY
 
@@ -78,52 +64,12 @@ public class DBConnectionInfo implements ICreationDate, ICreatorUser, IModificat
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getValue() {
+		return value;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getDriver() {
-		return driver;
-	}
-
-	public void setDriver(String driver) {
-		this.driver = driver;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getSchema() {
-		return schema;
-	}
-
-	public void setSchema(String schema) {
-		this.schema = schema;
+	public void setValue(String value) {
+		this.value = value;
 	}
 
 	@Override
@@ -190,26 +136,5 @@ public class DBConnectionInfo implements ICreationDate, ICreatorUser, IModificat
 	@Override
 	public void setVersion(Integer version) {
 		this.version = version;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof DBConnectionInfo)) return false;
-
-		DBConnectionInfo that = (DBConnectionInfo) o;
-
-		return !(getId() != null ? !getId().equals(that.getId()) : that.getId() != null);
-
-	}
-
-	@Override
-	public int hashCode() {
-		return getId() != null ? getId().hashCode() : 0;
-	}
-
-	@Override
-	public String toString() {
-		return getName() != null ? getName() : "[?]";
 	}
 }

@@ -2,6 +2,7 @@ package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -13,10 +14,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPage;
-import org.devocative.metis.entity.dataSource.DSField;
-import org.devocative.metis.entity.dataSource.DSFieldFilterType;
-import org.devocative.metis.entity.dataSource.DSFieldType;
-import org.devocative.metis.entity.dataSource.DataSource;
+import org.devocative.metis.entity.dataSource.config.XDSField;
+import org.devocative.metis.entity.dataSource.config.XDSFieldFilterType;
+import org.devocative.metis.entity.dataSource.config.XDSFieldType;
+import org.devocative.metis.entity.dataSource.config.XDataSource;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WDataSource;
@@ -40,12 +41,13 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DataSourceViewerDPage extends DPage {
-	private static final Logger logger = LoggerFactory.getLogger(DataSourceViewerDPage.class);
+public class DataSourceViewer extends DPage {
+	private static final Logger logger = LoggerFactory.getLogger(DataSourceViewer.class);
 
 	@Inject
 	private IDataSourceService dataSourceService;
@@ -55,25 +57,36 @@ public class DataSourceViewerDPage extends DPage {
 	private WDataGrid<Map<String, Object>> grid;
 
 	private String dataSourceName;
+	private XDataSource dataSource;
 
-	public DataSourceViewerDPage(String id, List<String> params) {
+	public DataSourceViewer(String id, List<String> params) {
 		super(id, params);
 
-		filters = new HashMap<>();
-		gridDS = new SearchDataSource();
-		gridDS.setEnabled(false);
+		WebMarkupContainer mainTable = new WebMarkupContainer("mainTable");
+		add(mainTable);
 
-		dataSourceName = params.get(0);
-		logger.info("DataSource param = {}", dataSourceName);
+		if (params.size() > 0) {
+			filters = new HashMap<>();
+			gridDS = new SearchDataSource();
+			gridDS.setEnabled(false);
 
+			dataSourceName = params.get(0);
+			logger.info("DataSource param = {}", dataSourceName);
+			dataSource = dataSourceService.getDataSource(dataSourceName);
+		} else {
+			mainTable.setVisible(false);
+			dataSource = new XDataSource();
+			dataSource.setFields(new ArrayList<XDSField>());
+			dataSourceName = "No DataSource defined!";
+		}
 
-		final DataSource dataSource = dataSourceService.getDataSource(dataSourceName);
+		add(new Label("dataSourceName", dataSourceName));
 
 		Form<Map<String, Object>> dynamicForm = new Form<>("dynamicForm", new CompoundPropertyModel<>(filters));
-		dynamicForm.add(new ListView<DSField>("fields", dataSource.getFields()) {
+		dynamicForm.add(new ListView<XDSField>("fields", dataSource.getFields()) {
 			@Override
-			protected void populateItem(ListItem<DSField> item) {
-				DSField dsField = item.getModelObject();
+			protected void populateItem(ListItem<XDSField> item) {
+				XDSField dsField = item.getModelObject();
 				item.add(new Label("label", dsField.getTitle()));
 
 				RepeatingView view = new RepeatingView("field");
@@ -100,16 +113,16 @@ public class DataSourceViewerDPage extends DPage {
 
 					case Date:
 					case DateTime:
-						if (DSFieldFilterType.Range.equals(dsField.getFilterType())) {
-							view.add(new WDateRangeInput(dsField.getName()).setTimePartVisible(DSFieldType.DateTime == dsField.getType()));
+						if (XDSFieldFilterType.Range.equals(dsField.getFilterType())) {
+							view.add(new WDateRangeInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType()));
 						} else {
-							view.add(new WDateInput(dsField.getName()).setTimePartVisible(DSFieldType.DateTime == dsField.getType()));
+							view.add(new WDateInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType()));
 						}
 						break;
 
 					case LookUp:
 						List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dataSource, dsField);
-						view.add(new WSelectionInput(dsField.getName(), lookUpList, dsField.getFilterType() == DSFieldFilterType.List));
+						view.add(new WSelectionInput(dsField.getName(), lookUpList, dsField.getFilterType() == XDSFieldFilterType.List));
 						break;
 				}
 
@@ -125,11 +138,11 @@ public class DataSourceViewerDPage extends DPage {
 			}
 
 		});
-		add(dynamicForm);
+		mainTable.add(dynamicForm);
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
-		for (DSField dsField : dataSource.getFields()) {
-			if (DSFieldType.LookUp != dsField.getType()) {
+		for (XDSField dsField : dataSource.getFields()) {
+			if (XDSFieldType.LookUp != dsField.getType()) {
 				OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName())
 					.setSortable(true);
 				switch (dsField.getType()) {
@@ -165,7 +178,7 @@ public class DataSourceViewerDPage extends DPage {
 			.addToolbarButton(new OGroupFieldButton<Map<String, Object>>());
 		gridOptions.setHeight(OSize.fixed(800));
 
-		add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
+		mainTable.add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
 
 	}
 
