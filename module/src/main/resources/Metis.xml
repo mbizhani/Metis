@@ -10,9 +10,9 @@
 		mainResource="org.devocative.metis.web.MetisDModule">
 
 	<entities>
-		<entity type="org.devocative.metis.entity.DBConnectionInfo"/>
+		<entity type="org.devocative.metis.entity.DBConnection"/>
 		<entity type="org.devocative.metis.entity.ConfigLob"/>
-		<entity type="org.devocative.metis.entity.dataSource.DataSourceInfo"/>
+		<entity type="org.devocative.metis.entity.dataSource.DataSource"/>
 	</entities>
 
 	<dPages>

@@ -1,7 +1,7 @@
 package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
-import org.devocative.metis.entity.dataSource.DataSourceInfo;
+import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDataSource;
 
@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDataSourceService {
-	void saveOrUpdate(DataSourceInfo dataSourceInfo);
+	void saveOrUpdate(DataSource dataSource);
 
-	List<DataSourceInfo> search(long firstResult, long maxResults);
+	List<DataSource> search(long firstResult, long maxResults);
 
 	long count();
 

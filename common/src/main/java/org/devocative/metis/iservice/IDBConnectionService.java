@@ -1,7 +1,7 @@
 package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
-import org.devocative.metis.entity.DBConnectionInfo;
+import org.devocative.metis.entity.DBConnection;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDBConnectionService {
-	void saveOrUpdate(DBConnectionInfo connectionInfo);
+	void saveOrUpdate(DBConnection connectionInfo);
 
 	Connection getConnection(Long id);
 

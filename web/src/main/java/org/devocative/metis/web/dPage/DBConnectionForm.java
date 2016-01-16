@@ -5,7 +5,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.devocative.demeter.web.DPage;
-import org.devocative.metis.entity.DBConnectionInfo;
+import org.devocative.metis.entity.DBConnection;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.wickomp.form.WTextInput;
 
@@ -22,7 +22,7 @@ public class DBConnectionForm extends DPage {
 
 		//TODO edit
 
-		final Form<DBConnectionInfo> form = new Form<>("form", new CompoundPropertyModel<>(new DBConnectionInfo()));
+		final Form<DBConnection> form = new Form<>("form", new CompoundPropertyModel<>(new DBConnection()));
 		form.add(new WTextInput("name"));
 		form.add(new WTextInput("driver"));
 		form.add(new WTextInput("url"));

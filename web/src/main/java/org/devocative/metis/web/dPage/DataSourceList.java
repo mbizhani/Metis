@@ -3,7 +3,7 @@ package org.devocative.metis.web.dPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.devocative.demeter.web.DPage;
-import org.devocative.metis.entity.dataSource.DataSourceInfo;
+import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WDataSource;
@@ -25,19 +25,19 @@ public class DataSourceList extends DPage {
 	public DataSourceList(String id, List<String> params) {
 		super(id, params);
 
-		OColumnList<DataSourceInfo> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<DataSourceInfo>(new Model<>("name"), "name"));
-		columnList.add(new OPropertyColumn<DataSourceInfo>(new Model<>("connectionInfo"), "connectionInfo"));
+		OColumnList<DataSource> columnList = new OColumnList<>();
+		columnList.add(new OPropertyColumn<DataSource>(new Model<>("name"), "name"));
+		columnList.add(new OPropertyColumn<DataSource>(new Model<>("connectionInfo"), "connectionInfo"));
 
-		OGrid<DataSourceInfo> oGrid = new OGrid<>();
+		OGrid<DataSource> oGrid = new OGrid<>();
 		oGrid
 			.setColumns(columnList)
 			.setMultiSort(false)
 			.setHeight(OSize.fixed(350));
 
-		add(new WDataGrid<>("grid", oGrid, new WDataSource<DataSourceInfo>() {
+		add(new WDataGrid<>("grid", oGrid, new WDataSource<DataSource>() {
 			@Override
-			public List<DataSourceInfo> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
+			public List<DataSource> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return dataSourceService.search(pageIndex, pageSize);
 			}
 
@@ -47,7 +47,7 @@ public class DataSourceList extends DPage {
 			}
 
 			@Override
-			public IModel<DataSourceInfo> model(DataSourceInfo object) {
+			public IModel<DataSource> model(DataSource object) {
 				return new WModel<>(object);
 			}
 		}));

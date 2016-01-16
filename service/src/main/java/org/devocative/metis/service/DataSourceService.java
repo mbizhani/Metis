@@ -4,7 +4,7 @@ import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
-import org.devocative.metis.entity.dataSource.DataSourceInfo;
+import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -39,15 +39,15 @@ public class DataSourceService implements IDataSourceService {
 	@Autowired
 	private IPersistorService persistorService;
 
-	public void saveOrUpdate(DataSourceInfo dataSourceInfo) {
-		persistorService.saveOrUpdate(dataSourceInfo);
+	public void saveOrUpdate(DataSource dataSource) {
+		persistorService.saveOrUpdate(dataSource);
 		persistorService.commitOrRollback();
 	}
 
-	public List<DataSourceInfo> search(long firstResult, long maxResults) {
+	public List<DataSource> search(long firstResult, long maxResults) {
 		return persistorService
 			.createQueryBuilder()
-			.addFrom(DataSourceInfo.class, "ent")
+			.addFrom(DataSource.class, "ent")
 			.list((firstResult - 1) * maxResults, firstResult * maxResults);
 	}
 
@@ -56,19 +56,19 @@ public class DataSourceService implements IDataSourceService {
 		return persistorService
 			.createQueryBuilder()
 			.addSelect("select count(1)")
-			.addFrom(DataSourceInfo.class, "ent")
+			.addFrom(DataSource.class, "ent")
 			.object();
 	}
 
 	public XDataSource getDataSource(String name) {
-		DataSourceInfo dataSourceInfo = persistorService
+		DataSource dataSource = persistorService
 			.createQueryBuilder()
-			.addFrom(DataSourceInfo.class, "ent")
+			.addFrom(DataSource.class, "ent")
 			.addWhere("and ent.name = :name")
 			.addParam("name", name)
 			.object();
-		XDataSource xDataSource = (XDataSource) xstream.fromXML(dataSourceInfo.getConfig().getValue());
-		xDataSource.setConnectionInfoId(dataSourceInfo.getConnectionInfoId());
+		XDataSource xDataSource = (XDataSource) xstream.fromXML(dataSource.getConfig().getValue());
+		xDataSource.setConnectionInfoId(dataSource.getConnectionInfoId());
 		return xDataSource;
 	}
 

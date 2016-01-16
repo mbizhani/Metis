@@ -4,7 +4,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
-import org.devocative.metis.entity.DBConnectionInfo;
+import org.devocative.metis.entity.DBConnection;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ public class DBConnectionService implements IDBConnectionService {
 	@Autowired
 	private IPersistorService persistorService;
 
-	public void saveOrUpdate(DBConnectionInfo connectionInfo) {
+	public void saveOrUpdate(DBConnection connectionInfo) {
 		persistorService.saveOrUpdate(connectionInfo);
 		persistorService.commitOrRollback();
 	}
@@ -35,7 +35,7 @@ public class DBConnectionService implements IDBConnectionService {
 	public Connection getConnection(Long id) {
 		try {
 			if (!CONNECTION_POOL_MAP.containsKey(id)) {
-				DBConnectionInfo info = persistorService.get(DBConnectionInfo.class, id);
+				DBConnection info = persistorService.get(DBConnection.class, id);
 
 				ComboPooledDataSource cpds = new ComboPooledDataSource();
 				cpds.setDriverClass(info.getDriver());
