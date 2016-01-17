@@ -109,4 +109,25 @@ public class XDSField implements Serializable {
 		this.sqlOpt = sqlOpt;
 		return this;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof XDSField)) return false;
+
+		XDSField field = (XDSField) o;
+
+		return !(getName() != null ? !getName().equals(field.getName()) : field.getName() != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		return getName() != null ? getName().hashCode() : 0;
+	}
+
+	@Override
+	public String toString() {
+		return getName();
+	}
 }

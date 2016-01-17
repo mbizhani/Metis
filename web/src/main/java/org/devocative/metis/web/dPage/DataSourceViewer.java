@@ -72,7 +72,7 @@ public class DataSourceViewer extends DPage {
 
 			dataSourceName = params.get(0);
 			logger.info("DataSource param = {}", dataSourceName);
-			dataSource = dataSourceService.getDataSource(dataSourceName);
+			dataSource = dataSourceService.getXDataSource(dataSourceName);
 		} else {
 			mainTable.setVisible(false);
 			dataSource = new XDataSource();

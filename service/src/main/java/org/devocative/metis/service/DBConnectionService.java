@@ -5,6 +5,8 @@ import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.DBConnection;
+import org.devocative.metis.entity.dataSource.config.XDSField;
+import org.devocative.metis.entity.dataSource.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,25 +15,70 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("mtsDBConnectionService")
 public class DBConnectionService implements IDBConnectionService {
 	private static final Logger logger = LoggerFactory.getLogger(DBConnectionService.class);
+
 	private static final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new HashMap<>();
 	private static final Map<Long, String> CONNECTION_SCHEMA_MAP = new HashMap<>();
+
+	private static final List<Integer> STRING_TYPES = Arrays.asList(Types.VARCHAR, Types.CHAR, Types.NVARCHAR,
+		Types.NCHAR, Types.LONGNVARCHAR, Types.CLOB, Types.NCLOB);
+
+	private static final List<Integer> INTEGER_TYPES = Arrays.asList(Types.INTEGER, Types.BIGINT, Types.NUMERIC,
+		Types.SMALLINT, Types.TINYINT);
+
+	private static final List<Integer> REAL_TYPES = Arrays.asList(Types.DOUBLE, Types.FLOAT, Types.DECIMAL);
+
+	private static final List<Integer> DATE_TYPES = Arrays.asList(Types.DATE, Types.TIME, Types.TIMESTAMP);
 
 	@Autowired
 	private IPersistorService persistorService;
 
+	@Override
 	public void saveOrUpdate(DBConnection connectionInfo) {
 		persistorService.saveOrUpdate(connectionInfo);
 		persistorService.commitOrRollback();
 	}
 
+	@Override
+	public List<DBConnection> list() {
+		return persistorService.list(DBConnection.class);
+	}
+
+	public List<XDSField> getFields(Long id, String sql) throws SQLException {
+		List<XDSField> result = new ArrayList<>();
+
+		try (Connection connection = getConnection(id)) {
+			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, CONNECTION_SCHEMA_MAP.get(id));
+			nps.setFetchSize(1);
+			ResultSet rs = nps.executeQuery();
+			ResultSetMetaData metaData = rs.getMetaData();
+			for (int i = 1; i <= metaData.getColumnCount(); i++) {
+				XDSField field = new XDSField();
+				field.setName(metaData.getColumnName(i));
+				if (STRING_TYPES.contains(metaData.getColumnType(i))) {
+					field.setType(XDSFieldType.String);
+				} else if (DATE_TYPES.contains(metaData.getColumnType(i))) {
+					field.setType(XDSFieldType.Date);
+				} else if (INTEGER_TYPES.contains(metaData.getColumnType(i))) {
+					field.setType(XDSFieldType.Integer);
+				} else if (REAL_TYPES.contains(metaData.getColumnType(i))) {
+					field.setType(XDSFieldType.Real);
+				} else {
+					logger.warn("Unknown type: name={}, id={}", metaData.getColumnTypeName(i), metaData.getColumnType(i));
+				}
+				result.add(field);
+			}
+			nps.close();
+		}
+
+		return result;
+	}
+
+	@Override
 	public Connection getConnection(Long id) {
 		try {
 			if (!CONNECTION_POOL_MAP.containsKey(id)) {
@@ -53,12 +100,14 @@ public class DBConnectionService implements IDBConnectionService {
 		}
 	}
 
+	@Override
 	public void closeAllPools() {
 		for (ComboPooledDataSource pool : CONNECTION_POOL_MAP.values()) {
 			pool.close();
 		}
 	}
 
+	@Override
 	public List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params) throws SQLException {
 
 		try (Connection connection = getConnection(id)) {
@@ -90,6 +139,7 @@ public class DBConnectionService implements IDBConnectionService {
 		}
 	}
 
+	@Override
 	public List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long id, String query) throws SQLException {
 		List<KeyValueVO<Serializable, String>> result = new ArrayList<>();
 

@@ -26,8 +26,8 @@ public class DataSourceList extends DPage {
 		super(id, params);
 
 		OColumnList<DataSource> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<DataSource>(new Model<>("name"), "name"));
-		columnList.add(new OPropertyColumn<DataSource>(new Model<>("connectionInfo"), "connectionInfo"));
+		columnList.add(new OPropertyColumn<DataSource>(new Model<>("Name"), "name"));
+		columnList.add(new OPropertyColumn<DataSource>(new Model<>("Connection"), "connection"));
 
 		OGrid<DataSource> oGrid = new OGrid<>();
 		oGrid

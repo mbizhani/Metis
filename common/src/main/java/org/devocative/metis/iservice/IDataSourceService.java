@@ -10,15 +10,21 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDataSourceService {
-	void saveOrUpdate(DataSource dataSource);
+	void saveOrUpdate(DataSource dataSource, String sql, List<XDSField> fields);
 
 	List<DataSource> search(long firstResult, long maxResults);
 
 	long count();
 
-	XDataSource getDataSource(String name);
+	DataSource getDataSource(String name);
+
+	XDataSource getXDataSource(DataSource dataSource);
+
+	XDataSource getXDataSource(String name);
 
 	long getCountForDataSource(String name, Map<String, Object> filters);
+
+	List<XDSField> createFields(List<XDSField> currentFields, String sql, Long connectionId);
 
 	List<Map<String, Object>> executeDataSource(String name,
 												Map<String, Object> filters,

@@ -2,6 +2,7 @@ package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.DBConnection;
+import org.devocative.metis.entity.dataSource.config.XDSField;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -11,6 +12,10 @@ import java.util.Map;
 
 public interface IDBConnectionService {
 	void saveOrUpdate(DBConnection connectionInfo);
+
+	List<DBConnection> list();
+
+	List<XDSField> getFields(Long id, String sql) throws SQLException;
 
 	Connection getConnection(Long id);
 

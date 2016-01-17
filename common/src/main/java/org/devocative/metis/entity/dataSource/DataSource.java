@@ -11,16 +11,16 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_data_src_info")
+@Table(name = "t_mts_data_src")
 public class DataSource implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
-	@GeneratedValue(generator = "mts_data_src_info")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src_info", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+	@GeneratedValue(generator = "mts_data_src")
+	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 		parameters = {
 			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
 			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
 			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_data_src_info")
+			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_data_src")
 		})
 	private Long id;
 
@@ -31,12 +31,15 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "datasrc2cfglob"))
 	private ConfigLob config;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_conn_info", foreignKey = @ForeignKey(name = "datasrc2dbconn"))
-	private DBConnection connectionInfo;
+	@Column(name = "f_config", insertable = false, updatable = false)
+	private Long configId;
 
-	@Column(name = "f_conn_info", insertable = false, updatable = false)
-	private Long connectionInfoId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "f_connection", foreignKey = @ForeignKey(name = "datasrc2dbconn"))
+	private DBConnection connection;
+
+	@Column(name = "f_connection", insertable = false, updatable = false)
+	private Long connectionId;
 
 	//----------------------------- CREATE / MODIFY
 
@@ -92,16 +95,20 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 		this.config = config;
 	}
 
-	public DBConnection getConnectionInfo() {
-		return connectionInfo;
+	public Long getConfigId() {
+		return configId;
 	}
 
-	public void setConnectionInfo(DBConnection connectionInfo) {
-		this.connectionInfo = connectionInfo;
+	public DBConnection getConnection() {
+		return connection;
 	}
 
-	public Long getConnectionInfoId() {
-		return connectionInfoId;
+	public void setConnection(DBConnection connection) {
+		this.connection = connection;
+	}
+
+	public Long getConnectionId() {
+		return connectionId;
 	}
 
 	@Override

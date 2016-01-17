@@ -1,0 +1,37 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <table cellpadding="3">
+        <tr>
+            <th>Name</th>
+            <th>Title</th>
+            <th>Type</th>
+            <!--<td>Format</td>-->
+            <th>Filter Type</th>
+            <th>Place Type</th>
+        </tr>
+
+        <tr class="ds_field_row" wicket:id="fields">
+            <td wicket:id="name"></td>
+            <td>
+                <div wicket:id="title"></div>
+            </td>
+            <td>
+                <div wicket:id="type"></div>
+            </td>
+            <!--<td>Format</td>-->
+            <td>
+                <div wicket:id="filterType"></div>
+            </td>
+            <td>
+                <div wicket:id="placeType"></div>
+            </td>
+        </tr>
+    </table>
+
+    <style type="text/css">
+        tr.ds_field_row:hover {
+            background-color: darkseagreen;
+        }
+    </style>
+</wicket:panel>
+</html>

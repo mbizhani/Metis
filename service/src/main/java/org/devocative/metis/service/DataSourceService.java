@@ -1,9 +1,12 @@
 package org.devocative.metis.service;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.core.util.QuickWriter;
+import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDataSource;
@@ -15,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -28,22 +33,39 @@ public class DataSourceService implements IDataSourceService {
 
 	private XStream xstream;
 
-	public DataSourceService() {
-		xstream = new XStream();
-		xstream.processAnnotations(XDataSource.class);
-	}
-
 	@Autowired
 	private IDBConnectionService dbConnectionService;
 
 	@Autowired
 	private IPersistorService persistorService;
 
-	public void saveOrUpdate(DataSource dataSource) {
+	public DataSourceService() {
+		xstream = new XStream();
+		xstream.processAnnotations(XDataSource.class);
+	}
+
+	@Override
+	public void saveOrUpdate(DataSource dataSource, String sql, List<XDSField> fields) {
+		XDataSource xDataSource = new XDataSource();
+		xDataSource.setSql(String.format("\n<![CDATA[\n%s\n]]>\n", sql));
+		xDataSource.setFields(fields);
+
+		ConfigLob config = dataSource.getConfig();
+		if (config == null) {
+			config = new ConfigLob();
+		}
+		StringWriter writer = new StringWriter();
+		xstream.marshal(xDataSource, new MyWriter(writer));
+		config.setValue(writer.toString());
+
+		dataSource.setConfig(config);
+
+		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataSource);
 		persistorService.commitOrRollback();
 	}
 
+	@Override
 	public List<DataSource> search(long firstResult, long maxResults) {
 		return persistorService
 			.createQueryBuilder()
@@ -60,20 +82,32 @@ public class DataSourceService implements IDataSourceService {
 			.object();
 	}
 
-	public XDataSource getDataSource(String name) {
-		DataSource dataSource = persistorService
+	@Override
+	public DataSource getDataSource(String name) {
+		return persistorService
 			.createQueryBuilder()
 			.addFrom(DataSource.class, "ent")
 			.addWhere("and ent.name = :name")
 			.addParam("name", name)
 			.object();
-		XDataSource xDataSource = (XDataSource) xstream.fromXML(dataSource.getConfig().getValue());
-		xDataSource.setConnectionInfoId(dataSource.getConnectionInfoId());
+	}
+
+	@Override
+	public XDataSource getXDataSource(DataSource dataSource) {
+		return (XDataSource) xstream.fromXML(dataSource.getConfig().getValue());
+	}
+
+	@Override
+	public XDataSource getXDataSource(String name) {
+		DataSource dataSource = getDataSource(name);
+		XDataSource xDataSource = getXDataSource(dataSource);
+		xDataSource.setConnectionInfoId(dataSource.getConnectionId());
 		return xDataSource;
 	}
 
+	@Override
 	public long getCountForDataSource(String name, Map<String, Object> filters) {
-		XDataSource dataSource = getDataSource(name);
+		XDataSource dataSource = getXDataSource(name);
 
 		StringBuilder builder = new StringBuilder();
 		builder
@@ -93,12 +127,30 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
+	@Override
+	public List<XDSField> createFields(List<XDSField> currentFields, String sql, Long connectionId) {
+		List<XDSField> result = new ArrayList<>();
+		List<XDSField> fieldsFromDB;
+		try {
+			fieldsFromDB = dbConnectionService.getFields(connectionId, sql);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+
+		for (XDSField fieldFromDB : fieldsFromDB) {
+			int i = currentFields.indexOf(fieldFromDB);
+			result.add(i > -1 ? currentFields.get(i) : fieldFromDB);
+		}
+		return result;
+	}
+
+	@Override
 	public List<Map<String, Object>> executeDataSource(String name,
 													   Map<String, Object> filters,
 													   Map<String, String> sortFields,
 													   Long pageIndex,
 													   Long pageSize) {
-		XDataSource dataSource = getDataSource(name);
+		XDataSource dataSource = getXDataSource(name);
 
 		List<XDSField> selectFields = new ArrayList<>();
 		for (XDSField field : dataSource.getFields()) {
@@ -160,6 +212,7 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
+	@Override
 	public List<KeyValueVO<Serializable, String>> getLookUpList(XDataSource dataSource, XDSField field) {
 		try {
 			return dbConnectionService.executeQueryAsKeyValues(dataSource.getConnectionInfoId(), field.getSqlOpt());
@@ -219,5 +272,16 @@ public class DataSourceService implements IDataSourceService {
 		}
 
 		return queryParams;
+	}
+
+	private class MyWriter extends PrettyPrintWriter {
+		public MyWriter(Writer writer) {
+			super(writer);
+		}
+
+		@Override
+		protected void writeText(QuickWriter writer, String text) {
+			writer.write(text);
+		}
 	}
 }

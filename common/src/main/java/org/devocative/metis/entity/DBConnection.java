@@ -9,16 +9,16 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_db_conn_info")
+@Table(name = "t_mts_db_conn")
 public class DBConnection implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
-	@GeneratedValue(generator = "mts_db_conn_info")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_db_conn_info", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+	@GeneratedValue(generator = "mts_db_conn")
+	@org.hibernate.annotations.GenericGenerator(name = "mts_db_conn", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 		parameters = {
 			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
 			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
 			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_db_conn_info")
+			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_db_conn")
 		})
 	private Long id;
 
