@@ -193,20 +193,30 @@ public class DataSourceService implements IDataSourceService {
 			}
 		}
 
-		logger.debug("executeDataSource: MAIN SQL: {}", mainQueryBuilder.toString());
+		String mainQuery = mainQueryBuilder.toString();
+		logger.debug("executeDataSource: MAIN SQL: {}", mainQuery);
 
 		if (pageIndex != null && pageSize != null) {
-			mainQueryBuilder.insert(0, "select * from (select rownum rnum_pg, a.* from (");
-			mainQueryBuilder.append(") a) where rnum_pg between :pg_first and :pg_last");
+			if (dbConnectionService.isOracle(dataSource.getConnectionInfoId())) {
+				mainQuery = String.format("select * from (select rownum rnum_pg, a.* from ( %s ) a) where rnum_pg between :pg_first and :pg_last", mainQuery);
 
-			queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
-			queryParams.put("pg_last", pageIndex * pageSize);
+				queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
+				queryParams.put("pg_last", pageIndex * pageSize);
+			} else if (dbConnectionService.isMySQL(dataSource.getConnectionInfoId())) {
+				mainQuery = String.format("select * from (%s) limit :pg_first , :pg_size", mainQuery);
 
-			logger.debug("executeDataSource: PAGING SQL: {}", mainQueryBuilder.toString());
+				queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
+				queryParams.put("pg_size", pageSize);
+			} else {
+				//TODO add other databases
+				throw new RuntimeException("Database type not supported for pagination: " + dataSource.getConnectionInfoId());
+			}
+
+			logger.debug("executeDataSource: PAGING SQL: {}", mainQuery);
 		}
 
 		try {
-			return dbConnectionService.executeQuery(dataSource.getConnectionInfoId(), mainQueryBuilder.toString(), queryParams);
+			return dbConnectionService.executeQuery(dataSource.getConnectionInfoId(), mainQuery, queryParams);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

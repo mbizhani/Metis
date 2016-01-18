@@ -24,4 +24,8 @@ public interface IDBConnectionService {
 	List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long id, String query) throws SQLException;
 
 	void closeAllPools();
+
+	boolean isOracle(Long id);
+
+	boolean isMySQL(Long id);
 }

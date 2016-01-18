@@ -22,7 +22,7 @@ public class DBConnectionService implements IDBConnectionService {
 	private static final Logger logger = LoggerFactory.getLogger(DBConnectionService.class);
 
 	private static final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new HashMap<>();
-	private static final Map<Long, String> CONNECTION_SCHEMA_MAP = new HashMap<>();
+	private static final Map<Long, DBConnection> CONNECTION_MAP = new HashMap<>();
 
 	private static final List<Integer> STRING_TYPES = Arrays.asList(Types.VARCHAR, Types.CHAR, Types.NVARCHAR,
 		Types.NCHAR, Types.LONGNVARCHAR, Types.CLOB, Types.NCLOB);
@@ -52,7 +52,7 @@ public class DBConnectionService implements IDBConnectionService {
 		List<XDSField> result = new ArrayList<>();
 
 		try (Connection connection = getConnection(id)) {
-			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, CONNECTION_SCHEMA_MAP.get(id));
+			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, CONNECTION_MAP.get(id).getSchema());
 			nps.setFetchSize(1);
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
@@ -91,7 +91,7 @@ public class DBConnectionService implements IDBConnectionService {
 				cpds.setPassword(info.getPassword());
 
 				CONNECTION_POOL_MAP.put(id, cpds);
-				CONNECTION_SCHEMA_MAP.put(id, info.getSchema());
+				CONNECTION_MAP.put(id, info);
 			}
 
 			return CONNECTION_POOL_MAP.get(id).getConnection();
@@ -111,9 +111,7 @@ public class DBConnectionService implements IDBConnectionService {
 	public List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params) throws SQLException {
 
 		try (Connection connection = getConnection(id)) {
-			NamedParameterStatement nps = new NamedParameterStatement(connection);
-			nps.setSchema(CONNECTION_SCHEMA_MAP.get(id));
-			nps.setQuery(query);
+			NamedParameterStatement nps = new NamedParameterStatement(connection, query, CONNECTION_MAP.get(id).getSchema());
 			nps.setDateClassReplacement(Timestamp.class);
 			if (params != null) {
 				nps.setParameters(params);
@@ -144,9 +142,7 @@ public class DBConnectionService implements IDBConnectionService {
 		List<KeyValueVO<Serializable, String>> result = new ArrayList<>();
 
 		try (Connection connection = getConnection(id)) {
-			NamedParameterStatement nps = new NamedParameterStatement(connection);
-			nps.setSchema(CONNECTION_SCHEMA_MAP.get(id));
-			nps.setQuery(query);
+			NamedParameterStatement nps = new NamedParameterStatement(connection, query, CONNECTION_MAP.get(id).getSchema());
 			nps.setDateClassReplacement(Timestamp.class);
 
 			ResultSet rs = nps.executeQuery();
@@ -160,5 +156,17 @@ public class DBConnectionService implements IDBConnectionService {
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public boolean isOracle(Long id) {
+		DBConnection connection = CONNECTION_MAP.get(id);
+		return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:oracle");
+	}
+
+	@Override
+	public boolean isMySQL(Long id) {
+		DBConnection connection = CONNECTION_MAP.get(id);
+		return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:mysql");
 	}
 }
