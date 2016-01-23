@@ -162,11 +162,12 @@ public class DataSourceService implements IDataSourceService {
 
 		List<XDSField> selectFields = new ArrayList<>();
 		for (XDSField field : dataSource.getFields()) {
-			switch (field.getPlaceType()) {
+			selectFields.add(field);
+			/*switch (field.getResultType()) {
 				case Result:
 				case Both:
 					selectFields.add(field);
-			}
+			}*/
 		}
 
 		StringBuilder mainQueryBuilder = new StringBuilder();

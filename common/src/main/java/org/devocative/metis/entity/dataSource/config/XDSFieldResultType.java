@@ -1,5 +1,5 @@
 package org.devocative.metis.entity.dataSource.config;
 
-public enum XDSFieldPlaceType {
-	Filter, Result, Both
+public enum XDSFieldResultType {
+	None, Shown, Hidden
 }

@@ -10,10 +10,14 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.PropertyModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.dataSource.DataSource;
-import org.devocative.metis.entity.dataSource.config.*;
+import org.devocative.metis.entity.dataSource.config.XDSField;
+import org.devocative.metis.entity.dataSource.config.XDSFieldResultType;
+import org.devocative.metis.entity.dataSource.config.XDSFieldType;
+import org.devocative.metis.entity.dataSource.config.XDataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.wickomp.form.WSelectionInput;
+import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.html.wizard.OWizard;
 import org.devocative.wickomp.html.wizard.WWizardPanel;
@@ -98,13 +102,23 @@ public class DataSourceForm extends DPage {
 				protected void populateItem(ListItem<XDSField> item) {
 					XDSField field = item.getModelObject();
 
+					final WSelectionInput type, filterType;
+
 					item.add(new Label("name", field.getName()));
 					item.add(new Label("dbType", field.getDbType()));
 					item.add(new Label("dbSize", field.getDbSize()));
 					item.add(new WTextInput("title", new PropertyModel<String>(field, "title")));
-					item.add(new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
-					item.add(new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(XDSFieldFilterType.values()), false));
-					item.add(new WSelectionInput("placeType", new PropertyModel<String>(field, "placeType"), Arrays.asList(XDSFieldPlaceType.values()), false));
+					item.add(type = new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
+					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(field.getFilterType()), false));
+					item.add(new WSelectionInput("resultType", new PropertyModel<String>(field, "resultType"), Arrays.asList(XDSFieldResultType.values()), false));
+
+					type.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
+						@Override
+						protected void onUpdate(AjaxRequestTarget target) {
+							XDSFieldType type = (XDSFieldType) getComponent().getDefaultModelObject();
+							filterType.updateChoices(target, Arrays.asList(type.getProperFilterTypes()));
+						}
+					});
 				}
 			});
 		}

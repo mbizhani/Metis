@@ -24,7 +24,7 @@ public class XDSField implements Serializable {
 	private XDSFieldFilterType filterType;
 
 	@XStreamAsAttribute
-	private XDSFieldPlaceType placeType;
+	private XDSFieldResultType resultType;
 
 	@XStreamOmitField
 	private String dbType;
@@ -76,12 +76,12 @@ public class XDSField implements Serializable {
 	}
 
 	// Has Default
-	public XDSFieldPlaceType getPlaceType() {
-		return placeType != null ? placeType : XDSFieldPlaceType.Both;
+	public XDSFieldResultType getResultType() {
+		return resultType != null ? resultType : XDSFieldResultType.Shown;
 	}
 
-	public XDSField setPlaceType(XDSFieldPlaceType placeType) {
-		this.placeType = placeType;
+	public XDSField setResultType(XDSFieldResultType resultType) {
+		this.resultType = resultType;
 		return this;
 	}
 
