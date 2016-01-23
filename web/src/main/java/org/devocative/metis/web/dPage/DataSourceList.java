@@ -5,6 +5,7 @@ import org.apache.wicket.model.Model;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.metis.web.component.grid.ORESTLinkColumn;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WDataSource;
 import org.devocative.wickomp.data.WSortField;
@@ -12,6 +13,7 @@ import org.devocative.wickomp.grid.OGrid;
 import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
+import org.devocative.wickomp.html.icon.FontAwesome;
 import org.devocative.wickomp.opt.OSize;
 
 import javax.inject.Inject;
@@ -28,6 +30,10 @@ public class DataSourceList extends DPage {
 		OColumnList<DataSource> columnList = new OColumnList<>();
 		columnList.add(new OPropertyColumn<DataSource>(new Model<>("Name"), "name"));
 		columnList.add(new OPropertyColumn<DataSource>(new Model<>("Connection"), "connection"));
+		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceForm.class, "name",
+			new FontAwesome("pencil", "green", new Model<>("Edit"))));
+		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceViewer.class, "name",
+			new FontAwesome("cogs", "red", new Model<>("Execute"))));
 
 		OGrid<DataSource> oGrid = new OGrid<>();
 		oGrid

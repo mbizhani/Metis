@@ -45,7 +45,7 @@ public class DataSourceForm extends DPage {
 		if (params.size() > 0) {
 			dataSource = dataSourceService.getDataSource(params.get(0));
 			XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
-			sql = xDataSource.getSql();
+			sql = xDataSource.getSql().trim();
 			xdsFields = xDataSource.getFields();
 		} else {
 			dataSource = new DataSource();
@@ -62,14 +62,15 @@ public class DataSourceForm extends DPage {
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
 			@Override
 			protected void onNext(AjaxRequestTarget target, String stepId) {
-				// The only next step is DefineColumnsStep
-				List<XDSField> list = dataSourceService.createFields(
-					xdsFields,
-					sql,
-					dataSource.getConnection().getId()
-				);
-				xdsFields.clear();
-				xdsFields.addAll(list);
+				if ("columns".equals(stepId)) {
+					List<XDSField> list = dataSourceService.createFields(
+						xdsFields,
+						sql,
+						dataSource.getConnection().getId()
+					);
+					xdsFields.clear();
+					xdsFields.addAll(list);
+				}
 			}
 
 			@Override
@@ -109,7 +110,7 @@ public class DataSourceForm extends DPage {
 					item.add(new Label("dbSize", field.getDbSize()));
 					item.add(new WTextInput("title", new PropertyModel<String>(field, "title")));
 					item.add(type = new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
-					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(field.getFilterType()), false));
+					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(field.getType().getProperFilterTypes()), false));
 					item.add(new WSelectionInput("resultType", new PropertyModel<String>(field, "resultType"), Arrays.asList(XDSFieldResultType.values()), false));
 
 					type.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {

@@ -13,6 +13,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
+import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldFilterType;
 import org.devocative.metis.entity.dataSource.config.XDSFieldType;
@@ -55,7 +56,7 @@ public class DataSourceViewer extends DPage {
 	private WDataGrid<Map<String, Object>> grid;
 
 	private String dataSourceName;
-	private XDataSource dataSource;
+	private XDataSource xDataSource;
 
 	public DataSourceViewer(String id, List<String> params) {
 		super(id, params);
@@ -63,6 +64,7 @@ public class DataSourceViewer extends DPage {
 		WebMarkupContainer mainTable = new WebMarkupContainer("mainTable");
 		add(mainTable);
 
+		String title;
 		if (params.size() > 0) {
 			filters = new HashMap<>();
 			gridDS = new SearchDataSource();
@@ -70,18 +72,20 @@ public class DataSourceViewer extends DPage {
 
 			dataSourceName = params.get(0);
 			logger.info("DataSource param = {}", dataSourceName);
-			dataSource = dataSourceService.getXDataSource(dataSourceName);
+			DataSource dataSource = dataSourceService.getDataSource(dataSourceName);
+			xDataSource = dataSourceService.getXDataSource(dataSource);
+			title = String.format("%s (%s)", dataSource.getTitle(), dataSourceName);
 		} else {
 			mainTable.setVisible(false);
-			dataSource = new XDataSource();
-			dataSource.setFields(new ArrayList<XDSField>());
-			dataSourceName = "No DataSource defined!";
+			xDataSource = new XDataSource();
+			xDataSource.setFields(new ArrayList<XDSField>());
+			title = "No DataSource defined!"; // TODO use ResourceModel
 		}
 
-		add(new Label("dataSourceName", dataSourceName));
+		add(new Label("title", title));
 
 		Form<Map<String, Object>> dynamicForm = new Form<>("dynamicForm", new CompoundPropertyModel<>(filters));
-		dynamicForm.add(new ListView<XDSField>("fields", dataSource.getFields()) {
+		dynamicForm.add(new ListView<XDSField>("fields", xDataSource.getFields()) {
 			@Override
 			protected void populateItem(ListItem<XDSField> item) {
 				XDSField dsField = item.getModelObject();
@@ -140,7 +144,7 @@ public class DataSourceViewer extends DPage {
 		mainTable.add(dynamicForm);
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
-		for (XDSField dsField : dataSource.getFields()) {
+		for (XDSField dsField : xDataSource.getFields()) {
 			if (XDSFieldType.LookUp != dsField.getType()) {
 				OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName())
 					.setSortable(true);
