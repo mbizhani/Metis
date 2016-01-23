@@ -2,6 +2,7 @@ package org.devocative.metis.entity.dataSource.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import java.io.Serializable;
 
@@ -25,18 +26,19 @@ public class XDSField implements Serializable {
 	@XStreamAsAttribute
 	private XDSFieldPlaceType placeType;
 
-	private String mapOpt;
+	@XStreamOmitField
+	private String dbType;
 
-	private String listOpt;
-
-	private String sqlOpt;
+	@XStreamOmitField
+	private Integer dbSize;
 
 	public String getName() {
 		return name != null ? name.toLowerCase() : null;
 	}
 
-	public void setName(String name) {
+	public XDSField setName(String name) {
 		this.name = name;
+		return this;
 	}
 
 	public String getTitle() {
@@ -83,32 +85,28 @@ public class XDSField implements Serializable {
 		return this;
 	}
 
-	public String getMapOpt() {
-		return mapOpt;
+	// ---------------------- VOLATILE PROPERTIES
+
+	public String getDbType() {
+		return dbType;
 	}
 
-	public XDSField setMapOpt(String mapOpt) {
-		this.mapOpt = mapOpt;
+	public XDSField setDbType(String dbType) {
+		this.dbType = dbType;
 		return this;
 	}
 
-	public String getListOpt() {
-		return listOpt;
+	public Integer getDbSize() {
+		return dbSize;
 	}
 
-	public XDSField setListOpt(String listOpt) {
-		this.listOpt = listOpt;
+	public XDSField setDbSize(Integer dbSize) {
+		this.dbSize = dbSize;
 		return this;
 	}
 
-	public String getSqlOpt() {
-		return sqlOpt;
-	}
 
-	public XDSField setSqlOpt(String sqlOpt) {
-		this.sqlOpt = sqlOpt;
-		return this;
-	}
+	// ---------------------- Object METHODS
 
 	@Override
 	public boolean equals(Object o) {

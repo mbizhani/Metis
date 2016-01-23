@@ -5,14 +5,14 @@
 	<dbConnection
 			name="payam5" driver="oracle.jdbc.driver.OracleDriver"
 			url="jdbc:oracle:thin:@oradb.fanrp:1521:oradb"
-			username="bijani"
-			password="SalamBIJ"
+			username=""
+			password=""
 			schema="payam5"/>
 
 	<dbConnection
 			name="payam3" driver="oracle.jdbc.driver.OracleDriver"
 			url="jdbc:oracle:thin:@oradb.fanrp:1521:oradb"
-			username="bijani"
-			password="SalamBIJ"
+			username=""
+			password=""
 			schema="payam3"/>
 </list>

@@ -139,7 +139,15 @@ public class DataSourceService implements IDataSourceService {
 
 		for (XDSField fieldFromDB : fieldsFromDB) {
 			int i = currentFields.indexOf(fieldFromDB);
-			result.add(i > -1 ? currentFields.get(i) : fieldFromDB);
+			if (i > -1) {
+				XDSField currentField = currentFields.get(i);
+				currentField
+					.setDbType(fieldFromDB.getDbType())
+					.setDbSize(fieldFromDB.getDbSize());
+				result.add(currentField);
+			} else {
+				result.add(fieldFromDB);
+			}
 		}
 		return result;
 	}
@@ -224,11 +232,13 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public List<KeyValueVO<Serializable, String>> getLookUpList(XDataSource dataSource, XDSField field) {
+		/* TODO
 		try {
 			return dbConnectionService.executeQueryAsKeyValues(dataSource.getConnectionInfoId(), field.getSqlOpt());
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
-		}
+		}*/
+		return null;
 	}
 
 	private Map<String, Object> appendWhere(Map<String, Object> filters, XDataSource dataSource, StringBuilder builder) {

@@ -12,7 +12,6 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
-import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldFilterType;
@@ -39,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -121,8 +119,9 @@ public class DataSourceViewer extends DPage {
 						break;
 
 					case LookUp:
-						List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dataSource, dsField);
-						view.add(new WSelectionInput(dsField.getName(), lookUpList, dsField.getFilterType() == XDSFieldFilterType.List));
+//						TODO
+//						List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dataSource, dsField);
+//						view.add(new WSelectionInput(dsField.getName(), lookUpList, dsField.getFilterType() == XDSFieldFilterType.List));
 						break;
 				}
 

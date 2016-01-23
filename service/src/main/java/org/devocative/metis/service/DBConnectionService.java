@@ -58,7 +58,11 @@ public class DBConnectionService implements IDBConnectionService {
 			ResultSetMetaData metaData = rs.getMetaData();
 			for (int i = 1; i <= metaData.getColumnCount(); i++) {
 				XDSField field = new XDSField();
-				field.setName(metaData.getColumnName(i));
+				field
+					.setName(metaData.getColumnName(i))
+					.setDbType(metaData.getColumnTypeName(i))
+					.setDbSize(metaData.getColumnDisplaySize(i));
+
 				if (STRING_TYPES.contains(metaData.getColumnType(i))) {
 					field.setType(XDSFieldType.String);
 				} else if (DATE_TYPES.contains(metaData.getColumnType(i))) {

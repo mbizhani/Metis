@@ -27,6 +27,9 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "c_name", nullable = false, unique = true)
 	private String name;
 
+	@Column(name = "c_title", nullable = false)
+	private String title;
+
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "datasrc2cfglob"))
 	private ConfigLob config;
@@ -85,6 +88,14 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public ConfigLob getConfig() {

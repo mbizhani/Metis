@@ -1,5 +1,6 @@
 package org.devocative.metis.web.dPage;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -77,7 +78,9 @@ public class DataSourceForm extends DPage {
 	private class DefineQueryStep extends WWizardStepPanel {
 		@Override
 		protected void onInit() {
-			add(new WTextInput("name", new PropertyModel<String>(DataSourceForm.this, "dataSource.name")));
+			add(new WTextInput("name", new PropertyModel<String>(DataSourceForm.this, "dataSource.name"))
+				.addToTextField(new AttributeModifier("style", "direction:ltr;")));
+			add(new WTextInput("title", new PropertyModel<String>(DataSourceForm.this, "dataSource.title")));
 			add(new WSelectionInput("connection",
 				new PropertyModel<String>(DataSourceForm.this, "dataSource.connection"),
 				connectionService.list(),
@@ -96,6 +99,8 @@ public class DataSourceForm extends DPage {
 					XDSField field = item.getModelObject();
 
 					item.add(new Label("name", field.getName()));
+					item.add(new Label("dbType", field.getDbType()));
+					item.add(new Label("dbSize", field.getDbSize()));
 					item.add(new WTextInput("title", new PropertyModel<String>(field, "title")));
 					item.add(new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
 					item.add(new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(XDSFieldFilterType.values()), false));
