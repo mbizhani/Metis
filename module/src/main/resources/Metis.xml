@@ -13,6 +13,7 @@
 		<entity type="org.devocative.metis.entity.DBConnection"/>
 		<entity type="org.devocative.metis.entity.ConfigLob"/>
 		<entity type="org.devocative.metis.entity.dataSource.DataSource"/>
+		<entity type="org.devocative.metis.entity.dataSource.DataSourceRelation"/>
 	</entities>
 
 	<dPages>

@@ -16,6 +16,8 @@ public interface IDataSourceService {
 
 	long count();
 
+	List<DataSource> getListForLookup();
+
 	DataSource getDataSource(String name);
 
 	XDataSource getXDataSource(DataSource dataSource);

@@ -1,0 +1,25 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="lbl"></div>
+
+    <table wicket:id="table">
+        <tr>
+            <th>Field</th>
+            <th>DataSource</th>
+        </tr>
+        <tr class="ds_field_row" wicket:id="fields">
+            <td wicket:id="name"></td>
+            <td>
+                <div wicket:id="dataSources"></div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- TODO: MOVE TO CSS -->
+    <style type="text/css">
+        tr.ds_field_row:hover {
+            background-color: darkseagreen;
+        }
+    </style>
+</wicket:panel>
+</html>

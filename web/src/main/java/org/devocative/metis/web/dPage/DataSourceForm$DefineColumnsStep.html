@@ -10,6 +10,9 @@
             <!--<td>Format</td>-->
             <th>Filter Type</th>
             <th>Result Type</th>
+            <th>Is Key</th>
+            <th>Is Title</th>
+            <th>Is Self-relation</th>
         </tr>
 
         <tr class="ds_field_row" wicket:id="fields">
@@ -29,13 +32,36 @@
             <td>
                 <div wicket:id="resultType"></div>
             </td>
+            <td align="center">
+                <input class="ds_field_box" type="checkbox" wicket:id="isKeyField"/>
+            </td>
+            <td align="center">
+                <input class="ds_field_box" type="checkbox" wicket:id="isTitleField"/>
+            </td>
+            <td align="center">
+                <input class="ds_field_box" type="checkbox" wicket:id="isSelfRelPointerField"/>
+            </td>
         </tr>
     </table>
 
+    <!-- TODO: MOVE TO CSS -->
     <style type="text/css">
         tr.ds_field_row:hover {
             background-color: darkseagreen;
         }
     </style>
+
+    <script type="text/javascript">
+        $(".ds_field_box").on('click', function () {
+            var $box = $(this);
+            if ($box.is(":checked")) {
+                var group = "input:checkbox[group='" + $box.attr("group") + "']";
+                $(group).prop("checked", false);
+                $box.prop("checked", true);
+            } else {
+                $box.prop("checked", false);
+            }
+        });
+    </script>
 </wicket:panel>
 </html>

@@ -11,16 +11,16 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_data_src")
+@Table(name = "t_mts_datasrc")
 public class DataSource implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
-	@GeneratedValue(generator = "mts_data_src")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+	@GeneratedValue(generator = "mts_datasrc")
+	@org.hibernate.annotations.GenericGenerator(name = "mts_datasrc", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 		parameters = {
 			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
 			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
 			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_data_src")
+			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_datasrc")
 		})
 	private Long id;
 
@@ -29,6 +29,15 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	@Column(name = "c_title", nullable = false)
 	private String title;
+
+	@Column(name = "c_key_field")
+	private String keyField;
+
+	@Column(name = "c_title_field")
+	private String titleField;
+
+	@Column(name = "c_self_rel_pointer_field")
+	private String selfRelPointerField;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "datasrc2cfglob"))
@@ -52,7 +61,7 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_creator_user", foreignKey = @ForeignKey(name = "prsn_crtrusr2user"), insertable = false, updatable = false)
+	@JoinColumn(name = "f_creator_user", foreignKey = @ForeignKey(name = "datasrc_crtrusr2user"), insertable = false, updatable = false)
 	private User creatorUser;
 
 	@NotAudited
@@ -64,7 +73,7 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	private Date modificationDate;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_modifier_user", foreignKey = @ForeignKey(name = "prsn_mdfrusr2user"), insertable = false, updatable = false)
+	@JoinColumn(name = "f_modifier_user", foreignKey = @ForeignKey(name = "datasrc_mdfrusr2user"), insertable = false, updatable = false)
 	private User modifierUser;
 
 	@Column(name = "f_modifier_user")
@@ -96,6 +105,30 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public String getKeyField() {
+		return keyField;
+	}
+
+	public void setKeyField(String keyField) {
+		this.keyField = keyField;
+	}
+
+	public String getTitleField() {
+		return titleField;
+	}
+
+	public void setTitleField(String titleField) {
+		this.titleField = titleField;
+	}
+
+	public String getSelfRelPointerField() {
+		return selfRelPointerField;
+	}
+
+	public void setSelfRelPointerField(String selfRelPointerField) {
+		this.selfRelPointerField = selfRelPointerField;
 	}
 
 	public ConfigLob getConfig() {

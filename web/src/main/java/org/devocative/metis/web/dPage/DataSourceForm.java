@@ -2,7 +2,9 @@ package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -57,7 +59,8 @@ public class DataSourceForm extends DPage {
 
 		OWizard oWizard = new OWizard()
 			.addStep("query", new DefineQueryStep())
-			.addStep("columns", new DefineColumnsStep());
+			.addStep("columns", new DefineColumnsStep())
+			.addStep("lookup", new DefineLookupStep());
 
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
 			@Override
@@ -112,6 +115,12 @@ public class DataSourceForm extends DPage {
 					item.add(type = new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
 					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(field.getType().getProperFilterTypes()), false));
 					item.add(new WSelectionInput("resultType", new PropertyModel<String>(field, "resultType"), Arrays.asList(XDSFieldResultType.values()), false));
+					item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(field, "isKeyField"))
+						.add(new AttributeModifier("group", "isKeyField")));
+					item.add(new CheckBox("isTitleField", new PropertyModel<Boolean>(field, "isTitleField"))
+						.add(new AttributeModifier("group", "isTitleField")));
+					item.add(new CheckBox("isSelfRelPointerField", new PropertyModel<Boolean>(field, "isSelfRelPointerField"))
+						.add(new AttributeModifier("group", "isSelfRelField")));
 
 					type.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
 						@Override
@@ -124,4 +133,44 @@ public class DataSourceForm extends DPage {
 			});
 		}
 	}
+
+	private class DefineLookupStep extends WWizardStepPanel {
+		@Inject
+		private IDataSourceService dataSourceService;
+
+		@Override
+		protected void onInit() {
+			//TODO: the following "for" must be added to service
+			List<XDSField> lookupFields = new ArrayList<>();
+			for (XDSField xdsField : xdsFields) {
+				if (XDSFieldType.LookUp == xdsField.getType()) {
+					lookupFields.add(xdsField);
+				}
+			}
+
+			final List<DataSource> dataSourceList = dataSourceService.getListForLookup();
+
+			WebMarkupContainer table = new WebMarkupContainer("table");
+			table.setVisible(lookupFields.size() > 0);
+			add(table);
+
+			table.add(new ListView<XDSField>("fields", lookupFields) {
+				@Override
+				protected void populateItem(ListItem<XDSField> item) {
+					XDSField field = item.getModelObject();
+
+					item.add(new Label("name", field.getName()));
+					item.add(new WSelectionInput("dataSources", new PropertyModel(field, "target"),
+						dataSourceList, false));
+				}
+			});
+
+			String message = "";
+			if (lookupFields.size() == 0) {
+				message = "No Lookup field"; //TODO I18N
+			}
+			add(new Label("lbl", message));
+		}
+	}
+
 }

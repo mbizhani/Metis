@@ -8,7 +8,9 @@ import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.dataSource.DataSource;
+import org.devocative.metis.entity.dataSource.DataSourceRelation;
 import org.devocative.metis.entity.dataSource.config.XDSField;
+import org.devocative.metis.entity.dataSource.config.XDSFieldType;
 import org.devocative.metis.entity.dataSource.config.XDataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
@@ -46,8 +48,61 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public void saveOrUpdate(DataSource dataSource, String sql, List<XDSField> fields) {
+		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
+
+		if (dataSource.getId() != null) {
+			persistorService
+				.createQueryBuilder()
+				.addSelect("update DataSourceRelation ent set ent.deleted = true where ent.source.id = :srcId")
+				.addParam("srcId", dataSource.getId())
+				.update();
+
+			List<DataSourceRelation> relations = persistorService
+				.createQueryBuilder()
+				.addFrom(DataSourceRelation.class, "ent")
+				.addWhere("and ent.source.id = :srcId")
+				.addParam("srcId", dataSource.getId())
+				.list();
+
+			for (DataSourceRelation relation : relations) {
+				relationsMap.put(relation.getSourcePointerField(), relation);
+			}
+		}
+
+		for (XDSField xdsField : fields) {
+			if (xdsField.getIsKeyField()) {
+				dataSource.setKeyField(xdsField.getName());
+			} else {
+				xdsField.setIsKeyField(null);
+			}
+
+			if (xdsField.getIsTitleField()) {
+				dataSource.setTitleField(xdsField.getName());
+			} else {
+				xdsField.setIsTitleField(null);
+			}
+
+			if (xdsField.getIsSelfRelPointerField()) {
+				dataSource.setSelfRelPointerField(xdsField.getName());
+			} else {
+				xdsField.setIsSelfRelPointerField(null);
+			}
+
+			if (XDSFieldType.LookUp == xdsField.getType()) {
+				DataSourceRelation rel = relationsMap.get(xdsField.getName());
+				if (rel == null) {
+					rel = new DataSourceRelation();
+				}
+				rel.setSourcePointerField(xdsField.getName());
+				rel.setDeleted(false);
+				rel.setSource(dataSource);
+				rel.setTarget(xdsField.getTarget());
+				relationsMap.put(xdsField.getName(), rel);
+			}
+		}
+
 		XDataSource xDataSource = new XDataSource();
-		xDataSource.setSql(String.format("\n<![CDATA[\n%s\n]]>\n", sql));
+		xDataSource.setSql(String.format("\n<![CDATA[\n%s\n]]>\n", sql.trim()));
 		xDataSource.setFields(fields);
 
 		ConfigLob config = dataSource.getConfig();
@@ -62,6 +117,9 @@ public class DataSourceService implements IDataSourceService {
 
 		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataSource);
+		for (DataSourceRelation relation : relationsMap.values()) {
+			persistorService.saveOrUpdate(relation);
+		}
 		persistorService.commitOrRollback();
 	}
 
@@ -83,6 +141,15 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
+	public List<DataSource> getListForLookup() {
+		return persistorService
+			.createQueryBuilder()
+			.addFrom(DataSource.class, "ent")
+			.addWhere("and ent.keyField is not null")
+			.list();
+	}
+
+	@Override
 	public DataSource getDataSource(String name) {
 		return persistorService
 			.createQueryBuilder()
@@ -94,7 +161,19 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public XDataSource getXDataSource(DataSource dataSource) {
-		return (XDataSource) xstream.fromXML(dataSource.getConfig().getValue());
+		List<DataSourceRelation> relations = persistorService
+			.createQueryBuilder()
+			.addFrom(DataSourceRelation.class, "ent")
+			.addWhere("and ent.source.id = :srcId and ent.deleted = false")
+			.addParam("srcId", dataSource.getId())
+			.list();
+
+		XDataSource xDataSource = (XDataSource) xstream.fromXML(dataSource.getConfig().getValue());
+		for (DataSourceRelation relation : relations) {
+			XDSField field = xDataSource.getField(relation.getSourcePointerField());
+			field.setTarget(relation.getTarget());
+		}
+		return xDataSource;
 	}
 
 	@Override
@@ -158,16 +237,16 @@ public class DataSourceService implements IDataSourceService {
 													   Map<String, String> sortFields,
 													   Long pageIndex,
 													   Long pageSize) {
-		XDataSource dataSource = getXDataSource(name);
+		XDataSource xDataSource = getXDataSource(name);
 
 		List<XDSField> selectFields = new ArrayList<>();
-		for (XDSField field : dataSource.getFields()) {
+		for (XDSField field : xDataSource.getFields()) {
 			selectFields.add(field);
-			/*switch (field.getResultType()) {
-				case Result:
-				case Both:
+			switch (field.getResultType()) {
+				case Shown:
+				case Hidden:
 					selectFields.add(field);
-			}*/
+			}
 		}
 
 		StringBuilder mainQueryBuilder = new StringBuilder();
@@ -180,10 +259,10 @@ public class DataSourceService implements IDataSourceService {
 
 		mainQueryBuilder
 			.append(" from (")
-			.append(dataSource.getSql()) //TODO: the sql must be process by FreeMarker template engine
+			.append(xDataSource.getSql()) //TODO: the sql must be process by FreeMarker template engine
 			.append(")");
 
-		Map<String, Object> queryParams = appendWhere(filters, dataSource, mainQueryBuilder);
+		Map<String, Object> queryParams = appendWhere(filters, xDataSource, mainQueryBuilder);
 
 		if (sortFields != null && sortFields.size() > 0) {
 			mainQueryBuilder.append(" order by ");
@@ -206,26 +285,26 @@ public class DataSourceService implements IDataSourceService {
 		logger.debug("executeDataSource: MAIN SQL: {}", mainQuery);
 
 		if (pageIndex != null && pageSize != null) {
-			if (dbConnectionService.isOracle(dataSource.getConnectionInfoId())) {
+			if (dbConnectionService.isOracle(xDataSource.getConnectionInfoId())) {
 				mainQuery = String.format("select * from (select rownum rnum_pg, a.* from ( %s ) a) where rnum_pg between :pg_first and :pg_last", mainQuery);
 
 				queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
 				queryParams.put("pg_last", pageIndex * pageSize);
-			} else if (dbConnectionService.isMySQL(dataSource.getConnectionInfoId())) {
+			} else if (dbConnectionService.isMySQL(xDataSource.getConnectionInfoId())) {
 				mainQuery = String.format("select * from (%s) limit :pg_first , :pg_size", mainQuery);
 
 				queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
 				queryParams.put("pg_size", pageSize);
 			} else {
 				//TODO add other databases
-				throw new RuntimeException("Database type not supported for pagination: " + dataSource.getConnectionInfoId());
+				throw new RuntimeException("Database type not supported for pagination: " + xDataSource.getConnectionInfoId());
 			}
 
 			logger.debug("executeDataSource: PAGING SQL: {}", mainQuery);
 		}
 
 		try {
-			return dbConnectionService.executeQuery(dataSource.getConnectionInfoId(), mainQuery, queryParams);
+			return dbConnectionService.executeQuery(xDataSource.getConnectionInfoId(), mainQuery, queryParams);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

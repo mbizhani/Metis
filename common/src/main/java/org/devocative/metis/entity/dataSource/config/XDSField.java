@@ -3,6 +3,7 @@ package org.devocative.metis.entity.dataSource.config;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import org.devocative.metis.entity.dataSource.DataSource;
 
 import java.io.Serializable;
 
@@ -26,11 +27,25 @@ public class XDSField implements Serializable {
 	@XStreamAsAttribute
 	private XDSFieldResultType resultType;
 
+	@XStreamAsAttribute
+	private Boolean isKeyField;
+
+	@XStreamAsAttribute
+	private Boolean isTitleField;
+
+	@XStreamAsAttribute
+	private Boolean isSelfRelPointerField;
+
+	// -- Volatile Fields
+
 	@XStreamOmitField
 	private String dbType;
 
 	@XStreamOmitField
 	private Integer dbSize;
+
+	@XStreamOmitField
+	private DataSource target;
 
 	public String getName() {
 		return name != null ? name.toLowerCase() : null;
@@ -85,6 +100,30 @@ public class XDSField implements Serializable {
 		return this;
 	}
 
+	public Boolean getIsKeyField() {
+		return isKeyField;
+	}
+
+	public void setIsKeyField(Boolean isKeyField) {
+		this.isKeyField = isKeyField;
+	}
+
+	public Boolean getIsTitleField() {
+		return isTitleField;
+	}
+
+	public void setIsTitleField(Boolean isTitleField) {
+		this.isTitleField = isTitleField;
+	}
+
+	public Boolean getIsSelfRelPointerField() {
+		return isSelfRelPointerField;
+	}
+
+	public void setIsSelfRelPointerField(Boolean isSelfRelPointerField) {
+		this.isSelfRelPointerField = isSelfRelPointerField;
+	}
+
 	// ---------------------- VOLATILE PROPERTIES
 
 	public String getDbType() {
@@ -105,6 +144,13 @@ public class XDSField implements Serializable {
 		return this;
 	}
 
+	public DataSource getTarget() {
+		return target;
+	}
+
+	public void setTarget(DataSource target) {
+		this.target = target;
+	}
 
 	// ---------------------- Object METHODS
 
