@@ -12,6 +12,7 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
+import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.XDSField;
@@ -39,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,7 +87,7 @@ public class DataSourceViewer extends DPage {
 		add(new Label("title", title));
 
 		Form<Map<String, Object>> dynamicForm = new Form<>("dynamicForm", new CompoundPropertyModel<>(filters));
-		dynamicForm.add(new ListView<XDSField>("fields", xDataSource.getFields()) {
+		dynamicForm.add(new ListView<XDSField>("fields", getFieldForFilter()) {
 			@Override
 			protected void populateItem(ListItem<XDSField> item) {
 				XDSField dsField = item.getModelObject();
@@ -99,11 +101,13 @@ public class DataSourceViewer extends DPage {
 						break;
 
 					case Integer:
+						// TODO XDSFieldFilterType.Range == dsField.getFilterType()
 						view.add(new WNumberInput(dsField.getName(), Long.class)
 							.setThousandSeparator(","));
 						break;
 
 					case Real:
+						// TODO XDSFieldFilterType.Range == dsField.getFilterType()
 						view.add(new WNumberInput(dsField.getName(), BigDecimal.class).setPrecision(2)
 							.setThousandSeparator(",")
 							.setPrecision(3));
@@ -115,7 +119,7 @@ public class DataSourceViewer extends DPage {
 
 					case Date:
 					case DateTime:
-						if (XDSFieldFilterType.Range.equals(dsField.getFilterType())) {
+						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
 							view.add(new WDateRangeInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType()));
 						} else {
 							view.add(new WDateInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType()));
@@ -123,9 +127,12 @@ public class DataSourceViewer extends DPage {
 						break;
 
 					case LookUp:
-//						TODO
-//						List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dataSource, dsField);
-//						view.add(new WSelectionInput(dsField.getName(), lookUpList, dsField.getFilterType() == XDSFieldFilterType.List));
+						if (dsField.getFilterType() == XDSFieldFilterType.List) {
+							List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dsField);
+							view.add(new WSelectionInput(dsField.getName(), lookUpList, true));
+						} else {
+							//TODO XDSFieldFilterType.Search
+						}
 						break;
 				}
 
@@ -146,26 +153,35 @@ public class DataSourceViewer extends DPage {
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 		for (XDSField dsField : xDataSource.getFields()) {
 			if (XDSFieldType.LookUp != dsField.getType()) {
-				OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName())
-					.setSortable(true);
-				switch (dsField.getType()) {
-					case Integer:
-						column.setFormatter(ONumberFormatter.integer());
+				switch (dsField.getResultType()) {
+					case None:
 						break;
-					case Real:
-						column.setFormatter(ONumberFormatter.real());
+					case Shown:
+						OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName())
+							.setSortable(true);
+						switch (dsField.getType()) {
+							case Integer:
+								column.setFormatter(ONumberFormatter.integer());
+								break;
+							case Real:
+								column.setFormatter(ONumberFormatter.real());
+								break;
+							case Date:
+								column.setFormatter(ODateFormatter.prDate());
+								break;
+							case DateTime:
+								column.setFormatter(ODateFormatter.prDateTime());
+								break;
+							case Boolean:
+								column.setFormatter(OBooleanFormatter.bool());
+								break;
+						}
+						columns.add(column);
 						break;
-					case Date:
-						column.setFormatter(ODateFormatter.prDate());
-						break;
-					case DateTime:
-						column.setFormatter(ODateFormatter.prDateTime());
-						break;
-					case Boolean:
-						column.setFormatter(OBooleanFormatter.bool());
+					case Hidden:
+						//TODO add hidden column, usefull for client interaction
 						break;
 				}
-				columns.add(column);
 			}
 		}
 
@@ -183,6 +199,16 @@ public class DataSourceViewer extends DPage {
 
 		mainTable.add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
 
+	}
+
+	private List<XDSField> getFieldForFilter() {
+		List<XDSField> result = new ArrayList<>();
+		for (XDSField field : xDataSource.getFields()) {
+			if (XDSFieldFilterType.None != field.getFilterType()) {
+				result.add(field);
+			}
+		}
+		return result;
 	}
 
 	private class SearchDataSource extends WDataSource<Map<String, Object>> {

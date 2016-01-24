@@ -241,7 +241,6 @@ public class DataSourceService implements IDataSourceService {
 
 		List<XDSField> selectFields = new ArrayList<>();
 		for (XDSField field : xDataSource.getFields()) {
-			selectFields.add(field);
 			switch (field.getResultType()) {
 				case Shown:
 				case Hidden:
@@ -311,14 +310,25 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> getLookUpList(XDataSource dataSource, XDSField field) {
-		/* TODO
+	public List<KeyValueVO<Serializable, String>> getLookUpList(XDSField field) {
+		Long dataSrcId = field.getTarget().getId();
+		DataSource dataSource = persistorService.get(DataSource.class, dataSrcId);
+		XDataSource xDataSource = getXDataSource(dataSource);
+
+		StringBuilder queryBuilder = new StringBuilder();
+		queryBuilder.append("select ").append(dataSource.getKeyField()).append(",");
+		if (dataSource.getTitleField() != null) {
+			queryBuilder.append(dataSource.getTitleField());
+		} else {
+			queryBuilder.append(dataSource.getKeyField());
+		}
+		queryBuilder.append(" from (").append(xDataSource.getSql()).append(")");
+
 		try {
-			return dbConnectionService.executeQueryAsKeyValues(dataSource.getConnectionInfoId(), field.getSqlOpt());
+			return dbConnectionService.executeQueryAsKeyValues(dataSource.getConnectionId(), queryBuilder.toString());
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
-		}*/
-		return null;
+		}
 	}
 
 	private Map<String, Object> appendWhere(Map<String, Object> filters, XDataSource dataSource, StringBuilder builder) {

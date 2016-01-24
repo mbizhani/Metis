@@ -34,5 +34,5 @@ public interface IDataSourceService {
 												Long pageIndex,
 												Long pageSize);
 
-	List<KeyValueVO<Serializable, String>> getLookUpList(XDataSource dataSource, XDSField field);
+	List<KeyValueVO<Serializable, String>> getLookUpList(XDSField field);
 }
