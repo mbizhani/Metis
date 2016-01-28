@@ -1,3 +1,31 @@
+CREATE TABLE t_topic (
+  id       NUMBER(10, 0),
+  c_name   VARCHAR2(255 CHAR),
+  n_level  NUMBER(10, 0),
+  f_parent NUMBER(10, 0),
+
+  CONSTRAINT t_topic_pk PRIMARY KEY (id),
+  CONSTRAINT child2parent FOREIGN KEY (f_parent) REFERENCES t_topic (id)
+);
+
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (1, 'L01', 1, NULL);
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (2, 'L02', 1, NULL);
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (3, 'L03', 1, NULL);
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (4, 'L04', 1, NULL);
+
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (5, 'L01.01', 2, 1);
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (6, 'L01.02', 2, 1);
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (7, 'L01.03', 2, 1);
+
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (8, 'L02.01', 2, 2);
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (9, 'L02.02', 2, 2);
+
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (10, 'L01.02.01', 3, 6);
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (11, 'L01.02.02', 3, 6);
+INSERT INTO t_topic (id, c_name, n_level, f_parent) VALUES (12, 'L01.02.03', 3, 6);
+
+
+
 CREATE TABLE t_person (
   id     NUMBER(10, 0),
   c_name VARCHAR2(255 CHAR),

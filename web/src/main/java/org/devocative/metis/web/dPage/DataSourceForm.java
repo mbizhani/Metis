@@ -6,7 +6,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.PropertyModel;
@@ -21,6 +20,9 @@ import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
 import org.devocative.wickomp.form.WTextInput;
+import org.devocative.wickomp.form.code.OCode;
+import org.devocative.wickomp.form.code.OCodeMode;
+import org.devocative.wickomp.form.code.WCodeInput;
 import org.devocative.wickomp.html.wizard.OWizard;
 import org.devocative.wickomp.html.wizard.WWizardPanel;
 import org.devocative.wickomp.html.wizard.WWizardStepPanel;
@@ -94,7 +96,7 @@ public class DataSourceForm extends DPage {
 				connectionService.list(),
 				false
 			));
-			add(new TextArea<>("sql", new PropertyModel<String>(DataSourceForm.this, "sql")));
+			add(new WCodeInput("sql", new PropertyModel<String>(DataSourceForm.this, "sql"), new OCode(OCodeMode.SQL)));
 		}
 	}
 
