@@ -23,7 +23,7 @@ public class ORESTLinkColumn<T> extends OColumn<T> {
 	}
 
 	@Override
-	public String cellValue(T bean, int rowNo, int colNo, String url) {
+	public String cellValue(T bean, String id, int colNo, String url) {
 		IPageService pageService = ModuleLoader.getApplicationContext().getBean(IPageService.class);
 		String href = pageService.getUriByPage(dPageClass);
 		if (href.length() > 0 && href.charAt(0) == '/') {

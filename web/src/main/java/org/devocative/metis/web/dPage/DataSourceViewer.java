@@ -21,7 +21,7 @@ import org.devocative.metis.entity.dataSource.config.XDSFieldType;
 import org.devocative.metis.entity.dataSource.config.XDataSource;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.wickomp.WModel;
-import org.devocative.wickomp.data.WDataSource;
+import org.devocative.wickomp.data.WGridDataSource;
 import org.devocative.wickomp.data.WSortField;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
@@ -53,7 +53,7 @@ public class DataSourceViewer extends DPage {
 	@Inject
 	private IDataSourceService dataSourceService;
 
-	private SearchDataSource gridDS;
+	private SearchGridDataSource gridDS;
 	private Map<String, Object> filters;
 	private WDataGrid<Map<String, Object>> grid;
 
@@ -69,7 +69,7 @@ public class DataSourceViewer extends DPage {
 		String title;
 		if (params.size() > 0) {
 			filters = new HashMap<>();
-			gridDS = new SearchDataSource();
+			gridDS = new SearchGridDataSource();
 			gridDS.setEnabled(false);
 
 			dataSourceName = params.get(0);
@@ -101,16 +101,25 @@ public class DataSourceViewer extends DPage {
 						break;
 
 					case Integer:
-						// TODO XDSFieldFilterType.Range == dsField.getFilterType()
-						view.add(new WNumberInput(dsField.getName(), Long.class)
-							.setThousandSeparator(","));
+						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
+							view.add(new WNumberRangeInput(dsField.getName(), Long.class)
+								.setThousandSeparator(","));
+						} else {
+							view.add(new WNumberInput(dsField.getName(), Long.class)
+								.setThousandSeparator(","));
+						}
 						break;
 
 					case Real:
-						// TODO XDSFieldFilterType.Range == dsField.getFilterType()
-						view.add(new WNumberInput(dsField.getName(), BigDecimal.class).setPrecision(2)
-							.setThousandSeparator(",")
-							.setPrecision(3));
+						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
+							view.add(new WNumberRangeInput(dsField.getName(), BigDecimal.class).setPrecision(2)
+								.setThousandSeparator(",")
+								.setPrecision(3));
+						} else {
+							view.add(new WNumberInput(dsField.getName(), BigDecimal.class).setPrecision(2)
+								.setThousandSeparator(",")
+								.setPrecision(3));
+						}
 						break;
 
 					case Boolean:
@@ -187,9 +196,9 @@ public class DataSourceViewer extends DPage {
 
 		OGrid<Map<String, Object>> gridOptions = new OGrid<>();
 		gridOptions
+			.setGroupStyle("background-color:#dddddd")
 			.setColumns(columns)
 			.setMultiSort(true)
-			.setGroupStyle("background-color:#dddddd")
 			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				new FontAwesome("file-excel-o", "green", new ResourceModel("label.export.excel")),
 				String.format("%s-Export.xlsx", dataSourceName),
@@ -211,7 +220,7 @@ public class DataSourceViewer extends DPage {
 		return result;
 	}
 
-	private class SearchDataSource extends WDataSource<Map<String, Object>> {
+	private class SearchGridDataSource extends WGridDataSource<Map<String, Object>> {
 		@Override
 		public List<Map<String, Object>> list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
 			Map<String, String> sortFieldsMap = null;

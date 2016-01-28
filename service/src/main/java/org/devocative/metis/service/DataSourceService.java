@@ -89,6 +89,8 @@ public class DataSourceService implements IDataSourceService {
 			}
 
 			if (XDSFieldType.LookUp == xdsField.getType()) {
+				xdsField.setTargetId(xdsField.getTarget().getId());
+
 				DataSourceRelation rel = relationsMap.get(xdsField.getName());
 				if (rel == null) {
 					rel = new DataSourceRelation();

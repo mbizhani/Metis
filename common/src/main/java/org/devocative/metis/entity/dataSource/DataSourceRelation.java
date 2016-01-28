@@ -9,7 +9,10 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_datasrc_rel")
+@Table(name = "t_mts_datasrc_rel",
+	uniqueConstraints = {
+		@UniqueConstraint(name = "datasrc_main", columnNames = {"c_src_ptr_field", "f_src_datasrc"})
+	})
 public class DataSourceRelation implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
 	@GeneratedValue(generator = "mts_datasrc_rel")
@@ -24,6 +27,12 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 
 	@Column(name = "c_src_ptr_field", nullable = false)
 	private String sourcePointerField;
+
+	@Column(name = "c_tgt_key_field")
+	private String targetKeyField;
+
+	@Column(name = "c_tgt_title_field")
+	private String targetTitleField;
 
 	@Column(name = "b_deleted", nullable = false)
 	private Boolean deleted = false;
@@ -87,6 +96,22 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 
 	public void setSourcePointerField(String sourcePointerField) {
 		this.sourcePointerField = sourcePointerField;
+	}
+
+	public String getTargetKeyField() {
+		return targetKeyField;
+	}
+
+	public void setTargetKeyField(String targetKeyField) {
+		this.targetKeyField = targetKeyField;
+	}
+
+	public String getTargetTitleField() {
+		return targetTitleField;
+	}
+
+	public void setTargetTitleField(String targetTitleField) {
+		this.targetTitleField = targetTitleField;
 	}
 
 	public Boolean getDeleted() {

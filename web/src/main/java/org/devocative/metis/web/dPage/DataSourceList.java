@@ -7,7 +7,7 @@ import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.web.component.grid.ORESTLinkColumn;
 import org.devocative.wickomp.WModel;
-import org.devocative.wickomp.data.WDataSource;
+import org.devocative.wickomp.data.WGridDataSource;
 import org.devocative.wickomp.data.WSortField;
 import org.devocative.wickomp.grid.OGrid;
 import org.devocative.wickomp.grid.WDataGrid;
@@ -41,7 +41,7 @@ public class DataSourceList extends DPage {
 			.setMultiSort(false)
 			.setHeight(OSize.fixed(350));
 
-		add(new WDataGrid<>("grid", oGrid, new WDataSource<DataSource>() {
+		add(new WDataGrid<>("grid", oGrid, new WGridDataSource<DataSource>() {
 			@Override
 			public List<DataSource> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return dataSourceService.search(pageIndex, pageSize);

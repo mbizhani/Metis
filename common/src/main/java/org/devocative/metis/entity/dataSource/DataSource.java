@@ -83,6 +83,13 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
+	public DataSource() {
+	}
+
+	public DataSource(Long id) {
+		this.id = id;
+	}
+
 	public Long getId() {
 		return id;
 	}

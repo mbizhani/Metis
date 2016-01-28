@@ -158,6 +158,7 @@ public class DataSourceForm extends DPage {
 				@Override
 				protected void populateItem(ListItem<XDSField> item) {
 					XDSField field = item.getModelObject();
+					field.setTarget(new DataSource(field.getTargetId()));
 
 					item.add(new Label("name", field.getName()));
 					item.add(new WSelectionInput("dataSources", new PropertyModel(field, "target"),

@@ -36,6 +36,9 @@ public class XDSField implements Serializable {
 	@XStreamAsAttribute
 	private Boolean isSelfRelPointerField;
 
+	@XStreamAsAttribute
+	private Long targetId;
+
 	// -- Volatile Fields
 
 	@XStreamOmitField
@@ -122,6 +125,14 @@ public class XDSField implements Serializable {
 
 	public void setIsSelfRelPointerField(Boolean isSelfRelPointerField) {
 		this.isSelfRelPointerField = isSelfRelPointerField;
+	}
+
+	public Long getTargetId() {
+		return targetId;
+	}
+
+	public void setTargetId(Long targetId) {
+		this.targetId = targetId;
 	}
 
 	// ---------------------- VOLATILE PROPERTIES
