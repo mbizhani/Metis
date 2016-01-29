@@ -18,17 +18,15 @@ import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldFilterType;
 import org.devocative.metis.entity.dataSource.config.XDSFieldType;
-import org.devocative.metis.entity.dataSource.config.XDataSource;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.wickomp.WModel;
-import org.devocative.wickomp.data.WGridDataSource;
 import org.devocative.wickomp.data.WSortField;
+import org.devocative.wickomp.data.WTreeGridDataSource;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
 import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.formatter.ONumberFormatter;
-import org.devocative.wickomp.grid.OGrid;
-import org.devocative.wickomp.grid.WDataGrid;
+import org.devocative.wickomp.grid.*;
 import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
@@ -42,10 +40,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DataSourceViewer extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceViewer.class);
@@ -53,12 +48,12 @@ public class DataSourceViewer extends DPage {
 	@Inject
 	private IDataSourceService dataSourceService;
 
-	private SearchGridDataSource gridDS;
+	private SearchDataSource gridDS;
 	private Map<String, Object> filters;
-	private WDataGrid<Map<String, Object>> grid;
+	private WBaseGrid<Map<String, Object>> grid;
 
-	private String dataSourceName;
-	private XDataSource xDataSource;
+	private DataSource dataSource;
+	private List<XDSField> xdsFieldList;
 
 	public DataSourceViewer(String id, List<String> params) {
 		super(id, params);
@@ -68,19 +63,17 @@ public class DataSourceViewer extends DPage {
 
 		String title;
 		if (params.size() > 0) {
-			filters = new HashMap<>();
-			gridDS = new SearchGridDataSource();
-			gridDS.setEnabled(false);
+			dataSource = dataSourceService.getDataSource(params.get(0));
+			logger.info("DataSource param = {}", dataSource.getName());
+			xdsFieldList = dataSourceService.getXDataSource(dataSource).getFields();
+			title = String.format("%s (%s)", dataSource.getTitle(), dataSource.getName());
 
-			dataSourceName = params.get(0);
-			logger.info("DataSource param = {}", dataSourceName);
-			DataSource dataSource = dataSourceService.getDataSource(dataSourceName);
-			xDataSource = dataSourceService.getXDataSource(dataSource);
-			title = String.format("%s (%s)", dataSource.getTitle(), dataSourceName);
+			filters = new HashMap<>();
+			gridDS = new SearchDataSource();
+			gridDS.setEnabled(false);
 		} else {
 			mainTable.setVisible(false);
-			xDataSource = new XDataSource();
-			xDataSource.setFields(new ArrayList<XDSField>());
+			xdsFieldList = new ArrayList<>();
 			title = "No DataSource defined!"; // TODO use ResourceModel
 		}
 
@@ -160,7 +153,7 @@ public class DataSourceViewer extends DPage {
 		mainTable.add(dynamicForm);
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
-		for (XDSField dsField : xDataSource.getFields()) {
+		for (XDSField dsField : xdsFieldList) {
 			if (XDSFieldType.LookUp != dsField.getType()) {
 				switch (dsField.getResultType()) {
 					case None:
@@ -194,25 +187,40 @@ public class DataSourceViewer extends DPage {
 			}
 		}
 
-		OGrid<Map<String, Object>> gridOptions = new OGrid<>();
-		gridOptions
-			.setGroupStyle("background-color:#dddddd")
+		OBaseGrid<Map<String, Object>> oBaseGrid;
+
+		if (dataSource.getSelfRelPointerField() == null) {
+			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
+			gridOptions
+				.setGroupStyle("background-color:#dddddd")
+				.addToolbarButton(new OGroupFieldButton<Map<String, Object>>());
+
+			oBaseGrid = gridOptions;
+			mainTable.add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
+		} else {
+			OTreeGrid<Map<String, Object>> gridOptions = new OTreeGrid<>();
+			gridOptions
+				.setParentIdField(dataSource.getSelfRelPointerField())
+				.setTreeField(dataSource.getTitleField())
+				.setIdField(dataSource.getKeyField());
+
+			oBaseGrid = gridOptions;
+			mainTable.add(grid = new WTreeGrid<>("grid", gridOptions, gridDS));
+		}
+
+		oBaseGrid
 			.setColumns(columns)
 			.setMultiSort(true)
 			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				new FontAwesome("file-excel-o", "green", new ResourceModel("label.export.excel")),
-				String.format("%s-Export.xlsx", dataSourceName),
+				String.format("%s-export.xlsx", dataSource.getName()),
 				10000))
-			.addToolbarButton(new OGroupFieldButton<Map<String, Object>>());
-		gridOptions.setHeight(OSize.fixed(800));
-
-		mainTable.add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
-
+			.setHeight(OSize.fixed(800));
 	}
 
 	private List<XDSField> getFieldForFilter() {
 		List<XDSField> result = new ArrayList<>();
-		for (XDSField field : xDataSource.getFields()) {
+		for (XDSField field : xdsFieldList) {
 			if (XDSFieldFilterType.None != field.getFilterType()) {
 				result.add(field);
 			}
@@ -220,9 +228,53 @@ public class DataSourceViewer extends DPage {
 		return result;
 	}
 
-	private class SearchGridDataSource extends WGridDataSource<Map<String, Object>> {
+	private Map<String, Object> getFilterMap() {
+		Map<String, Object> filtersCloned = new HashMap<>();
+		for (Map.Entry<String, Object> entry : filters.entrySet()) {
+			if (entry.getValue() != null) {
+				filtersCloned.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return filtersCloned;
+	}
+
+	private class SearchDataSource extends WTreeGridDataSource<Map<String, Object>> {
 		@Override
 		public List<Map<String, Object>> list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
+			return dataSourceService.executeDataSource(dataSource.getName(), getFilterMap(), getSortFieldsMap(sortFieldList),
+				pageIndex, pageSize);
+		}
+
+		@Override
+		public List<Map<String, Object>> listByIds(Set<Serializable> ids, List<WSortField> sortFieldList) {
+			Map<String, Object> filters = new HashMap<>();
+			filters.put(dataSource.getKeyField(), ids);
+
+			return dataSourceService.executeDataSource(dataSource.getName(), filters, getSortFieldsMap(sortFieldList),
+				null, null);
+		}
+
+		@Override
+		public List<Map<String, Object>> listByParent(Serializable parentId, List<WSortField> sortFieldList) {
+			return dataSourceService.getChildrenOfParent(dataSource.getName(), parentId, getSortFieldsMap(sortFieldList));
+		}
+
+		@Override
+		public boolean hasChildren(Map<String, Object> bean) {
+			return true;
+		}
+
+		@Override
+		public long count() {
+			return dataSourceService.getCountForDataSource(dataSource.getName(), getFilterMap());
+		}
+
+		@Override
+		public IModel<Map<String, Object>> model(final Map<String, Object> objectMap) {
+			return new WModel<>(objectMap);
+		}
+
+		private Map<String, String> getSortFieldsMap(List<WSortField> sortFieldList) {
 			Map<String, String> sortFieldsMap = null;
 			if (sortFieldList != null && sortFieldList.size() > 0) {
 				sortFieldsMap = new HashMap<>();
@@ -230,32 +282,7 @@ public class DataSourceViewer extends DPage {
 					sortFieldsMap.put(sortField.getField(), sortField.getOrder());
 				}
 			}
-
-			Map<String, Object> filtersCloned = new HashMap<>();
-			for (Map.Entry<String, Object> entry : filters.entrySet()) {
-				if (entry.getValue() != null) {
-					filtersCloned.put(entry.getKey(), entry.getValue());
-				}
-			}
-			return dataSourceService.executeDataSource(dataSourceName, filtersCloned, sortFieldsMap,
-				pageIndex, pageSize);
-		}
-
-		@Override
-		public long count() {
-			Map<String, Object> filtersCloned = new HashMap<>();
-			for (Map.Entry<String, Object> entry : filters.entrySet()) {
-				if (entry.getValue() != null) {
-					filtersCloned.put(entry.getKey(), entry.getValue());
-				}
-			}
-			return dataSourceService.getCountForDataSource(dataSourceName, filtersCloned);
-		}
-
-		@Override
-		public IModel<Map<String, Object>> model(final Map<String, Object> objectMap) {
-			return new WModel<>(objectMap);
+			return sortFieldsMap;
 		}
 	}
-
 }

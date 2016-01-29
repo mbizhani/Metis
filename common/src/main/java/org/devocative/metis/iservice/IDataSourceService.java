@@ -35,4 +35,6 @@ public interface IDataSourceService {
 												Long pageSize);
 
 	List<KeyValueVO<Serializable, String>> getLookUpList(XDSField field);
+
+	List<Map<String, Object>> getChildrenOfParent(String name, Serializable parentId, Map<String, String> sortFields);
 }

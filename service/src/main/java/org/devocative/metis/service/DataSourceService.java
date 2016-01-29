@@ -24,10 +24,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("mtsDataSourceService")
 public class DataSourceService implements IDataSourceService {
@@ -175,15 +172,14 @@ public class DataSourceService implements IDataSourceService {
 			XDSField field = xDataSource.getField(relation.getSourcePointerField());
 			field.setTarget(relation.getTarget());
 		}
+		xDataSource.setConnectionInfoId(dataSource.getConnectionId());
 		return xDataSource;
 	}
 
 	@Override
 	public XDataSource getXDataSource(String name) {
 		DataSource dataSource = getDataSource(name);
-		XDataSource xDataSource = getXDataSource(dataSource);
-		xDataSource.setConnectionInfoId(dataSource.getConnectionId());
-		return xDataSource;
+		return getXDataSource(dataSource);
 	}
 
 	@Override
@@ -241,46 +237,11 @@ public class DataSourceService implements IDataSourceService {
 													   Long pageSize) {
 		XDataSource xDataSource = getXDataSource(name);
 
-		List<XDSField> selectFields = new ArrayList<>();
-		for (XDSField field : xDataSource.getFields()) {
-			switch (field.getResultType()) {
-				case Shown:
-				case Hidden:
-					selectFields.add(field);
-			}
-		}
-
-		StringBuilder mainQueryBuilder = new StringBuilder();
-		mainQueryBuilder.append("select ").append(selectFields.get(0).getName());
-
-		for (int i = 1; i < selectFields.size(); i++) {
-			XDSField field = selectFields.get(i);
-			mainQueryBuilder.append(",").append(field.getName());
-		}
-
-		mainQueryBuilder
-			.append(" from (")
-			.append(xDataSource.getSql()) //TODO: the sql must be process by FreeMarker template engine
-			.append(")");
+		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource);
 
 		Map<String, Object> queryParams = appendWhere(filters, xDataSource, mainQueryBuilder);
 
-		if (sortFields != null && sortFields.size() > 0) {
-			mainQueryBuilder.append(" order by ");
-			boolean firstAdded = false;
-			for (Map.Entry<String, String> sortField : sortFields.entrySet()) {
-				//TODO check field
-				if (firstAdded) {
-					mainQueryBuilder.append(",");
-				} else {
-					firstAdded = true;
-				}
-				mainQueryBuilder
-					.append(sortField.getKey())
-					.append(" ")
-					.append(sortField.getValue());
-			}
-		}
+		applySortFields(sortFields, mainQueryBuilder);
 
 		String mainQuery = mainQueryBuilder.toString();
 		logger.debug("executeDataSource: MAIN SQL: {}", mainQuery);
@@ -333,6 +294,51 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
+	@Override
+	public List<Map<String, Object>> getChildrenOfParent(String name, Serializable parentId, Map<String, String> sortFields) {
+		DataSource dataSource = getDataSource(name);
+
+		XDataSource xDataSource = getXDataSource(dataSource);
+		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource);
+
+		mainQueryBuilder.append(" where ").append(dataSource.getSelfRelPointerField()).append(" = :parentId");
+
+		applySortFields(sortFields, mainQueryBuilder);
+
+		Map<String, Object> params = new HashMap<>();
+		params.put("parentId", parentId);
+		try {
+			return dbConnectionService.executeQuery(xDataSource.getConnectionInfoId(), mainQueryBuilder.toString(), params);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private StringBuilder createSelectAndFrom(XDataSource xDataSource) {
+		List<XDSField> selectFields = new ArrayList<>();
+		for (XDSField field : xDataSource.getFields()) {
+			switch (field.getResultType()) {
+				case Shown:
+				case Hidden:
+					selectFields.add(field);
+			}
+		}
+
+		StringBuilder mainQueryBuilder = new StringBuilder();
+		mainQueryBuilder.append("select ").append(selectFields.get(0).getName());
+
+		for (int i = 1; i < selectFields.size(); i++) {
+			XDSField field = selectFields.get(i);
+			mainQueryBuilder.append(",").append(field.getName());
+		}
+
+		mainQueryBuilder
+			.append(" from (")
+			.append(xDataSource.getSql()) //TODO: the sql must be process by FreeMarker template engine
+			.append(")");
+		return mainQueryBuilder;
+	}
+
 	private Map<String, Object> appendWhere(Map<String, Object> filters, XDataSource dataSource, StringBuilder builder) {
 		Map<String, Object> queryParams = new HashMap<>();
 
@@ -348,7 +354,11 @@ public class DataSourceService implements IDataSourceService {
 							if (value instanceof KeyValueVO) {
 								value = ((KeyValueVO) value).getKey();
 							}
-							builder.append(String.format("and %1$s  = :%1$s ", dsField.getName()));
+							if (value instanceof Collection) { //TODO?
+								builder.append(String.format("and %1$s in (:%1$s) ", dsField.getName()));
+							} else {
+								builder.append(String.format("and %1$s  = :%1$s ", dsField.getName()));
+							}
 							queryParams.put(dsField.getName(), value);
 							break;
 
@@ -385,6 +395,26 @@ public class DataSourceService implements IDataSourceService {
 
 		return queryParams;
 	}
+
+	private void applySortFields(Map<String, String> sortFields, StringBuilder mainQueryBuilder) {
+		if (sortFields != null && sortFields.size() > 0) {
+			mainQueryBuilder.append(" order by ");
+			boolean firstAdded = false;
+			for (Map.Entry<String, String> sortField : sortFields.entrySet()) {
+				//TODO check field
+				if (firstAdded) {
+					mainQueryBuilder.append(",");
+				} else {
+					firstAdded = true;
+				}
+				mainQueryBuilder
+					.append(sortField.getKey())
+					.append(" ")
+					.append(sortField.getValue());
+			}
+		}
+	}
+
 
 	private class MyWriter extends PrettyPrintWriter {
 		public MyWriter(Writer writer) {

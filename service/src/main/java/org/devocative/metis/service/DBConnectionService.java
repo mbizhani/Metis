@@ -164,13 +164,21 @@ public class DBConnectionService implements IDBConnectionService {
 
 	@Override
 	public boolean isOracle(Long id) {
-		DBConnection connection = CONNECTION_MAP.get(id);
-		return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:oracle");
+		try (Connection ignored = getConnection(id)) {
+			DBConnection connection = CONNECTION_MAP.get(id);
+			return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:oracle");
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public boolean isMySQL(Long id) {
-		DBConnection connection = CONNECTION_MAP.get(id);
-		return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:mysql");
+		try (Connection ignored = getConnection(id)) {
+			DBConnection connection = CONNECTION_MAP.get(id);
+			return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:mysql");
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
