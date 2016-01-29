@@ -11,10 +11,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.PropertyModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.dataSource.DataSource;
-import org.devocative.metis.entity.dataSource.config.XDSField;
-import org.devocative.metis.entity.dataSource.config.XDSFieldResultType;
-import org.devocative.metis.entity.dataSource.config.XDSFieldType;
-import org.devocative.metis.entity.dataSource.config.XDataSource;
+import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.wickomp.form.WSelectionInput;
@@ -33,7 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DataSourceForm extends DPage {
-	private String sql;
+	private XDSQuery xdsQuery;
 	private DataSource dataSource;
 	private List<XDSField> xdsFields;
 
@@ -49,18 +46,20 @@ public class DataSourceForm extends DPage {
 		if (params.size() > 0) {
 			dataSource = dataSourceService.getDataSource(params.get(0));
 			XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
-			sql = xDataSource.getSql().trim();
+			xdsQuery = xDataSource.getQuery();
 			xdsFields = xDataSource.getFields();
 		} else {
 			dataSource = new DataSource();
 			xdsFields = new ArrayList<>();
+			xdsQuery = new XDSQuery();
 		}
 
 		Form form = new Form("form");
 		add(form);
 
 		OWizard oWizard = new OWizard()
-			.addStep("query", new DefineQueryStep())
+			.addStep("init", new InitStep())
+			.addStep("query", new QueryStep())
 			.addStep("columns", new DefineColumnsStep())
 			.addStep("lookup", new DefineLookupStep());
 
@@ -70,7 +69,7 @@ public class DataSourceForm extends DPage {
 				if ("columns".equals(stepId)) {
 					List<XDSField> list = dataSourceService.createFields(
 						xdsFields,
-						sql,
+						xdsQuery,
 						dataSource.getConnection().getId()
 					);
 					xdsFields.clear();
@@ -80,12 +79,12 @@ public class DataSourceForm extends DPage {
 
 			@Override
 			protected void onFinish(AjaxRequestTarget target) {
-				dataSourceService.saveOrUpdate(dataSource, sql, xdsFields);
+				dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields);
 			}
 		});
 	}
 
-	private class DefineQueryStep extends WWizardStepPanel {
+	private class InitStep extends WWizardStepPanel {
 		@Override
 		protected void onInit() {
 			add(new WTextInput("name", new PropertyModel<String>(DataSourceForm.this, "dataSource.name"))
@@ -96,7 +95,19 @@ public class DataSourceForm extends DPage {
 				connectionService.list(),
 				false
 			));
-			add(new WCodeInput("sql", new PropertyModel<String>(DataSourceForm.this, "sql"), new OCode(OCodeMode.SQL)));
+			add(new WSelectionInput("queryMode", new PropertyModel(xdsQuery, "mode"),
+				Arrays.asList(XDSQueryMode.values()), false));
+		}
+	}
+
+	private class QueryStep extends WWizardStepPanel {
+		@Override
+		protected void onInit() {
+			OCode oCode = new OCode(OCodeMode.SQL);
+			if (xdsQuery.getMode() != XDSQueryMode.SQL) {
+				//oCode.setHintOptions(); TODO load mappings
+			}
+			add(new WCodeInput("query", new PropertyModel<String>(xdsQuery, "text"), oCode));
 		}
 	}
 

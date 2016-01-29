@@ -40,6 +40,13 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "c_schema")
 	private String schema;
 
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "dbconn2cfglob"))
+	private ConfigLob config;
+
+	@Column(name = "f_config", insertable = false, updatable = false)
+	private Long configId;
+
 	//----------------------------- CREATE / MODIFY
 
 	@NotAudited
@@ -124,6 +131,18 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 
 	public void setSchema(String schema) {
 		this.schema = schema;
+	}
+
+	public ConfigLob getConfig() {
+		return config;
+	}
+
+	public void setConfig(ConfigLob config) {
+		this.config = config;
+	}
+
+	public Long getConfigId() {
+		return configId;
 	}
 
 	@Override

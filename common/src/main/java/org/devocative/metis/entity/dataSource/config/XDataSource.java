@@ -10,7 +10,7 @@ import java.util.Map;
 
 @XStreamAlias("dataSource")
 public class XDataSource implements Serializable {
-	private String sql;
+	private XDSQuery query;
 
 	private List<XDSField> fields;
 
@@ -19,12 +19,12 @@ public class XDataSource implements Serializable {
 	@XStreamOmitField
 	private Long connectionInfoId;
 
-	public String getSql() {
-		return sql;
+	public XDSQuery getQuery() {
+		return query;
 	}
 
-	public void setSql(String sql) {
-		this.sql = sql;
+	public void setQuery(XDSQuery query) {
+		this.query = query;
 	}
 
 	public List<XDSField> getFields() {

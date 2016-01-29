@@ -11,6 +11,7 @@ import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.DataSourceRelation;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldType;
+import org.devocative.metis.entity.dataSource.config.XDSQuery;
 import org.devocative.metis.entity.dataSource.config.XDataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
@@ -44,7 +45,7 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public void saveOrUpdate(DataSource dataSource, String sql, List<XDSField> fields) {
+	public void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields) {
 		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
 
 		if (dataSource.getId() != null) {
@@ -100,8 +101,10 @@ public class DataSourceService implements IDataSourceService {
 			}
 		}
 
+		xdsQuery.setText(String.format("\n<![CDATA[\n%s\n]]>\n", xdsQuery.getText()));
+
 		XDataSource xDataSource = new XDataSource();
-		xDataSource.setSql(String.format("\n<![CDATA[\n%s\n]]>\n", sql.trim()));
+		xDataSource.setQuery(xdsQuery);
 		xDataSource.setFields(fields);
 
 		ConfigLob config = dataSource.getConfig();
@@ -189,7 +192,7 @@ public class DataSourceService implements IDataSourceService {
 		StringBuilder builder = new StringBuilder();
 		builder
 			.append("select count(1) cnt from (")
-			.append(dataSource.getSql())
+			.append(dataSource.getQuery().getText()) //TODO
 			.append(")");
 
 		Map<String, Object> queryParams = appendWhere(filters, dataSource, builder);
@@ -205,11 +208,11 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<XDSField> createFields(List<XDSField> currentFields, String sql, Long connectionId) {
+	public List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId) {
 		List<XDSField> result = new ArrayList<>();
 		List<XDSField> fieldsFromDB;
 		try {
-			fieldsFromDB = dbConnectionService.getFields(connectionId, sql);
+			fieldsFromDB = dbConnectionService.getFields(connectionId, xdsQuery.getText()); //TODO
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -285,7 +288,7 @@ public class DataSourceService implements IDataSourceService {
 		} else {
 			queryBuilder.append(dataSource.getKeyField());
 		}
-		queryBuilder.append(" from (").append(xDataSource.getSql()).append(")");
+		queryBuilder.append(" from (").append(xDataSource.getQuery().getText()).append(")"); //TODO
 
 		try {
 			return dbConnectionService.executeQueryAsKeyValues(dataSource.getConnectionId(), queryBuilder.toString());
@@ -334,7 +337,7 @@ public class DataSourceService implements IDataSourceService {
 
 		mainQueryBuilder
 			.append(" from (")
-			.append(xDataSource.getSql()) //TODO: the sql must be process by FreeMarker template engine
+			.append(xDataSource.getQuery().getText()) //TODO: the sql must be process by FreeMarker template engine
 			.append(")");
 		return mainQueryBuilder;
 	}
