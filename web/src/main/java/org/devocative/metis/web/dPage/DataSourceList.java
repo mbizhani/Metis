@@ -2,6 +2,7 @@ package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.iservice.IDataSourceService;
@@ -9,6 +10,7 @@ import org.devocative.metis.web.component.grid.ORESTLinkColumn;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WGridDataSource;
 import org.devocative.wickomp.data.WSortField;
+import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.grid.OGrid;
 import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.column.OColumnList;
@@ -28,12 +30,24 @@ public class DataSourceList extends DPage {
 		super(id, params);
 
 		OColumnList<DataSource> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<DataSource>(new Model<>("Name"), "name"));
-		columnList.add(new OPropertyColumn<DataSource>(new Model<>("Connection"), "connection"));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.name", "Name"), "name"));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.title", "Title"), "title"));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.connection", "DB Connection"), "connection"));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.keyField", "DB Connection"), "keyField"));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.titleField", "DB Connection"), "titleField"));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.selfRelPointerField", "DB Connection"), "selfRelPointerField"));
+
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.creationDate", "Creation Date"), "creationDate")
+			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.creatorUser", "Creator User"), "creatorUser"));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.modificationDate", "Modification Date"), "modificationDate")
+			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
+		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.modifierUser", "Modifier User"), "modifierUser"));
+
 		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceForm.class, "name",
-			new FontAwesome("pencil", "green", new Model<>("Edit"))));
+			new FontAwesome("pencil", "green", new ResourceModel("label.edit", "Edit"))));
 		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceViewer.class, "name",
-			new FontAwesome("cogs", "red", new Model<>("Execute"))));
+			new FontAwesome("cogs", "red", new ResourceModel("label.execute", "Execute"))));
 
 		OGrid<DataSource> oGrid = new OGrid<>();
 		oGrid

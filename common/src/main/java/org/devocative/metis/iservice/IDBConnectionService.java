@@ -1,7 +1,8 @@
 package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
-import org.devocative.metis.entity.DBConnection;
+import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 
 import java.io.Serializable;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDBConnectionService {
-	void saveOrUpdate(DBConnection connectionInfo);
+	void saveOrUpdate(DBConnection dbConnection, String mappingXML);
 
 	List<DBConnection> list();
 
@@ -19,7 +20,7 @@ public interface IDBConnectionService {
 
 	Connection getConnection(Long id);
 
-	List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params) throws SQLException;
+	List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params, String comment) throws SQLException;
 
 	List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long id, String query) throws SQLException;
 
@@ -28,4 +29,6 @@ public interface IDBConnectionService {
 	boolean isOracle(Long id);
 
 	boolean isMySQL(Long id);
+
+	XSchema getSchemaOfMapping(Long id);
 }

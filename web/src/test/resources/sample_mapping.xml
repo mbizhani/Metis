@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE schema PUBLIC
+		"Devocative/Metis Mapping"
+		"http://www.devocative.org/dtd/metis-mapping.dtd">
+
+<schema name="sample">
+	<tables>
+		<table from="Topic" to="t_topic">
+			<columns>
+				<column from="id" to="id"/>
+				<column from="name" to="c_name"/>
+				<column from="level" to="n_level"/>
+				<column from="parent" to="f_parent"/>
+			</columns>
+		</table>
+
+		<table from="Person" to="t_person">
+			<columns>
+				<column from="id" to="id"/>
+				<column from="name" to="c_name"/>
+			</columns>
+		</table>
+
+		<table from="State" to="t_state">
+			<columns>
+				<column from="id" to="id"/>
+				<column from="name" to="c_name"/>
+			</columns>
+		</table>
+
+		<table from="City" to="t_city">
+			<columns>
+				<column from="id" to="id"/>
+				<column from="name" to="c_name"/>
+				<column from="state" to="f_state"/>
+			</columns>
+		</table>
+
+		<table from="Trx" to="t_trx">
+			<columns>
+				<column from="id" to="id"/>
+				<column from="value" to="n_value"/>
+				<column from="date" to="d_date"/>
+				<column from="place" to="f_place"/>
+				<column from="person" to="f_person"/>
+			</columns>
+		</table>
+
+	</tables>
+</schema>

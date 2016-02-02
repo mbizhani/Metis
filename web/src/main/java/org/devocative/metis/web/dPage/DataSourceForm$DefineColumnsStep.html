@@ -2,17 +2,39 @@
 <wicket:panel>
     <table cellpadding="3">
         <tr>
-            <th>Name</th>
-            <th>DB Type</th>
-            <th>DB Size</th>
-            <th>Title</th>
-            <th>Type</th>
-            <!--<td>Format</td>-->
-            <th>Filter Type</th>
-            <th>Result Type</th>
-            <th>Is Key</th>
-            <th>Is Title</th>
-            <th>Is Self-relation</th>
+            <th>
+                <wicket:message key="XDSField.name"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.dbType"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.dbSize"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.title"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.type"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.inFilterPanel"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.filterType"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.resultType"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.isKeyField"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.isTitleField"/>
+            </th>
+            <th>
+                <wicket:message key="XDSField.isSelfRelPointerField"/>
+            </th>
         </tr>
 
         <tr class="ds_field_row" wicket:id="fields">
@@ -25,7 +47,9 @@
             <td>
                 <div wicket:id="type"></div>
             </td>
-            <!--<td>Format</td>-->
+            <td align="center">
+                <input type="checkbox" wicket:id="inFilterPanel"/>
+            </td>
             <td>
                 <div wicket:id="filterType"></div>
             </td>

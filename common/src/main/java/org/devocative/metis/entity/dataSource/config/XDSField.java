@@ -22,6 +22,9 @@ public class XDSField implements Serializable {
 	private String format;
 
 	@XStreamAsAttribute
+	private Boolean inFilterPanel;
+
+	@XStreamAsAttribute
 	private XDSFieldFilterType filterType;
 
 	@XStreamAsAttribute
@@ -81,6 +84,14 @@ public class XDSField implements Serializable {
 
 	public void setFormat(String format) {
 		this.format = format;
+	}
+
+	public Boolean getInFilterPanel() {
+		return inFilterPanel;
+	}
+
+	public void setInFilterPanel(Boolean inFilterPanel) {
+		this.inFilterPanel = inFilterPanel;
 	}
 
 	// Has Default

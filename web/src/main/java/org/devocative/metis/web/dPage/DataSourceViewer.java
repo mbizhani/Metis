@@ -31,7 +31,8 @@ import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
-import org.devocative.wickomp.grid.toolbar.OGroupFieldButton;
+import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
+import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.icon.FontAwesome;
 import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
@@ -193,7 +194,9 @@ public class DataSourceViewer extends DPage {
 			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
 			gridOptions
 				.setGroupStyle("background-color:#dddddd")
-				.addToolbarButton(new OGroupFieldButton<Map<String, Object>>());
+				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(
+					new FontAwesome("expand"),
+					new FontAwesome("compress")));
 
 			oBaseGrid = gridOptions;
 			mainTable.add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
@@ -202,7 +205,8 @@ public class DataSourceViewer extends DPage {
 			gridOptions
 				.setParentIdField(dataSource.getSelfRelPointerField())
 				.setTreeField(dataSource.getTitleField())
-				.setIdField(dataSource.getKeyField());
+				.setIdField(dataSource.getKeyField())
+				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(new FontAwesome("compress")));
 
 			oBaseGrid = gridOptions;
 			mainTable.add(grid = new WTreeGrid<>("grid", gridOptions, gridDS));
@@ -221,7 +225,7 @@ public class DataSourceViewer extends DPage {
 	private List<XDSField> getFieldForFilter() {
 		List<XDSField> result = new ArrayList<>();
 		for (XDSField field : xdsFieldList) {
-			if (XDSFieldFilterType.None != field.getFilterType()) {
+			if (field.getInFilterPanel()) {
 				result.add(field);
 			}
 		}

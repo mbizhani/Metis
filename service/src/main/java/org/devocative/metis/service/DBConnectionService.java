@@ -1,10 +1,13 @@
 package org.devocative.metis.service;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
-import org.devocative.metis.entity.DBConnection;
+import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -23,6 +26,7 @@ public class DBConnectionService implements IDBConnectionService {
 
 	private static final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new HashMap<>();
 	private static final Map<Long, DBConnection> CONNECTION_MAP = new HashMap<>();
+	private static final Map<Long, XSchema> CONNECTION_MAPPING_MAP = new HashMap<>();
 
 	private static final List<Integer> STRING_TYPES = Arrays.asList(Types.VARCHAR, Types.CHAR, Types.NVARCHAR,
 		Types.NCHAR, Types.LONGNVARCHAR, Types.CLOB, Types.NCLOB);
@@ -34,13 +38,30 @@ public class DBConnectionService implements IDBConnectionService {
 
 	private static final List<Integer> DATE_TYPES = Arrays.asList(Types.DATE, Types.TIME, Types.TIMESTAMP);
 
+	private XStream xstream;
+
 	@Autowired
 	private IPersistorService persistorService;
 
+	public DBConnectionService() {
+		xstream = new XStream();
+		xstream.processAnnotations(XSchema.class);
+	}
+
 	@Override
-	public void saveOrUpdate(DBConnection connectionInfo) {
-		persistorService.saveOrUpdate(connectionInfo);
+	public void saveOrUpdate(DBConnection dbConnection, String mappingXML) {
+		ConfigLob configLob = new ConfigLob();
+		configLob.setId(dbConnection.getConfigId());
+		configLob.setValue(mappingXML);
+		persistorService.saveOrUpdate(configLob);
+
+		dbConnection.setConfig(configLob);
+		persistorService.saveOrUpdate(dbConnection);
 		persistorService.commitOrRollback();
+
+		CONNECTION_MAP.remove(dbConnection.getId());
+		CONNECTION_MAPPING_MAP.remove(dbConnection.getId());
+		// TODO CONNECTION_POOL_MAP.remove(dbConnection.getId());
 	}
 
 	@Override
@@ -112,9 +133,12 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params) throws SQLException {
+	public List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params, String comment) throws SQLException {
 
 		try (Connection connection = getConnection(id)) {
+			if (comment != null) {
+				query = String.format("/*%s*/ %s", comment, query);
+			}
 			NamedParameterStatement nps = new NamedParameterStatement(connection, query, CONNECTION_MAP.get(id).getSchema());
 			nps.setDateClassReplacement(Timestamp.class);
 			if (params != null) {
@@ -180,5 +204,21 @@ public class DBConnectionService implements IDBConnectionService {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public XSchema getSchemaOfMapping(Long id) {
+		if (!CONNECTION_MAPPING_MAP.containsKey(id)) {
+			String config = persistorService.createQueryBuilder().addSelect("select cfg.value from DBConnection ent join ent.config cfg")
+				.addWhere("and ent.id = :id")
+				.addParam("id", id)
+				.object();
+
+			if (config != null) {
+				XSchema xSchema = (XSchema) xstream.fromXML(config);
+				CONNECTION_MAPPING_MAP.put(id, xSchema);
+			}
+		}
+		return CONNECTION_MAPPING_MAP.get(id);
 	}
 }

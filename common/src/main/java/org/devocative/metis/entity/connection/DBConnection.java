@@ -1,6 +1,7 @@
-package org.devocative.metis.entity;
+package org.devocative.metis.entity.connection;
 
 import org.devocative.demeter.entity.*;
+import org.devocative.metis.entity.ConfigLob;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 

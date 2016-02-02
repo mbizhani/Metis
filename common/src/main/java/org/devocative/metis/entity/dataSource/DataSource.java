@@ -2,7 +2,7 @@ package org.devocative.metis.entity.dataSource;
 
 import org.devocative.demeter.entity.*;
 import org.devocative.metis.entity.ConfigLob;
-import org.devocative.metis.entity.DBConnection;
+import org.devocative.metis.entity.connection.DBConnection;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 

@@ -7,12 +7,11 @@ import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.connection.mapping.XSchema;
+import org.devocative.metis.entity.connection.mapping.XTable;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.DataSourceRelation;
-import org.devocative.metis.entity.dataSource.config.XDSField;
-import org.devocative.metis.entity.dataSource.config.XDSFieldType;
-import org.devocative.metis.entity.dataSource.config.XDSQuery;
-import org.devocative.metis.entity.dataSource.config.XDataSource;
+import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.slf4j.Logger;
@@ -26,6 +25,8 @@ import java.io.Writer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service("mtsDataSourceService")
 public class DataSourceService implements IDataSourceService {
@@ -101,7 +102,7 @@ public class DataSourceService implements IDataSourceService {
 			}
 		}
 
-		xdsQuery.setText(String.format("\n<![CDATA[\n%s\n]]>\n", xdsQuery.getText()));
+		xdsQuery.setText(String.format("\n<![CDATA[\n%s\n]]>\n", xdsQuery.getText().trim()));
 
 		XDataSource xDataSource = new XDataSource();
 		xDataSource.setQuery(xdsQuery);
@@ -187,20 +188,29 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public long getCountForDataSource(String name, Map<String, Object> filters) {
-		XDataSource dataSource = getXDataSource(name);
+		XDataSource xDataSource = getXDataSource(name);
 
 		StringBuilder builder = new StringBuilder();
 		builder
 			.append("select count(1) cnt from (")
-			.append(dataSource.getQuery().getText()) //TODO
+			.append(xDataSource.getQuery().getText()) //TODO
 			.append(")");
 
-		Map<String, Object> queryParams = appendWhere(filters, dataSource, builder);
+		Map<String, Object> queryParams = appendWhere(filters, xDataSource, builder);
 
 		logger.debug("executeDataSource: FINAL SQL: {}", builder.toString());
 
 		try {
-			List<Map<String, Object>> list = dbConnectionService.executeQuery(dataSource.getConnectionInfoId(), builder.toString(), queryParams);
+			String comment = String.format("COUNT[%s]", name);
+			Long dbConnId = xDataSource.getConnectionInfoId();
+			List<Map<String, Object>> list = dbConnectionService.executeQuery(
+				dbConnId,
+				processQuery(
+					dbConnId,
+					xDataSource.getQuery().getMode(),
+					builder.toString()),
+				queryParams,
+				comment);
 			return ((BigDecimal) list.get(0).get("cnt")).longValue();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
@@ -212,7 +222,12 @@ public class DataSourceService implements IDataSourceService {
 		List<XDSField> result = new ArrayList<>();
 		List<XDSField> fieldsFromDB;
 		try {
-			fieldsFromDB = dbConnectionService.getFields(connectionId, xdsQuery.getText()); //TODO
+			fieldsFromDB = dbConnectionService.getFields(
+				connectionId,
+				processQuery(
+					connectionId,
+					xdsQuery.getMode(),
+					xdsQuery.getText()));
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -249,27 +264,36 @@ public class DataSourceService implements IDataSourceService {
 		String mainQuery = mainQueryBuilder.toString();
 		logger.debug("executeDataSource: MAIN SQL: {}", mainQuery);
 
+		Long dbConnId = xDataSource.getConnectionInfoId();
 		if (pageIndex != null && pageSize != null) {
-			if (dbConnectionService.isOracle(xDataSource.getConnectionInfoId())) {
+			if (dbConnectionService.isOracle(dbConnId)) {
 				mainQuery = String.format("select * from (select rownum rnum_pg, a.* from ( %s ) a) where rnum_pg between :pg_first and :pg_last", mainQuery);
 
 				queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
 				queryParams.put("pg_last", pageIndex * pageSize);
-			} else if (dbConnectionService.isMySQL(xDataSource.getConnectionInfoId())) {
+			} else if (dbConnectionService.isMySQL(dbConnId)) {
 				mainQuery = String.format("select * from (%s) limit :pg_first , :pg_size", mainQuery);
 
 				queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
 				queryParams.put("pg_size", pageSize);
 			} else {
 				//TODO add other databases
-				throw new RuntimeException("Database type not supported for pagination: " + xDataSource.getConnectionInfoId());
+				throw new RuntimeException("Database type not supported for pagination: " + dbConnId);
 			}
 
 			logger.debug("executeDataSource: PAGING SQL: {}", mainQuery);
 		}
 
 		try {
-			return dbConnectionService.executeQuery(xDataSource.getConnectionInfoId(), mainQuery, queryParams);
+			String comment = String.format("EXEC[%s]", name);
+			return dbConnectionService.executeQuery(
+				dbConnId,
+				processQuery(
+					dbConnId,
+					xDataSource.getQuery().getMode(),
+					mainQuery),
+				queryParams,
+				comment);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -291,7 +315,13 @@ public class DataSourceService implements IDataSourceService {
 		queryBuilder.append(" from (").append(xDataSource.getQuery().getText()).append(")"); //TODO
 
 		try {
-			return dbConnectionService.executeQueryAsKeyValues(dataSource.getConnectionId(), queryBuilder.toString());
+			Long dbConnId = dataSource.getConnectionId();
+			return dbConnectionService.executeQueryAsKeyValues(
+				dbConnId,
+				processQuery(
+					dbConnId,
+					xDataSource.getQuery().getMode(),
+					queryBuilder.toString()));
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -311,10 +341,89 @@ public class DataSourceService implements IDataSourceService {
 		Map<String, Object> params = new HashMap<>();
 		params.put("parentId", parentId);
 		try {
-			return dbConnectionService.executeQuery(xDataSource.getConnectionInfoId(), mainQueryBuilder.toString(), params);
+			String comment = String.format("CHILD[%s, %s]", name, parentId);
+			Long dbConnId = xDataSource.getConnectionInfoId();
+			return dbConnectionService.executeQuery(
+				dbConnId,
+				processQuery(
+					dbConnId,
+					xDataSource.getQuery().getMode(),
+					mainQueryBuilder.toString()),
+				params,
+				comment);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public String processQuery(Long dbConnId, XDSQueryMode mode, String query) {
+		String finalQuery = null;
+		//TODO apply FreeMarker for query modification
+
+		switch (mode) {
+			case Sql:
+				finalQuery = query;
+				break;
+			case Mapped:
+				finalQuery = processMappedQuery(dbConnId, query);
+				break;
+			case SqlAndMapped:
+				throw new RuntimeException("Mode SqlAndMapped not implemented!");
+				//break;
+		}
+		logger.debug("Process Query: FINAL = {}", finalQuery);
+		return finalQuery;
+	}
+
+	private String processMappedQuery(Long dbConnId, String query) {
+		XSchema xSchema = dbConnectionService.getSchemaOfMapping(dbConnId);
+		Map<String, XTable> aliasToXTableMap = new HashMap<>();
+
+		StringBuffer tableReplacerBuffer = new StringBuffer();
+		Pattern tablePattern = Pattern.compile("(from|join)\\s+(\\w+\\.)?(\\w+)(\\s+(\\w+))?", Pattern.CASE_INSENSITIVE);
+		Matcher tableMatcher = tablePattern.matcher(query);
+		while (tableMatcher.find()) {
+			String schema = tableMatcher.group(2);
+			if (schema != null) {
+				throw new RuntimeException("Wrong schema set in query: " + schema);
+			}
+
+			String alias = tableMatcher.group(5);
+			if (aliasToXTableMap.containsKey(alias)) {
+				throw new RuntimeException("Duplicate alias: " + alias);
+			}
+			String table = tableMatcher.group(3);
+
+			XTable xTable = xSchema.findByFrom(table);
+			if (xTable == null || xTable.getTo() == null) {
+				throw new RuntimeException("No mapping for: " + table);
+			}
+			aliasToXTableMap.put(alias, xTable);
+			String replacement = String.format("%s %s %s", tableMatcher.group(1), xTable.getTo(), alias);
+			tableMatcher.appendReplacement(tableReplacerBuffer, replacement);
+		}
+		tableMatcher.appendTail(tableReplacerBuffer);
+
+
+		StringBuffer columnReplacerBuffer = new StringBuffer();
+		Pattern columnPattern = Pattern.compile("(\\w+)\\.(\\w+)", Pattern.CASE_INSENSITIVE);
+		Matcher columnMatcher = columnPattern.matcher(tableReplacerBuffer.toString());
+		while (columnMatcher.find()) {
+			String alias = columnMatcher.group(1);
+			String column = columnMatcher.group(2);
+			if (!aliasToXTableMap.containsKey(alias)) {
+				throw new RuntimeException("Unknown alias: " + alias);
+			}
+			XTable xTable = aliasToXTableMap.get(alias);
+			if (xTable.findColumnByFrom(column) == null) {
+				throw new RuntimeException(String.format("Unknown column mapping: %s.%s", alias, column));
+			}
+			String replacement = String.format("%s.%s", alias, xTable.findColumnByFrom(column).getTo());
+			columnMatcher.appendReplacement(columnReplacerBuffer, replacement);
+		}
+		columnMatcher.appendTail(columnReplacerBuffer);
+
+		return columnReplacerBuffer.toString();
 	}
 
 	private StringBuilder createSelectAndFrom(XDataSource xDataSource) {

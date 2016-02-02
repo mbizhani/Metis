@@ -21,7 +21,7 @@ public class XDSQuery implements Serializable {
 	}
 
 	public String getText() {
-		return text;
+		return text != null ? text.trim() : null;
 	}
 
 	public void setText(String text) {

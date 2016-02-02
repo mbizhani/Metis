@@ -1,0 +1,13 @@
+<!ELEMENT schema (tables)*>
+		<!ATTLIST schema
+				name CDATA #REQUIRED>
+		<!ELEMENT tables (table)*>
+		<!ELEMENT table (columns)*>
+		<!ATTLIST table
+				from CDATA #REQUIRED
+				to CDATA #REQUIRED>
+		<!ELEMENT columns (column)*>
+		<!ELEMENT column (#PCDATA)>
+		<!ATTLIST column
+				from CDATA #REQUIRED
+				to CDATA #REQUIRED>

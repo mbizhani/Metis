@@ -1,12 +1,12 @@
 package org.devocative.metis.entity.dataSource.config;
 
 public enum XDSFieldType {
-	String(XDSFieldFilterType.None, XDSFieldFilterType.Equal, XDSFieldFilterType.Contain),
-	Integer(XDSFieldFilterType.None, XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
-	Real(XDSFieldFilterType.None, XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
-	Date(XDSFieldFilterType.None, XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
-	DateTime(XDSFieldFilterType.None, XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
-	Boolean(XDSFieldFilterType.None, XDSFieldFilterType.Equal),
+	String(XDSFieldFilterType.Equal, XDSFieldFilterType.Contain),
+	Integer(XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
+	Real(XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
+	Date(XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
+	DateTime(XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
+	Boolean(XDSFieldFilterType.Equal),
 	LookUp(XDSFieldFilterType.List, XDSFieldFilterType.Search);
 
 	private XDSFieldFilterType[] properFilterTypes;

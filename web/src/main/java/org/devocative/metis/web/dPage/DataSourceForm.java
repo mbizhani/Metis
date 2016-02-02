@@ -10,6 +10,8 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.PropertyModel;
 import org.devocative.demeter.web.DPage;
+import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -25,9 +27,7 @@ import org.devocative.wickomp.html.wizard.WWizardPanel;
 import org.devocative.wickomp.html.wizard.WWizardStepPanel;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class DataSourceForm extends DPage {
 	private XDSQuery xdsQuery;
@@ -87,16 +87,32 @@ public class DataSourceForm extends DPage {
 	private class InitStep extends WWizardStepPanel {
 		@Override
 		protected void onInit() {
+			final WSelectionInput connection, queryMode;
+
 			add(new WTextInput("name", new PropertyModel<String>(DataSourceForm.this, "dataSource.name"))
 				.addToTextField(new AttributeModifier("style", "direction:ltr;")));
 			add(new WTextInput("title", new PropertyModel<String>(DataSourceForm.this, "dataSource.title")));
-			add(new WSelectionInput("connection",
+			add(connection = new WSelectionInput("connection",
 				new PropertyModel<String>(DataSourceForm.this, "dataSource.connection"),
 				connectionService.list(),
 				false
 			));
-			add(new WSelectionInput("queryMode", new PropertyModel(xdsQuery, "mode"),
-				Arrays.asList(XDSQueryMode.values()), false));
+
+			List<XDSQueryMode> modes = xdsQuery.getMode() != null ?
+				Arrays.asList(xdsQuery.getMode()) :
+				new ArrayList<XDSQueryMode>();
+
+			add(queryMode = new WSelectionInput("queryMode", new PropertyModel(xdsQuery, "mode"), modes, false));
+
+			connection.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					DBConnection dbConnection = (DBConnection) getComponent().getDefaultModelObject();
+					if (dbConnection.getConfigId() != null) {
+						queryMode.updateChoices(target, Arrays.asList(XDSQueryMode.values()));
+					}
+				}
+			});
 		}
 	}
 
@@ -104,8 +120,12 @@ public class DataSourceForm extends DPage {
 		@Override
 		protected void onInit() {
 			OCode oCode = new OCode(OCodeMode.SQL);
-			if (xdsQuery.getMode() != XDSQueryMode.SQL) {
-				//oCode.setHintOptions(); TODO load mappings
+			if (xdsQuery.getMode() != XDSQueryMode.Sql) {
+				XSchema xSchema = connectionService.getSchemaOfMapping(dataSource.getConnection().getId());
+
+				Map<String, Map> tables = new HashMap<>();
+				tables.put("tables", xSchema.getHierarchy());
+				oCode.setHintOptions(tables);
 			}
 			add(new WCodeInput("query", new PropertyModel<String>(xdsQuery, "text"), oCode));
 		}
@@ -126,6 +146,7 @@ public class DataSourceForm extends DPage {
 					item.add(new Label("dbSize", field.getDbSize()));
 					item.add(new WTextInput("title", new PropertyModel<String>(field, "title")));
 					item.add(type = new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
+					item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(field, "inFilterPanel")));
 					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(field.getType().getProperFilterTypes()), false));
 					item.add(new WSelectionInput("resultType", new PropertyModel<String>(field, "resultType"), Arrays.asList(XDSFieldResultType.values()), false));
 					item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(field, "isKeyField"))
