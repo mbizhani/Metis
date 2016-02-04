@@ -7,6 +7,9 @@ import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.connection.mapping.XMany2One;
+import org.devocative.metis.entity.connection.mapping.XOne2Many;
+import org.devocative.metis.entity.connection.mapping.XProperty;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldType;
@@ -46,6 +49,9 @@ public class DBConnectionService implements IDBConnectionService {
 	public DBConnectionService() {
 		xstream = new XStream();
 		xstream.processAnnotations(XSchema.class);
+		xstream.processAnnotations(XProperty.class);
+		xstream.processAnnotations(XMany2One.class);
+		xstream.processAnnotations(XOne2Many.class);
 	}
 
 	@Override

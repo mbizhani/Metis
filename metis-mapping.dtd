@@ -1,13 +1,23 @@
-<!ELEMENT schema (tables)*>
-		<!ATTLIST schema
-				name CDATA #REQUIRED>
-		<!ELEMENT tables (table)*>
-		<!ELEMENT table (columns)*>
-		<!ATTLIST table
-				from CDATA #REQUIRED
-				to CDATA #REQUIRED>
-		<!ELEMENT columns (column)*>
-		<!ELEMENT column (#PCDATA)>
-		<!ATTLIST column
-				from CDATA #REQUIRED
-				to CDATA #REQUIRED>
+<!ELEMENT schema (entities)*>
+		<!ATTLIST schema>
+		<!ELEMENT entities (entity)*>
+		<!ELEMENT entity (properties)*>
+		<!ATTLIST entity
+				name CDATA #REQUIRED
+				table CDATA #REQUIRED>
+		<!ELEMENT properties (property|many2one|one2many)*> <!--TODO many2many-->
+		<!ELEMENT property (#PCDATA)>
+		<!ATTLIST property
+				name CDATA #REQUIRED
+				column CDATA #REQUIRED
+				isId (true|false)>
+		<!ELEMENT many2one (#PCDATA)>
+		<!ATTLIST many2one
+				name CDATA #REQUIRED
+				column CDATA #REQUIRED
+				>
+		<!ELEMENT one2many (#PCDATA)>
+		<!ATTLIST one2many
+				name CDATA #REQUIRED
+				manySideColumn CDATA #REQUIRED
+				>

@@ -7,8 +7,7 @@ import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
-import org.devocative.metis.entity.connection.mapping.XSchema;
-import org.devocative.metis.entity.connection.mapping.XTable;
+import org.devocative.metis.entity.connection.mapping.*;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.DataSourceRelation;
 import org.devocative.metis.entity.dataSource.config.*;
@@ -364,20 +363,20 @@ public class DataSourceService implements IDataSourceService {
 			case Sql:
 				finalQuery = query;
 				break;
-			case Mapped:
-				finalQuery = processMappedQuery(dbConnId, query);
+			case Eql:
+				finalQuery = processEntityQuery(dbConnId, query);
 				break;
-			case SqlAndMapped:
-				throw new RuntimeException("Mode SqlAndMapped not implemented!");
+			case SqlAndEql:
+				throw new RuntimeException("Mode SqlAndEql not implemented!");
 				//break;
 		}
 		logger.debug("Process Query: FINAL = {}", finalQuery);
 		return finalQuery;
 	}
 
-	private String processMappedQuery(Long dbConnId, String query) {
+	private String processEntityQuery(Long dbConnId, String query) {
 		XSchema xSchema = dbConnectionService.getSchemaOfMapping(dbConnId);
-		Map<String, XTable> aliasToXTableMap = new HashMap<>();
+		Map<String, XEntity> aliasToXEntityMap = new HashMap<>();
 
 		StringBuffer tableReplacerBuffer = new StringBuffer();
 		Pattern tablePattern = Pattern.compile("(from|join)\\s+(\\w+\\.)?(\\w+)(\\s+(\\w+))?", Pattern.CASE_INSENSITIVE);
@@ -389,41 +388,102 @@ public class DataSourceService implements IDataSourceService {
 			}
 
 			String alias = tableMatcher.group(5);
-			if (aliasToXTableMap.containsKey(alias)) {
+			if (aliasToXEntityMap.containsKey(alias)) {
 				throw new RuntimeException("Duplicate alias: " + alias);
 			}
 			String table = tableMatcher.group(3);
 
-			XTable xTable = xSchema.findByFrom(table);
-			if (xTable == null || xTable.getTo() == null) {
+			XEntity xEntity = xSchema.findEntity(table);
+			if (xEntity == null || xEntity.getTable() == null) {
 				throw new RuntimeException("No mapping for: " + table);
 			}
-			aliasToXTableMap.put(alias, xTable);
-			String replacement = String.format("%s %s %s", tableMatcher.group(1), xTable.getTo(), alias);
+			aliasToXEntityMap.put(alias, xEntity);
+			String replacement = String.format("%s %s %s", tableMatcher.group(1), xEntity.getTable(), alias);
 			tableMatcher.appendReplacement(tableReplacerBuffer, replacement);
 		}
 		tableMatcher.appendTail(tableReplacerBuffer);
 
+		StringBuffer joinCondReplacerBuffer = new StringBuffer();
+		Pattern joinCondPattern = Pattern.compile("on\\s+(\\w+([.]\\w+)?)\\s*[~]\\s*(\\w+([.]\\w+)?)", Pattern.CASE_INSENSITIVE);
+		Matcher joinCondMatcher = joinCondPattern.matcher(tableReplacerBuffer.toString());
+		while (joinCondMatcher.find()) {
+			String leftAlias;
+			String leftColumn;
+			String rightAlias;
+			String rightColumn;
+
+			if (joinCondMatcher.group(2) != null && joinCondMatcher.group(4) != null) {
+				throw new RuntimeException("Invalid join: " + joinCondMatcher.group(0));
+			} else if (joinCondMatcher.group(2) == null && joinCondMatcher.group(4) == null) { // one PK is FK to another one
+				leftAlias = joinCondMatcher.group(1);
+				leftColumn = aliasToXEntityMap.get(leftAlias).getId().getColumn();
+				rightAlias = joinCondMatcher.group(3);
+				rightColumn = aliasToXEntityMap.get(rightAlias).getId().getColumn();
+			} else if (joinCondMatcher.group(2) != null) {
+				String[] split = joinCondMatcher.group(1).split("\\.");
+				leftAlias = split[0].trim();
+				XAbstractProperty xAProp = aliasToXEntityMap.get(leftAlias).findProperty(split[1].trim());
+				if (xAProp instanceof XMany2One) {
+					XMany2One xMany2One = (XMany2One) xAProp;
+					leftColumn = xMany2One.getColumn();
+					rightAlias = joinCondMatcher.group(3);
+					rightColumn = aliasToXEntityMap.get(rightAlias).getId().getColumn();
+				} else { // XOne2Many
+					XOne2Many xOne2Many = (XOne2Many) xAProp;
+					leftColumn = aliasToXEntityMap.get(leftAlias).getId().getColumn();
+					rightAlias = joinCondMatcher.group(3);
+					rightColumn = xOne2Many.getManySideColumn();
+				}
+			} else {
+				String[] split = joinCondMatcher.group(3).split("\\.");
+				rightAlias = split[0].trim();
+				XAbstractProperty xAProp = aliasToXEntityMap.get(rightAlias).findProperty(split[1].trim());
+				if (xAProp instanceof XMany2One) {
+					XMany2One xMany2One = (XMany2One) xAProp;
+					rightColumn = xMany2One.getColumn();
+					leftAlias = joinCondMatcher.group(1);
+					leftColumn = aliasToXEntityMap.get(rightAlias).getId().getColumn();
+				} else { // XOne2Many
+					XOne2Many xOne2Many = (XOne2Many) xAProp;
+					rightColumn = aliasToXEntityMap.get(rightAlias).getId().getColumn();
+					leftAlias = joinCondMatcher.group(1);
+					leftColumn = xOne2Many.getManySideColumn();
+				}
+			}
+
+			// Using ~ char instead of . to be ignored in the column replacement (next paragraph),
+			// and then at the end the ~ replaced with .
+			joinCondMatcher.appendReplacement(joinCondReplacerBuffer,
+				String.format("on %s~%s=%s~%s", leftAlias, leftColumn, rightAlias, rightColumn));
+		}
+		joinCondMatcher.appendTail(joinCondReplacerBuffer);
+
 
 		StringBuffer columnReplacerBuffer = new StringBuffer();
 		Pattern columnPattern = Pattern.compile("(\\w+)\\.(\\w+)", Pattern.CASE_INSENSITIVE);
-		Matcher columnMatcher = columnPattern.matcher(tableReplacerBuffer.toString());
+		Matcher columnMatcher = columnPattern.matcher(joinCondReplacerBuffer.toString());
 		while (columnMatcher.find()) {
 			String alias = columnMatcher.group(1);
-			String column = columnMatcher.group(2);
-			if (!aliasToXTableMap.containsKey(alias)) {
+			String prop = columnMatcher.group(2);
+			if (!aliasToXEntityMap.containsKey(alias)) {
 				throw new RuntimeException("Unknown alias: " + alias);
 			}
-			XTable xTable = aliasToXTableMap.get(alias);
-			if (xTable.findColumnByFrom(column) == null) {
-				throw new RuntimeException(String.format("Unknown column mapping: %s.%s", alias, column));
+			XEntity xEntity = aliasToXEntityMap.get(alias);
+			if (xEntity.findProperty(prop) == null) {
+				throw new RuntimeException(String.format("Unknown property mapping: %s.%s", alias, prop));
 			}
-			String replacement = String.format("%s.%s", alias, xTable.findColumnByFrom(column).getTo());
-			columnMatcher.appendReplacement(columnReplacerBuffer, replacement);
+			XAbstractProperty xAProp = xEntity.findProperty(prop);
+			if (xAProp instanceof XProperty) {
+				XProperty xProperty = (XProperty) xAProp;
+				String replacement = String.format("%s.%s", alias, xProperty.getColumn());
+				columnMatcher.appendReplacement(columnReplacerBuffer, replacement);
+			} else {
+				throw new RuntimeException(String.format("Invalid usage of association: %s.%s", alias, prop));
+			}
 		}
 		columnMatcher.appendTail(columnReplacerBuffer);
 
-		return columnReplacerBuffer.toString();
+		return columnReplacerBuffer.toString().replace('~', '.');
 	}
 
 	private StringBuilder createSelectAndFrom(XDataSource xDataSource) {

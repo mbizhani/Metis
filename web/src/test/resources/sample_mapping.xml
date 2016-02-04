@@ -4,48 +4,49 @@
 		"Devocative/Metis Mapping"
 		"http://www.devocative.org/dtd/metis-mapping.dtd">
 
-<schema name="sample">
-	<tables>
-		<table from="Topic" to="t_topic">
-			<columns>
-				<column from="id" to="id"/>
-				<column from="name" to="c_name"/>
-				<column from="level" to="n_level"/>
-				<column from="parent" to="f_parent"/>
-			</columns>
-		</table>
+<schema>
+	<entities>
+		<entity name="Topic" table="t_topic">
+			<properties>
+				<property name="id" column="id" isId="true"/>
+				<property name="name" column="c_name"/>
+				<property name="level" column="n_level"/>
+				<many2one name="parent" column="f_parent"/>
+			</properties>
+		</entity>
 
-		<table from="Person" to="t_person">
-			<columns>
-				<column from="id" to="id"/>
-				<column from="name" to="c_name"/>
-			</columns>
-		</table>
+		<entity name="Person" table="t_person">
+			<properties>
+				<property name="id" column="id" isId="true"/>
+				<property name="name" column="c_name"/>
+			</properties>
+		</entity>
 
-		<table from="State" to="t_state">
-			<columns>
-				<column from="id" to="id"/>
-				<column from="name" to="c_name"/>
-			</columns>
-		</table>
+		<entity name="State" table="t_state">
+			<properties>
+				<property name="id" column="id" isId="true"/>
+				<property name="name" column="c_name"/>
+				<one2many name="cities" manySideColumn="f_state"/>
+			</properties>
+		</entity>
 
-		<table from="City" to="t_city">
-			<columns>
-				<column from="id" to="id"/>
-				<column from="name" to="c_name"/>
-				<column from="state" to="f_state"/>
-			</columns>
-		</table>
+		<entity name="City" table="t_city">
+			<properties>
+				<property name="id" column="id" isId="true"/>
+				<property name="name" column="c_name"/>
+				<many2one name="state" column="f_state"/>
+			</properties>
+		</entity>
 
-		<table from="Trx" to="t_trx">
-			<columns>
-				<column from="id" to="id"/>
-				<column from="value" to="n_value"/>
-				<column from="date" to="d_date"/>
-				<column from="place" to="f_place"/>
-				<column from="person" to="f_person"/>
-			</columns>
-		</table>
+		<entity name="Trx" table="t_trx">
+			<properties>
+				<property name="id" column="id" isId="true"/>
+				<property name="value" column="n_value"/>
+				<property name="date" column="d_date"/>
+				<many2one name="place" column="f_place"/>
+				<many2one name="person" column="f_person"/>
+			</properties>
+		</entity>
 
-	</tables>
+	</entities>
 </schema>
