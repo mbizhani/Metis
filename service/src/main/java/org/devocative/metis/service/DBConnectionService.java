@@ -5,6 +5,8 @@ import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.MetisErrorCode;
+import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XMany2One;
@@ -67,7 +69,7 @@ public class DBConnectionService implements IDBConnectionService {
 
 		CONNECTION_MAP.remove(dbConnection.getId());
 		CONNECTION_MAPPING_MAP.remove(dbConnection.getId());
-		// TODO CONNECTION_POOL_MAP.remove(dbConnection.getId());
+		closePoolSafely(dbConnection.getId());
 	}
 
 	@Override
@@ -75,11 +77,21 @@ public class DBConnectionService implements IDBConnectionService {
 		return persistorService.list(DBConnection.class);
 	}
 
-	public List<XDSField> getFields(Long id, String sql) throws SQLException {
+	@Override
+	public DBConnection getByName(String name) {
+		return persistorService
+				.createQueryBuilder()
+				.addSelect("from DBConnection ent")
+				.addWhere("and ent.name=:name")
+				.addParam("name", name)
+				.object();
+	}
+
+	public List<XDSField> getFields(Long dbConnId, String sql) throws SQLException {
 		List<XDSField> result = new ArrayList<>();
 
-		try (Connection connection = getConnection(id)) {
-			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, CONNECTION_MAP.get(id).getSchema());
+		try (Connection connection = getConnection(dbConnId)) {
+			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, getSchemaForDB(dbConnId));
 			nps.setFetchSize(1);
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
@@ -110,25 +122,27 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public Connection getConnection(Long id) {
-		try {
-			if (!CONNECTION_POOL_MAP.containsKey(id)) {
-				DBConnection info = persistorService.get(DBConnection.class, id);
-
-				ComboPooledDataSource cpds = new ComboPooledDataSource();
-				cpds.setDriverClass(info.getDriver());
-				cpds.setJdbcUrl(info.getUrl());
-				cpds.setUser(info.getUsername());
-				cpds.setPassword(info.getPassword());
-
-				CONNECTION_POOL_MAP.put(id, cpds);
-				CONNECTION_MAP.put(id, info);
+	public Connection getConnection(Long dbConnId) {
+		int retry = 0;
+		Connection result = null;
+		Exception last = null;
+		do {
+			try {
+				result = getUnsureConnection(dbConnId);
+				break;
+			} catch (Exception e) {
+				logger.error("getUnsureConnection: " + dbConnId, e);
+				last = e;
+				retry++;
+				closePoolSafely(dbConnId);
 			}
+		} while (retry < 3);
 
-			return CONNECTION_POOL_MAP.get(id).getConnection();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		if (result == null) {
+			throw new MetisException(MetisErrorCode.DBConnection, String.format("%s (%s)", dbConnId, last), last);
 		}
+
+		return result;
 	}
 
 	@Override
@@ -139,13 +153,13 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params, String comment) throws SQLException {
+	public List<Map<String, Object>> executeQuery(Long dbConnId, String query, Map<String, Object> params, String comment) throws SQLException {
 
-		try (Connection connection = getConnection(id)) {
+		try (Connection connection = getConnection(dbConnId)) {
 			if (comment != null) {
 				query = String.format("/*%s*/ %s", comment, query);
 			}
-			NamedParameterStatement nps = new NamedParameterStatement(connection, query, CONNECTION_MAP.get(id).getSchema());
+			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
 			nps.setDateClassReplacement(Timestamp.class);
 			if (params != null) {
 				nps.setParameters(params);
@@ -172,11 +186,11 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long id, String query) throws SQLException {
+	public List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long dbConnId, String query) throws SQLException {
 		List<KeyValueVO<Serializable, String>> result = new ArrayList<>();
 
-		try (Connection connection = getConnection(id)) {
-			NamedParameterStatement nps = new NamedParameterStatement(connection, query, CONNECTION_MAP.get(id).getSchema());
+		try (Connection connection = getConnection(dbConnId)) {
+			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
 			nps.setDateClassReplacement(Timestamp.class);
 
 			ResultSet rs = nps.executeQuery();
@@ -193,38 +207,73 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public boolean isOracle(Long id) {
-		try (Connection ignored = getConnection(id)) {
-			DBConnection connection = CONNECTION_MAP.get(id);
-			return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:oracle");
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+	public boolean isOracle(Long dbConnId) {
+		DBConnection connection = getDBConnection(dbConnId);
+		return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:oracle");
 	}
 
 	@Override
-	public boolean isMySQL(Long id) {
-		try (Connection ignored = getConnection(id)) {
-			DBConnection connection = CONNECTION_MAP.get(id);
-			return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:mysql");
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+	public boolean isMySQL(Long dbConnId) {
+		DBConnection connection = getDBConnection(dbConnId);
+		return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:mysql");
 	}
 
 	@Override
-	public XSchema getSchemaOfMapping(Long id) {
-		if (!CONNECTION_MAPPING_MAP.containsKey(id)) {
+	public XSchema getSchemaOfMapping(Long dbConnId) {
+		if (!CONNECTION_MAPPING_MAP.containsKey(dbConnId)) {
 			String config = persistorService.createQueryBuilder().addSelect("select cfg.value from DBConnection ent join ent.config cfg")
 				.addWhere("and ent.id = :id")
-				.addParam("id", id)
+					.addParam("id", dbConnId)
 				.object();
 
 			if (config != null) {
 				XSchema xSchema = (XSchema) xstream.fromXML(config);
-				CONNECTION_MAPPING_MAP.put(id, xSchema);
+				CONNECTION_MAPPING_MAP.put(dbConnId, xSchema);
 			}
 		}
-		return CONNECTION_MAPPING_MAP.get(id);
+		return CONNECTION_MAPPING_MAP.get(dbConnId);
+	}
+
+	private Connection getUnsureConnection(Long dbConnId) throws Exception {
+		DBConnection dbConnection = getDBConnection(dbConnId);
+		if (!CONNECTION_POOL_MAP.containsKey(dbConnId)) {
+			ComboPooledDataSource cpds = new ComboPooledDataSource();
+			cpds.setDriverClass(dbConnection.getDriver());
+			cpds.setJdbcUrl(dbConnection.getUrl());
+			cpds.setUser(dbConnection.getUsername());
+			cpds.setPassword(dbConnection.getPassword());
+
+			CONNECTION_POOL_MAP.put(dbConnId, cpds);
+		}
+
+		Connection connection = CONNECTION_POOL_MAP.get(dbConnId).getConnection();
+		if (dbConnection.getTestQuery() != null) {
+			Statement st = connection.createStatement();
+			st.executeQuery(dbConnection.getTestQuery());
+			st.close();
+		}
+		return connection;
+	}
+
+	private DBConnection getDBConnection(Long dbConnId) {
+		if (!CONNECTION_MAP.containsKey(dbConnId)) {
+			DBConnection info = persistorService.get(DBConnection.class, dbConnId);
+			CONNECTION_MAP.put(dbConnId, info);
+		}
+
+		return CONNECTION_MAP.get(dbConnId);
+	}
+
+	private String getSchemaForDB(Long dbConnId) {
+		return getDBConnection(dbConnId).getSchema();
+	}
+
+	private synchronized void closePoolSafely(Long dbConnId) {
+		ComboPooledDataSource pool = CONNECTION_POOL_MAP.get(dbConnId);
+		if (pool != null) {
+			//TODO not safely
+			pool.close();
+			CONNECTION_POOL_MAP.remove(dbConnId);
+		}
 	}
 }

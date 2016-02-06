@@ -9,6 +9,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.PropertyModel;
+import org.devocative.demeter.imodule.DModuleException;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XSchema;
@@ -16,20 +17,28 @@ import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.wickomp.form.WAjaxButton;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.code.OCode;
 import org.devocative.wickomp.form.code.OCodeMode;
 import org.devocative.wickomp.form.code.WCodeInput;
-import org.devocative.wickomp.html.wizard.OWizard;
-import org.devocative.wickomp.html.wizard.WWizardPanel;
-import org.devocative.wickomp.html.wizard.WWizardStepPanel;
+import org.devocative.wickomp.form.wizard.OWizard;
+import org.devocative.wickomp.form.wizard.WWizardPanel;
+import org.devocative.wickomp.form.wizard.WWizardStepPanel;
+import org.devocative.wickomp.html.WMessager;
+import org.devocative.wickomp.wrcs.EasyUIBehavior;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.*;
 
 public class DataSourceForm extends DPage {
+	private static Logger logger = LoggerFactory.getLogger(DataSourceForm.class);
+
 	private XDSQuery xdsQuery;
 	private DataSource dataSource;
 	private List<XDSField> xdsFields;
@@ -42,6 +51,8 @@ public class DataSourceForm extends DPage {
 
 	public DataSourceForm(String id, List<String> params) {
 		super(id, params);
+
+		add(new EasyUIBehavior());
 
 		if (params.size() > 0) {
 			dataSource = dataSourceService.getDataSource(params.get(0));
@@ -66,7 +77,7 @@ public class DataSourceForm extends DPage {
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
 			@Override
 			protected void onNext(AjaxRequestTarget target, String stepId) {
-				if ("columns".equals(stepId)) {
+				if ("query".equals(stepId)) {
 					List<XDSField> list = dataSourceService.createFields(
 						xdsFields,
 						xdsQuery,
@@ -78,8 +89,28 @@ public class DataSourceForm extends DPage {
 			}
 
 			@Override
-			protected void onFinish(AjaxRequestTarget target) {
+			protected void onFinish(AjaxRequestTarget target, String stepId) {
 				dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields);
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target, String stepId, List<Serializable> errors) {
+				WMessager.show(getString("label.error"), errors, target);
+			}
+
+			@Override
+			protected void onException(AjaxRequestTarget target, String stepId, Exception e) {
+				if (e instanceof DModuleException) {
+					DModuleException de = (DModuleException) e;
+					String error = getString(de.getMessage(), null, de.getDefaultDescription());
+					if (de.getErrorParameter() != null) {
+						error += ": " + de.getErrorParameter();
+					}
+					WMessager.show(getString("label.error", null, "Error"), error, target);
+				} else {
+					logger.error("onException", e);
+					super.onException(target, stepId, e);
+				}
 			}
 		});
 	}
@@ -117,17 +148,41 @@ public class DataSourceForm extends DPage {
 	}
 
 	private class QueryStep extends WWizardStepPanel {
+		private WAjaxButton showSQL;
+		private OCode oCode = new OCode(OCodeMode.SQL);
+
 		@Override
 		protected void onInit() {
-			OCode oCode = new OCode(OCodeMode.SQL);
+			add(new WCodeInput("query", new PropertyModel<String>(xdsQuery, "text"), oCode));
+
+			add(showSQL = new WAjaxButton("showSQL") {
+				@Override
+				protected void onSubmit(AjaxRequestTarget target) {
+					String sql = dataSourceService.processQuery(dataSource.getConnection().getId(), xdsQuery.getMode(), xdsQuery.getText());
+					WMessager.show("SQL", String.format("<div style='direction:ltr;text-align:left'>%s</div>", sql), target);
+				}
+
+				@Override
+				protected void onException(AjaxRequestTarget target, Exception e) {
+					super.onException(target, e);
+				}
+			});
+		}
+
+		@Override
+		protected void onBeforeRender() {
+			super.onBeforeRender();
 			if (xdsQuery.getMode() != XDSQueryMode.Sql) {
 				XSchema xSchema = connectionService.getSchemaOfMapping(dataSource.getConnection().getId());
 
 				Map<String, Map> tables = new HashMap<>();
 				tables.put("tables", xSchema.getHierarchy());
 				oCode.setHintOptions(tables);
+			} else {
+				oCode.setHintOptions(null);
 			}
-			add(new WCodeInput("query", new PropertyModel<String>(xdsQuery, "text"), oCode));
+
+			showSQL.setVisible(xdsQuery.getMode() != XDSQueryMode.Sql);
 		}
 	}
 

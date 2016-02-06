@@ -1,7 +1,6 @@
 package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -14,6 +13,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPage;
+import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldFilterType;
@@ -142,9 +142,9 @@ public class DataSourceViewer extends DPage {
 				item.add(view);
 			}
 		});
-		dynamicForm.add(new AjaxButton("search") {
+		dynamicForm.add(new DAjaxButton("search") {
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				logger.debug("Map: {}", filters);
 				gridDS.setEnabled(true);
 				grid.loadData(target);

@@ -16,6 +16,8 @@ public interface IDBConnectionService {
 
 	List<DBConnection> list();
 
+	DBConnection getByName(String name);
+
 	List<XDSField> getFields(Long id, String sql) throws SQLException;
 
 	Connection getConnection(Long id);

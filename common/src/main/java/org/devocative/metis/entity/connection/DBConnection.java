@@ -32,7 +32,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "c_url", nullable = false)
 	private String url;
 
-	@Column(name = "c_username")
+	@Column(name = "c_username", nullable = false)
 	private String username;
 
 	@Column(name = "c_password")
@@ -40,6 +40,9 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 
 	@Column(name = "c_schema")
 	private String schema;
+
+	@Column(name = "c_test_query")
+	private String testQuery;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "dbconn2cfglob"))
@@ -132,6 +135,14 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 
 	public void setSchema(String schema) {
 		this.schema = schema;
+	}
+
+	public String getTestQuery() {
+		return testQuery;
+	}
+
+	public void setTestQuery(String testQuery) {
+		this.testQuery = testQuery;
 	}
 
 	public ConfigLob getConfig() {

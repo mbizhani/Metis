@@ -2,6 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
+    <div wicket:id="feedback"></div>
+
     <form wicket:id="form">
         <table>
             <tr>
@@ -50,6 +52,14 @@
                 </th>
                 <td>
                     <div wicket:id="schema"></div>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    <wicket:message key="DBConnection.testQuery"/>
+                </th>
+                <td>
+                    <div wicket:id="testQuery"></div>
                 </td>
             </tr>
             <tr>

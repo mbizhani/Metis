@@ -4,7 +4,9 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
+import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -24,17 +26,22 @@ public class DBConnectionForm extends DPage {
 	public DBConnectionForm(String id, List<String> params) {
 		super(id, params);
 
-		//TODO edit
+		DBConnection dbConnection = params.size() == 0 ?
+				new DBConnection() :
+				connectionService.getByName(params.get(0));
 
-		final Form<DBConnection> form = new Form<>("form", new CompoundPropertyModel<>(new DBConnection()));
+		add(new FeedbackPanel("feedback"));
+
+		final Form<DBConnection> form = new Form<>("form", new CompoundPropertyModel<>(dbConnection));
 		form.setMultiPart(true);
 
-		form.add(new WTextInput("name"));
-		form.add(new WTextInput("driver"));
-		form.add(new WTextInput("url"));
-		form.add(new WTextInput("username"));
+		form.add(new WTextInput("name").setLabel(new ResourceModel("DBConnection.name")).setRequired(true));
+		form.add(new WTextInput("driver").setLabel(new ResourceModel("DBConnection.driver")).setRequired(true));
+		form.add(new WTextInput("url").setLabel(new ResourceModel("DBConnection.url")).setRequired(true));
+		form.add(new WTextInput("username").setLabel(new ResourceModel("DBConnection.username")).setRequired(true));
 		form.add(new WTextInput("password"));
 		form.add(new WTextInput("schema"));
+		form.add(new WTextInput("testQuery").setLabel(new ResourceModel("DBConnection.testQuery")).setRequired(true));
 		form.add(configFile = new FileUploadField("configFile", new WModel<List<FileUpload>>()));
 		form.add(new Button("save") {
 			@Override

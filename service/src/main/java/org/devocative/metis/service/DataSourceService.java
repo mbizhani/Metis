@@ -6,6 +6,8 @@ import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.MetisErrorCode;
+import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.connection.mapping.*;
 import org.devocative.metis.entity.dataSource.DataSource;
@@ -212,7 +214,7 @@ public class DataSourceService implements IDataSourceService {
 				comment);
 			return ((BigDecimal) list.get(0).get("cnt")).longValue();
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
 		}
 	}
 
@@ -228,7 +230,7 @@ public class DataSourceService implements IDataSourceService {
 					xdsQuery.getMode(),
 					xdsQuery.getText()));
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
 		}
 
 		for (XDSField fieldFromDB : fieldsFromDB) {
@@ -276,8 +278,7 @@ public class DataSourceService implements IDataSourceService {
 				queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
 				queryParams.put("pg_size", pageSize);
 			} else {
-				//TODO add other databases
-				throw new RuntimeException("Database type not supported for pagination: " + dbConnId);
+				throw new MetisException(MetisErrorCode.DBTypeNotSupported, String.valueOf(dbConnId));
 			}
 
 			logger.debug("executeDataSource: PAGING SQL: {}", mainQuery);
@@ -294,7 +295,7 @@ public class DataSourceService implements IDataSourceService {
 				queryParams,
 				comment);
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
 		}
 	}
 
@@ -322,7 +323,7 @@ public class DataSourceService implements IDataSourceService {
 					xDataSource.getQuery().getMode(),
 					queryBuilder.toString()));
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
 		}
 	}
 
@@ -351,10 +352,11 @@ public class DataSourceService implements IDataSourceService {
 				params,
 				comment);
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
 		}
 	}
 
+	@Override
 	public String processQuery(Long dbConnId, XDSQueryMode mode, String query) {
 		String finalQuery = null;
 		//TODO apply FreeMarker for query modification
@@ -367,7 +369,7 @@ public class DataSourceService implements IDataSourceService {
 				finalQuery = processEntityQuery(dbConnId, query);
 				break;
 			case SqlAndEql:
-				throw new RuntimeException("Mode SqlAndEql not implemented!");
+				throw new RuntimeException("Mode SqlAndEql not implemented!"); //TODO
 				//break;
 		}
 		logger.debug("Process Query: FINAL = {}", finalQuery);
@@ -384,18 +386,18 @@ public class DataSourceService implements IDataSourceService {
 		while (tableMatcher.find()) {
 			String schema = tableMatcher.group(2);
 			if (schema != null) {
-				throw new RuntimeException("Wrong schema set in query: " + schema);
+				throw new MetisException(MetisErrorCode.SchemaInEql, schema);
 			}
 
 			String alias = tableMatcher.group(5);
 			if (aliasToXEntityMap.containsKey(alias)) {
-				throw new RuntimeException("Duplicate alias: " + alias);
+				throw new MetisException(MetisErrorCode.DuplicateAlias, alias);
 			}
-			String table = tableMatcher.group(3);
+			String entity = tableMatcher.group(3);
 
-			XEntity xEntity = xSchema.findEntity(table);
+			XEntity xEntity = xSchema.findEntity(entity);
 			if (xEntity == null || xEntity.getTable() == null) {
-				throw new RuntimeException("No mapping for: " + table);
+				throw new MetisException(MetisErrorCode.EntityWithoutMapping, entity);
 			}
 			aliasToXEntityMap.put(alias, xEntity);
 			String replacement = String.format("%s %s %s", tableMatcher.group(1), xEntity.getTable(), alias);
@@ -413,39 +415,42 @@ public class DataSourceService implements IDataSourceService {
 			String rightColumn;
 
 			if (joinCondMatcher.group(2) != null && joinCondMatcher.group(4) != null) {
-				throw new RuntimeException("Invalid join: " + joinCondMatcher.group(0));
+				throw new MetisException(MetisErrorCode.EqlInvalidJoin, joinCondMatcher.group(0));
 			} else if (joinCondMatcher.group(2) == null && joinCondMatcher.group(4) == null) { // one PK is FK to another one
 				leftAlias = joinCondMatcher.group(1);
-				leftColumn = aliasToXEntityMap.get(leftAlias).getId().getColumn();
+				leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
 				rightAlias = joinCondMatcher.group(3);
-				rightColumn = aliasToXEntityMap.get(rightAlias).getId().getColumn();
+				rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
 			} else if (joinCondMatcher.group(2) != null) {
 				String[] split = joinCondMatcher.group(1).split("\\.");
 				leftAlias = split[0].trim();
-				XAbstractProperty xAProp = aliasToXEntityMap.get(leftAlias).findProperty(split[1].trim());
+				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, leftAlias).findProperty(split[1].trim());
 				if (xAProp instanceof XMany2One) {
 					XMany2One xMany2One = (XMany2One) xAProp;
 					leftColumn = xMany2One.getColumn();
 					rightAlias = joinCondMatcher.group(3);
-					rightColumn = aliasToXEntityMap.get(rightAlias).getId().getColumn();
+					rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
 				} else { // XOne2Many
 					XOne2Many xOne2Many = (XOne2Many) xAProp;
-					leftColumn = aliasToXEntityMap.get(leftAlias).getId().getColumn();
+					leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
 					rightAlias = joinCondMatcher.group(3);
 					rightColumn = xOne2Many.getManySideColumn();
 				}
 			} else {
 				String[] split = joinCondMatcher.group(3).split("\\.");
 				rightAlias = split[0].trim();
-				XAbstractProperty xAProp = aliasToXEntityMap.get(rightAlias).findProperty(split[1].trim());
+				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, rightAlias).findProperty(split[1].trim());
+				if (xAProp == null) {
+					throw new MetisException(MetisErrorCode.EqlUnknownProperty, joinCondMatcher.group(3));
+				}
 				if (xAProp instanceof XMany2One) {
 					XMany2One xMany2One = (XMany2One) xAProp;
 					rightColumn = xMany2One.getColumn();
 					leftAlias = joinCondMatcher.group(1);
-					leftColumn = aliasToXEntityMap.get(rightAlias).getId().getColumn();
+					leftColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
 				} else { // XOne2Many
 					XOne2Many xOne2Many = (XOne2Many) xAProp;
-					rightColumn = aliasToXEntityMap.get(rightAlias).getId().getColumn();
+					rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
 					leftAlias = joinCondMatcher.group(1);
 					leftColumn = xOne2Many.getManySideColumn();
 				}
@@ -454,10 +459,9 @@ public class DataSourceService implements IDataSourceService {
 			// Using ~ char instead of . to be ignored in the column replacement (next paragraph),
 			// and then at the end the ~ replaced with .
 			joinCondMatcher.appendReplacement(joinCondReplacerBuffer,
-				String.format("on %s~%s=%s~%s", leftAlias, leftColumn, rightAlias, rightColumn));
+					String.format("on %s~%s=%s~%s", leftAlias, leftColumn, rightAlias, rightColumn));
 		}
 		joinCondMatcher.appendTail(joinCondReplacerBuffer);
-
 
 		StringBuffer columnReplacerBuffer = new StringBuffer();
 		Pattern columnPattern = Pattern.compile("(\\w+)\\.(\\w+)", Pattern.CASE_INSENSITIVE);
@@ -465,12 +469,9 @@ public class DataSourceService implements IDataSourceService {
 		while (columnMatcher.find()) {
 			String alias = columnMatcher.group(1);
 			String prop = columnMatcher.group(2);
-			if (!aliasToXEntityMap.containsKey(alias)) {
-				throw new RuntimeException("Unknown alias: " + alias);
-			}
-			XEntity xEntity = aliasToXEntityMap.get(alias);
+			XEntity xEntity = findXEntity(aliasToXEntityMap, alias);
 			if (xEntity.findProperty(prop) == null) {
-				throw new RuntimeException(String.format("Unknown property mapping: %s.%s", alias, prop));
+				throw new MetisException(MetisErrorCode.EqlUnknownProperty, String.format("%s.%s", alias, prop));
 			}
 			XAbstractProperty xAProp = xEntity.findProperty(prop);
 			if (xAProp instanceof XProperty) {
@@ -478,7 +479,7 @@ public class DataSourceService implements IDataSourceService {
 				String replacement = String.format("%s.%s", alias, xProperty.getColumn());
 				columnMatcher.appendReplacement(columnReplacerBuffer, replacement);
 			} else {
-				throw new RuntimeException(String.format("Invalid usage of association: %s.%s", alias, prop));
+				throw new MetisException(MetisErrorCode.EqlInvalidAssociationUsage, String.format("%s.%s", alias, prop));
 			}
 		}
 		columnMatcher.appendTail(columnReplacerBuffer);
@@ -585,6 +586,13 @@ public class DataSourceService implements IDataSourceService {
 					.append(sortField.getValue());
 			}
 		}
+	}
+
+	private XEntity findXEntity(Map<String, XEntity> map, String alias) {
+		if (!map.containsKey(alias)) {
+			throw new MetisException(MetisErrorCode.UnknownAlias, alias);
+		}
+		return map.get(alias);
 	}
 
 

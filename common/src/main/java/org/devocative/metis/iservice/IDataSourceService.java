@@ -4,6 +4,7 @@ import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSQuery;
+import org.devocative.metis.entity.dataSource.config.XDSQueryMode;
 import org.devocative.metis.entity.dataSource.config.XDataSource;
 
 import java.io.Serializable;
@@ -38,4 +39,6 @@ public interface IDataSourceService {
 	List<KeyValueVO<Serializable, String>> getLookUpList(XDSField field);
 
 	List<Map<String, Object>> getChildrenOfParent(String name, Serializable parentId, Map<String, String> sortFields);
+
+	String processQuery(Long dbConnId, XDSQueryMode mode, String query);
 }
