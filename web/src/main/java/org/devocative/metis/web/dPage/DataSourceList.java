@@ -53,7 +53,8 @@ public class DataSourceList extends DPage {
 		oGrid
 			.setColumns(columnList)
 			.setMultiSort(false)
-			.setHeight(OSize.fixed(350));
+			.setHeight(OSize.fixed(350))
+			.setWidth(OSize.percent(100));
 
 		add(new WDataGrid<>("grid", oGrid, new WGridDataSource<DataSource>() {
 			@Override

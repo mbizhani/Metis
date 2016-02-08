@@ -8,7 +8,9 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.imodule.DModuleException;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.entity.connection.DBConnection;
@@ -73,6 +75,7 @@ public class DataSourceForm extends DPage {
 			.addStep("query", new QueryStep())
 			.addStep("columns", new DefineColumnsStep())
 			.addStep("lookup", new DefineLookupStep());
+		//TODO a review step
 
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
 			@Override
@@ -121,19 +124,33 @@ public class DataSourceForm extends DPage {
 			final WSelectionInput connection, queryMode;
 
 			add(new WTextInput("name", new PropertyModel<String>(DataSourceForm.this, "dataSource.name"))
-				.addToTextField(new AttributeModifier("style", "direction:ltr;")));
-			add(new WTextInput("title", new PropertyModel<String>(DataSourceForm.this, "dataSource.title")));
+					.add(new AttributeModifier("style", "direction:ltr;"))
+					.setRequired(true)
+					.setLabel(new ResourceModel("DataSource.name"))
+			);
+			add(new WTextInput("title", new PropertyModel<String>(DataSourceForm.this, "dataSource.title"))
+				.setRequired(true)
+				.setLabel(new ResourceModel("DataSource.title")));
 			add(connection = new WSelectionInput("connection",
 				new PropertyModel<String>(DataSourceForm.this, "dataSource.connection"),
 				connectionService.list(),
 				false
 			));
+			connection
+				.setRequired(true)
+				.setLabel(new ResourceModel("DataSource.connection"));
 
-			List<XDSQueryMode> modes = xdsQuery.getMode() != null ?
-				Arrays.asList(xdsQuery.getMode()) :
-				new ArrayList<XDSQueryMode>();
+			List<XDSQueryMode> modes;
+			if (dataSource.getConnection() != null && dataSource.getConnection().getConfigId() != null) {
+				modes = Arrays.asList(XDSQueryMode.values());
+			} else {
+				modes = Arrays.asList(XDSQueryMode.Sql);
+			}
 
 			add(queryMode = new WSelectionInput("queryMode", new PropertyModel(xdsQuery, "mode"), modes, false));
+			queryMode
+				.setRequired(true)
+				.setLabel(new ResourceModel("DataSource.query.mode"));
 
 			connection.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
 				@Override
@@ -141,6 +158,8 @@ public class DataSourceForm extends DPage {
 					DBConnection dbConnection = (DBConnection) getComponent().getDefaultModelObject();
 					if (dbConnection.getConfigId() != null) {
 						queryMode.updateChoices(target, Arrays.asList(XDSQueryMode.values()));
+					} else {
+						queryMode.updateChoices(target, Arrays.asList(XDSQueryMode.Sql));
 					}
 				}
 			});
@@ -153,7 +172,9 @@ public class DataSourceForm extends DPage {
 
 		@Override
 		protected void onInit() {
-			add(new WCodeInput("query", new PropertyModel<String>(xdsQuery, "text"), oCode));
+			add(new WCodeInput("query", new PropertyModel<String>(xdsQuery, "text"), oCode)
+				.setRequired(true)
+				.setLabel(new ResourceModel("DataSource.query")));
 
 			add(showSQL = new WAjaxButton("showSQL") {
 				@Override
@@ -203,7 +224,9 @@ public class DataSourceForm extends DPage {
 					item.add(type = new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
 					item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(field, "inFilterPanel")));
 					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(field.getType().getProperFilterTypes()), false));
-					item.add(new WSelectionInput("resultType", new PropertyModel<String>(field, "resultType"), Arrays.asList(XDSFieldResultType.values()), false));
+					item.add(new WSelectionInput("resultType", new PropertyModel<String>(field, "resultType"), Arrays.asList(XDSFieldResultType.values()), false)
+						.setRequired(true)
+						.setLabel(new Model<>(getString("XDSField.resultType") + " " + field.getName())));
 					item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(field, "isKeyField"))
 						.add(new AttributeModifier("group", "isKeyField")));
 					item.add(new CheckBox("isTitleField", new PropertyModel<Boolean>(field, "isTitleField"))
@@ -218,6 +241,12 @@ public class DataSourceForm extends DPage {
 							filterType.updateChoices(target, Arrays.asList(type.getProperFilterTypes()));
 						}
 					});
+					type
+						.setRequired(true)
+						.setLabel(new Model<>(getString("XDSField.type") + " " + field.getName()));
+					filterType
+						.setRequired(true)
+						.setLabel(new Model<>(getString("XDSField.filterType") + " " + field.getName()));
 				}
 			});
 		}
@@ -251,7 +280,9 @@ public class DataSourceForm extends DPage {
 
 					item.add(new Label("name", field.getName()));
 					item.add(new WSelectionInput("dataSources", new PropertyModel(field, "target"),
-						dataSourceList, false));
+						dataSourceList, false)
+						.setRequired(true)
+						.setLabel(new Model<>(field.getName())));
 				}
 			});
 

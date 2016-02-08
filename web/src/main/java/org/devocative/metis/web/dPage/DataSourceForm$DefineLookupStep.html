@@ -1,29 +1,34 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="lbl"></div>
+	<div wicket:id="lbl"></div>
 
-    <table wicket:id="table">
-        <tr>
-            <th>
-                <wicket:message key="DataSource.field"/>
-            </th>
-            <th>
-                <wicket:message key="DataSource"/>
-            </th>
-        </tr>
-        <tr class="ds_field_row" wicket:id="fields">
-            <td wicket:id="name"></td>
-            <td>
-                <div wicket:id="dataSources"></div>
-            </td>
-        </tr>
-    </table>
+	<table style="background-color: #dddddd" wicket:id="table" cellpadding="5">
+		<tr class="ds_field_header">
+			<th>
+				<wicket:message key="DataSource.field"/>
+			</th>
+			<th>
+				<wicket:message key="DataSource"/>
+			</th>
+		</tr>
+		<tr class="ds_field_row" wicket:id="fields">
+			<td wicket:id="name"></td>
+			<td>
+				<div wicket:id="dataSources"></div>
+			</td>
+		</tr>
+	</table>
 
-    <!-- TODO: MOVE TO CSS -->
-    <style type="text/css">
-        tr.ds_field_row:hover {
-            background-color: darkseagreen;
-        }
-    </style>
+	<!-- TODO: MOVE TO CSS -->
+	<style type="text/css">
+		tr.ds_field_header {
+			background-color: #86c1ff;
+			text-align: center;
+		}
+
+		tr.ds_field_row:hover {
+			background-color: #6291c4;
+		}
+	</style>
 </wicket:panel>
 </html>

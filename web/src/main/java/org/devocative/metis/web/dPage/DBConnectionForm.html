@@ -2,77 +2,94 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="feedback"></div>
-
-    <form wicket:id="form">
-        <table>
-            <tr>
-                <th>
-                    <wicket:message key="DBConnection.name"/>
-                </th>
-                <td>
-                    <div wicket:id="name"></div>
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    <wicket:message key="DBConnection.driver"/>
-                </th>
-                <td>
-                    <div wicket:id="driver"></div>
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    <wicket:message key="DBConnection.url"/>
-                </th>
-                <td>
-                    <div wicket:id="url"></div>
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    <wicket:message key="DBConnection.username"/>
-                </th>
-                <td>
-                    <div wicket:id="username"></div>
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    <wicket:message key="DBConnection.password"/>
-                </th>
-                <td>
-                    <div wicket:id="password"></div>
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    <wicket:message key="DBConnection.schema"/>
-                </th>
-                <td>
-                    <div wicket:id="schema"></div>
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    <wicket:message key="DBConnection.testQuery"/>
-                </th>
-                <td>
-                    <div wicket:id="testQuery"></div>
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    <wicket:message key="DBConnection.config"/>
-                </th>
-                <td><input type="file" wicket:id="configFile"/></td>
-            </tr>
-            <tr>
-                <td colspan="2"><input type="submit" wicket:id="save" wicket:message="value:label.save"/></td>
-            </tr>
-        </table>
-    </form>
+	<table style="width:100%">
+		<tr>
+			<td style="width:350px;">
+				<div wicket:id="feedback"></div>
+				<form wicket:id="form">
+					<table>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.name"/>
+							</td>
+							<td>
+								<div wicket:id="name"></div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.driver"/>
+							</td>
+							<td>
+								<div wicket:id="driver"></div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.url"/>
+							</td>
+							<td>
+								<div wicket:id="url"></div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.username"/>
+							</td>
+							<td>
+								<div wicket:id="username"></div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.password"/>
+							</td>
+							<td>
+								<input type="password" wicket:id="password"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.password2"/>
+							</td>
+							<td>
+								<input type="password" wicket:id="password2"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.schema"/>
+							</td>
+							<td>
+								<div wicket:id="schema"></div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.testQuery"/>
+							</td>
+							<td>
+								<div wicket:id="testQuery"></div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<wicket:message key="DBConnection.config"/>
+							</td>
+							<td><input type="file" wicket:id="configFile"/></td>
+						</tr>
+						<tr>
+							<td colspan="2"><input type="submit" wicket:id="save" wicket:message="value:label.save"/>
+							</td>
+						</tr>
+					</table>
+				</form>
+			</td>
+			<td>
+				<div wicket:id="grid"></div>
+			</td>
+		</tr>
+	</table>
 </wicket:panel>
 </body>
 </html>

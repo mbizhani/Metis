@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDBConnectionService {
+	List<DBConnection> search(long firstResult, long maxResults);
+
+	long count();
+
 	void saveOrUpdate(DBConnection dbConnection, String mappingXML);
 
 	List<DBConnection> list();

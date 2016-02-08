@@ -1,91 +1,96 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table cellpadding="3">
-        <tr>
-            <th>
-                <wicket:message key="XDSField.name"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.dbType"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.dbSize"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.title"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.type"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.inFilterPanel"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.filterType"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.resultType"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.isKeyField"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.isTitleField"/>
-            </th>
-            <th>
-                <wicket:message key="XDSField.isSelfRelPointerField"/>
-            </th>
-        </tr>
+	<table style="background-color: #dddddd" cellpadding="5">
+		<tr class="ds_field_header">
+			<td>
+				<wicket:message key="XDSField.name"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.dbType"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.dbSize"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.title"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.type"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.inFilterPanel"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.filterType"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.resultType"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.isKeyField"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.isTitleField"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.isSelfRelPointerField"/>
+			</td>
+		</tr>
 
-        <tr class="ds_field_row" wicket:id="fields">
-            <td wicket:id="name"></td>
-            <td wicket:id="dbType"></td>
-            <td wicket:id="dbSize"></td>
-            <td>
-                <div wicket:id="title"></div>
-            </td>
-            <td>
-                <div wicket:id="type"></div>
-            </td>
-            <td align="center">
-                <input type="checkbox" wicket:id="inFilterPanel"/>
-            </td>
-            <td>
-                <div wicket:id="filterType"></div>
-            </td>
-            <td>
-                <div wicket:id="resultType"></div>
-            </td>
-            <td align="center">
-                <input class="ds_field_box" type="checkbox" wicket:id="isKeyField"/>
-            </td>
-            <td align="center">
-                <input class="ds_field_box" type="checkbox" wicket:id="isTitleField"/>
-            </td>
-            <td align="center">
-                <input class="ds_field_box" type="checkbox" wicket:id="isSelfRelPointerField"/>
-            </td>
-        </tr>
-    </table>
+		<tr class="ds_field_row" wicket:id="fields">
+			<td wicket:id="name"></td>
+			<td wicket:id="dbType"></td>
+			<td align="center" wicket:id="dbSize"></td>
+			<td>
+				<div wicket:id="title"></div>
+			</td>
+			<td>
+				<div wicket:id="type"></div>
+			</td>
+			<td align="center">
+				<input type="checkbox" wicket:id="inFilterPanel"/>
+			</td>
+			<td>
+				<div wicket:id="filterType"></div>
+			</td>
+			<td>
+				<div wicket:id="resultType"></div>
+			</td>
+			<td align="center">
+				<input class="ds_field_box" type="checkbox" wicket:id="isKeyField"/>
+			</td>
+			<td align="center">
+				<input class="ds_field_box" type="checkbox" wicket:id="isTitleField"/>
+			</td>
+			<td align="center">
+				<input class="ds_field_box" type="checkbox" wicket:id="isSelfRelPointerField"/>
+			</td>
+		</tr>
+	</table>
 
-    <!-- TODO: MOVE TO CSS -->
-    <style type="text/css">
-        tr.ds_field_row:hover {
-            background-color: darkseagreen;
-        }
-    </style>
+	<!-- TODO: MOVE TO CSS -->
+	<style type="text/css">
+		tr.ds_field_header {
+			background-color: #86c1ff;
+			text-align: center;
+		}
 
-    <script type="text/javascript">
-        $(".ds_field_box").on('click', function () {
-            var $box = $(this);
-            if ($box.is(":checked")) {
-                var group = "input:checkbox[group='" + $box.attr("group") + "']";
-                $(group).prop("checked", false);
-                $box.prop("checked", true);
-            } else {
-                $box.prop("checked", false);
-            }
-        });
-    </script>
+		tr.ds_field_row:hover {
+			background-color: #6291c4;
+		}
+	</style>
+
+	<script type="text/javascript">
+		$(".ds_field_box").on('click', function () {
+			var $box = $(this);
+			if ($box.is(":checked")) {
+				var group = "input:checkbox[group='" + $box.attr("group") + "']";
+				$(group).prop("checked", false);
+				$box.prop("checked", true);
+			} else {
+				$box.prop("checked", false);
+			}
+		});
+	</script>
 </wicket:panel>
 </html>

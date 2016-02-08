@@ -57,18 +57,42 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public void saveOrUpdate(DBConnection dbConnection, String mappingXML) {
-		ConfigLob configLob = new ConfigLob();
-		configLob.setId(dbConnection.getConfigId());
-		configLob.setValue(mappingXML);
-		persistorService.saveOrUpdate(configLob);
+	public List<DBConnection> search(long firstResult, long maxResults) {
+		return persistorService
+			.createQueryBuilder()
+			.addFrom(DBConnection.class, "ent")
+			.list((firstResult - 1) * maxResults, firstResult * maxResults);
+	}
 
-		dbConnection.setConfig(configLob);
+	@Override
+	public long count() {
+		return persistorService
+			.createQueryBuilder()
+			.addSelect("select count(1)")
+			.addFrom(DBConnection.class, "ent")
+			.object();
+	}
+
+	@Override
+	public void saveOrUpdate(DBConnection dbConnection, String mappingXML) {
+		if (mappingXML != null) {
+			ConfigLob configLob = dbConnection.getConfigId() == null ?
+				new ConfigLob() :
+				persistorService.get(ConfigLob.class, dbConnection.getConfigId());
+			configLob.setValue(mappingXML);
+			persistorService.saveOrUpdate(configLob);
+			dbConnection.setConfig(configLob);
+		}
+
+		//TODO encrypt database password before save
+
 		persistorService.saveOrUpdate(dbConnection);
 		persistorService.commitOrRollback();
 
 		CONNECTION_MAP.remove(dbConnection.getId());
 		CONNECTION_MAPPING_MAP.remove(dbConnection.getId());
+
+		// TODO only necessary changed data need close
 		closePoolSafely(dbConnection.getId());
 	}
 
@@ -80,11 +104,11 @@ public class DBConnectionService implements IDBConnectionService {
 	@Override
 	public DBConnection getByName(String name) {
 		return persistorService
-				.createQueryBuilder()
-				.addSelect("from DBConnection ent")
-				.addWhere("and ent.name=:name")
-				.addParam("name", name)
-				.object();
+			.createQueryBuilder()
+			.addSelect("from DBConnection ent")
+			.addWhere("and ent.name=:name")
+			.addParam("name", name)
+			.object();
 	}
 
 	public List<XDSField> getFields(Long dbConnId, String sql) throws SQLException {
@@ -223,7 +247,7 @@ public class DBConnectionService implements IDBConnectionService {
 		if (!CONNECTION_MAPPING_MAP.containsKey(dbConnId)) {
 			String config = persistorService.createQueryBuilder().addSelect("select cfg.value from DBConnection ent join ent.config cfg")
 				.addWhere("and ent.id = :id")
-					.addParam("id", dbConnId)
+				.addParam("id", dbConnId)
 				.object();
 
 			if (config != null) {
