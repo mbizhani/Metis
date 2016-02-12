@@ -1,7 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<table style="background-color: #dddddd" cellpadding="5">
-		<tr class="ds_field_header">
+	<table class="dmt-simple" cellpadding="5">
+		<tr>
 			<td>
 				<wicket:message key="XDSField.name"/>
 			</td>
@@ -37,7 +37,7 @@
 			</td>
 		</tr>
 
-		<tr class="ds_field_row" wicket:id="fields">
+		<tr wicket:id="fields">
 			<td wicket:id="name"></td>
 			<td wicket:id="dbType"></td>
 			<td align="center" wicket:id="dbSize"></td>
@@ -67,18 +67,6 @@
 			</td>
 		</tr>
 	</table>
-
-	<!-- TODO: MOVE TO CSS -->
-	<style type="text/css">
-		tr.ds_field_header {
-			background-color: #86c1ff;
-			text-align: center;
-		}
-
-		tr.ds_field_row:hover {
-			background-color: #6291c4;
-		}
-	</style>
 
 	<script type="text/javascript">
 		$(".ds_field_box").on('click', function () {

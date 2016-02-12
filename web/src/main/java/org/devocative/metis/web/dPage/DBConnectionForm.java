@@ -27,6 +27,7 @@ import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.html.icon.FontAwesome;
+import org.devocative.wickomp.opt.OHorizontalAlign;
 import org.devocative.wickomp.opt.OSize;
 
 import javax.inject.Inject;
@@ -104,7 +105,7 @@ public class DBConnectionForm extends DPage {
 					new FontAwesome("check", "green").toString() :
 					new FontAwesome("times", "red").toString();
 			}
-		});
+		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OColumn<DBConnection>(new ResourceModel("DBConnection.config")) {
 			@Override
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
@@ -112,7 +113,7 @@ public class DBConnectionForm extends DPage {
 					new FontAwesome("check", "green").toString() :
 					new FontAwesome("times", "red").toString();
 			}
-		});
+		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creationDate", "Creation Date"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creatorUser", "Creator User"), "creatorUser"));

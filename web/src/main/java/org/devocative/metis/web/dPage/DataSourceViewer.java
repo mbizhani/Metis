@@ -37,7 +37,6 @@ import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.icon.FontAwesome;
 import org.devocative.wickomp.opt.OLayoutDirection;
-import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -230,8 +229,10 @@ public class DataSourceViewer extends DPage {
 				new FontAwesome("file-excel-o", "green", new ResourceModel("label.export.excel")),
 				String.format("%s-export.xlsx", dataSource.getName()),
 				10000))
-			.setHeight(OSize.percent(99))
-			.setWidth(OSize.percent(99));
+			.setFit(true)
+//			.setHeight(OSize.percent(100))
+//			.setWidth(OSize.percent(99))
+		;
 	}
 
 	private List<XDSField> getFieldForFilter() {

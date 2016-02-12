@@ -17,9 +17,9 @@
 	</entities>
 
 	<dPages>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceViewer" title="Data Source Viewer" uri="/dsviewer"/>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceForm" title="Data Source Form" uri="/dsform"/>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceList" title="Data Source List" uri="/dslist"/>
-		<dPage type="org.devocative.metis.web.dPage.DBConnectionForm" title="DB Connection Form" uri="/dbcform"/>
+		<dPage type="org.devocative.metis.web.dPage.DataSourceViewer" title="KEY:DataSourceViewer" uri="/dsviewer"/>
+		<dPage type="org.devocative.metis.web.dPage.DataSourceForm" title="KEY:DataSourceForm" uri="/dsform"/>
+		<dPage type="org.devocative.metis.web.dPage.DataSourceList" title="KEY:DataSourceList" uri="/dslist"/>
+		<dPage type="org.devocative.metis.web.dPage.DBConnectionForm" title="KEY:DBConnectionForm" uri="/dbcform"/>
 	</dPages>
 </module>

@@ -2,16 +2,17 @@
 <wicket:panel>
 	<div wicket:id="lbl"></div>
 
-	<table style="background-color: #dddddd" wicket:id="table" cellpadding="5">
-		<tr class="ds_field_header">
-			<th>
+	<table class="dmt-simple" wicket:id="table" cellpadding="5">
+		<tr>
+			<td>
 				<wicket:message key="DataSource.field"/>
-			</th>
-			<th>
+			</td>
+			<td>
 				<wicket:message key="DataSource"/>
-			</th>
+			</td>
 		</tr>
-		<tr class="ds_field_row" wicket:id="fields">
+
+		<tr wicket:id="fields">
 			<td wicket:id="name"></td>
 			<td>
 				<div wicket:id="dataSources"></div>
@@ -19,16 +20,5 @@
 		</tr>
 	</table>
 
-	<!-- TODO: MOVE TO CSS -->
-	<style type="text/css">
-		tr.ds_field_header {
-			background-color: #86c1ff;
-			text-align: center;
-		}
-
-		tr.ds_field_row:hover {
-			background-color: #6291c4;
-		}
-	</style>
 </wicket:panel>
 </html>
