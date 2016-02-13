@@ -16,6 +16,7 @@ import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WGridDataSource;
 import org.devocative.wickomp.data.WSortField;
@@ -26,7 +27,6 @@ import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
-import org.devocative.wickomp.html.icon.FontAwesome;
 import org.devocative.wickomp.opt.OHorizontalAlign;
 import org.devocative.wickomp.opt.OSize;
 
@@ -101,17 +101,13 @@ public class DBConnectionForm extends DPage {
 		columnList.add(new OColumn<DBConnection>(new ResourceModel("DBConnection.testQuery")) {
 			@Override
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
-				return bean.getTestQuery() != null ?
-					new FontAwesome("check", "green").toString() :
-					new FontAwesome("times", "red").toString();
+				return bean.getTestQuery() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
 			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OColumn<DBConnection>(new ResourceModel("DBConnection.config")) {
 			@Override
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
-				return bean.getConfigId() != null ?
-					new FontAwesome("check", "green").toString() :
-					new FontAwesome("times", "red").toString();
+				return bean.getConfigId() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
 			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creationDate", "Creation Date"), "creationDate")
@@ -121,8 +117,7 @@ public class DBConnectionForm extends DPage {
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.modifierUser", "Modifier User"), "modifierUser"));
 
-		columnList.add(new ORESTLinkColumn<DBConnection>(new Model<String>(), DBConnectionForm.class, "name",
-			new FontAwesome("pencil", "green", new ResourceModel("label.edit", "Edit"))));
+		columnList.add(new ORESTLinkColumn<DBConnection>(new Model<String>(), DBConnectionForm.class, "name", MetisIcon.EDIT));
 
 		OGrid<DBConnection> oGrid = new OGrid<>();
 		oGrid

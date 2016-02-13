@@ -130,14 +130,14 @@
 						<resourceBundle>org.devocative:diadem:1.0-SNAPSHOT</resourceBundle>
 					</resourceBundles>
 				</configuration>
-				<!--<executions>
+				<executions>
 					<execution>
 						<phase>initialize</phase>
 						<goals>
 							<goal>process</goal>
 						</goals>
 					</execution>
-				</executions>-->
+				</executions>
 			</plugin>
 
 

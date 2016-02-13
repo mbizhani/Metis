@@ -21,6 +21,7 @@ import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldFilterType;
 import org.devocative.metis.entity.dataSource.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.data.WSortField;
 import org.devocative.wickomp.data.WTreeGridDataSource;
@@ -35,7 +36,6 @@ import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
-import org.devocative.wickomp.html.icon.FontAwesome;
 import org.devocative.wickomp.opt.OLayoutDirection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,7 +152,7 @@ public class DataSourceViewer extends DPage {
 				item.add(view);
 			}
 		});
-		dynamicForm.add(new DAjaxButton("search") {
+		dynamicForm.add(new DAjaxButton("search", new ResourceModel("label.search", "Search"), MetisIcon.SEARCH) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				logger.debug("Map: {}", filters);
@@ -204,9 +204,7 @@ public class DataSourceViewer extends DPage {
 			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
 			gridOptions
 				.setGroupStyle("background-color:#dddddd")
-				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(
-					new FontAwesome("expand"),
-					new FontAwesome("compress")));
+				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
 			mainTable.add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
@@ -216,7 +214,7 @@ public class DataSourceViewer extends DPage {
 				.setParentIdField(dataSource.getSelfRelPointerField())
 				.setTreeField(dataSource.getTitleField())
 				.setIdField(dataSource.getKeyField())
-				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(new FontAwesome("compress")));
+				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
 			mainTable.add(grid = new WTreeGrid<>("grid", gridOptions, gridDS));
@@ -226,12 +224,10 @@ public class DataSourceViewer extends DPage {
 			.setColumns(columns)
 			.setMultiSort(true)
 			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
-				new FontAwesome("file-excel-o", "green", new ResourceModel("label.export.excel")),
+				MetisIcon.EXPORT_EXCEL,
 				String.format("%s-export.xlsx", dataSource.getName()),
 				10000))
 			.setFit(true)
-//			.setHeight(OSize.percent(100))
-//			.setWidth(OSize.percent(99))
 		;
 	}
 

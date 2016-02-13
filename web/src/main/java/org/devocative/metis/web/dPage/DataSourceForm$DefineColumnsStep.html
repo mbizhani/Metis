@@ -1,6 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 	<table class="dmt-simple" cellpadding="5">
+		<thead>
 		<tr>
 			<td>
 				<wicket:message key="XDSField.name"/>
@@ -36,7 +37,9 @@
 				<wicket:message key="XDSField.isSelfRelPointerField"/>
 			</td>
 		</tr>
+		</thead>
 
+		<tbody>
 		<tr wicket:id="fields">
 			<td wicket:id="name"></td>
 			<td wicket:id="dbType"></td>
@@ -66,6 +69,7 @@
 				<input class="ds_field_box" type="checkbox" wicket:id="isSelfRelPointerField"/>
 			</td>
 		</tr>
+		</tbody>
 	</table>
 
 	<script type="text/javascript">

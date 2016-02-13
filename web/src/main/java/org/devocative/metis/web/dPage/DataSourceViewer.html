@@ -1,31 +1,34 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="title"></div>
+	<div wicket:id="title"></div>
 
-    <div wicket:id="mainTable" class="easyui-layout" style="width:100%;height:750px;">
-        <div wicket:id="searchPanel" wicket:message="title:label.search" style="width:250px;">
-            <form wicket:id="dynamicForm">
-                <table>
-                    <tr wicket:id="fields">
-                        <td><span wicket:id="label"></span></td>
-                        <td>
-                            <div wicket:id="field"></div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <input type="submit" wicket:id="search" wicket:message="value:label.search"/>
-                            <input type="reset" wicket:message="value:label.clear"/>
-                        </td>
-                    </tr>
-                </table>
-            </form>
-        </div>
+	<div wicket:id="mainTable" class="easyui-layout" style="width:100%;height:750px;">
+		<div wicket:id="searchPanel" wicket:message="title:label.search" style="width:250px;">
+			<form wicket:id="dynamicForm">
+				<table>
+					<tr wicket:id="fields">
+						<td><span wicket:id="label"></span></td>
+						<td>
+							<div wicket:id="field"></div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<button type="submit" wicket:id="search"></button>
+							<button type="reset">
+								<wicket:message key="label.clear"/>
+								<i class="fa fa-history"></i>
+							</button>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
 
-        <div data-options="region:'center'" wicket:message="title:label.result">
-            <div wicket:id="grid"></div>
-        </div>
+		<div data-options="region:'center'" wicket:message="title:label.result">
+			<div wicket:id="grid"></div>
+		</div>
 
-    </div>
+	</div>
 </wicket:panel>
 </html>

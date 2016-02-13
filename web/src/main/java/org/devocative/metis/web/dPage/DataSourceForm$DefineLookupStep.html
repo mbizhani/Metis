@@ -3,6 +3,7 @@
 	<div wicket:id="lbl"></div>
 
 	<table class="dmt-simple" wicket:id="table" cellpadding="5">
+		<thead>
 		<tr>
 			<td>
 				<wicket:message key="DataSource.field"/>
@@ -11,13 +12,16 @@
 				<wicket:message key="DataSource"/>
 			</td>
 		</tr>
+		</thead>
 
+		<tbody>
 		<tr wicket:id="fields">
 			<td wicket:id="name"></td>
 			<td>
 				<div wicket:id="dataSources"></div>
 			</td>
 		</tr>
+		</tbody>
 	</table>
 
 </wicket:panel>
