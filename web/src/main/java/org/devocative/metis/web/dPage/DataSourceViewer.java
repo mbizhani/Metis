@@ -204,6 +204,7 @@ public class DataSourceViewer extends DPage {
 			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
 			gridOptions
 				.setGroupStyle("background-color:#dddddd")
+				.setIdField(dataSource.getKeyField())
 				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
@@ -223,6 +224,7 @@ public class DataSourceViewer extends DPage {
 		oBaseGrid
 			.setColumns(columns)
 			.setMultiSort(true)
+			.setSelectionIndicator(true)
 			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				MetisIcon.EXPORT_EXCEL,
 				String.format("%s-export.xlsx", dataSource.getName()),
