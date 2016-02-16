@@ -222,6 +222,7 @@ public class DataSourceForm extends DPage {
 					item.add(new Label("dbSize", field.getDbSize()));
 					item.add(new WTextInput("title", new PropertyModel<String>(field, "title")));
 					item.add(type = new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
+					item.add(new CheckBox("required", new PropertyModel<Boolean>(field, "required")));
 					item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(field, "inFilterPanel")));
 					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(field.getType().getProperFilterTypes()), false));
 					item.add(new WSelectionInput("resultType", new PropertyModel<String>(field, "resultType"), Arrays.asList(XDSFieldResultType.values()), false)

@@ -14,6 +14,8 @@ public class XDataSource implements Serializable {
 
 	private List<XDSField> fields;
 
+	private List<XDSParameter> params;
+
 	private transient Map<String, XDSField> fieldMap;
 
 	@XStreamOmitField
@@ -33,6 +35,14 @@ public class XDataSource implements Serializable {
 
 	public void setFields(List<XDSField> fields) {
 		this.fields = fields;
+	}
+
+	public List<XDSParameter> getParams() {
+		return params;
+	}
+
+	public void setParams(List<XDSParameter> params) {
+		this.params = params;
 	}
 
 	public Long getConnectionInfoId() {

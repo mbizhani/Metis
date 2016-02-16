@@ -5,6 +5,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -97,58 +98,64 @@ public class DataSourceViewer extends DPage {
 				XDSField dsField = item.getModelObject();
 				item.add(new Label("label", dsField.getTitle()));
 
-				RepeatingView view = new RepeatingView("field");
+				FormComponent fieldFormItem = null;
 				switch (dsField.getType()) {
 
 					case String:
-						view.add(new WTextInput(dsField.getName()));
+						fieldFormItem = new WTextInput(dsField.getName());
 						break;
 
 					case Integer:
 						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
-							view.add(new WNumberRangeInput(dsField.getName(), Long.class)
-								.setThousandSeparator(","));
+							fieldFormItem = new WNumberRangeInput(dsField.getName(), Long.class).setThousandSeparator(",");
 						} else {
-							view.add(new WNumberInput(dsField.getName(), Long.class)
-								.setThousandSeparator(","));
+							fieldFormItem = new WNumberInput(dsField.getName(), Long.class)
+								.setThousandSeparator(",");
 						}
 						break;
 
 					case Real:
 						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
-							view.add(new WNumberRangeInput(dsField.getName(), BigDecimal.class).setPrecision(2)
+							fieldFormItem = new WNumberRangeInput(dsField.getName(), BigDecimal.class).setPrecision(2)
 								.setThousandSeparator(",")
-								.setPrecision(3));
+								.setPrecision(3);
 						} else {
-							view.add(new WNumberInput(dsField.getName(), BigDecimal.class).setPrecision(2)
+							fieldFormItem = new WNumberInput(dsField.getName(), BigDecimal.class).setPrecision(2)
 								.setThousandSeparator(",")
-								.setPrecision(3));
+								.setPrecision(3);
 						}
 						break;
 
 					case Boolean:
-						view.add(new WBooleanInput(dsField.getName()));
+						fieldFormItem = new WBooleanInput(dsField.getName());
 						break;
 
 					case Date:
 					case DateTime:
 						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
-							view.add(new WDateRangeInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType()));
+							fieldFormItem = new WDateRangeInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType());
 						} else {
-							view.add(new WDateInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType()));
+							fieldFormItem = new WDateInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType());
 						}
 						break;
 
 					case LookUp:
 						if (dsField.getFilterType() == XDSFieldFilterType.List) {
 							List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dsField);
-							view.add(new WSelectionInput(dsField.getName(), lookUpList, true));
+							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true);
 						} else {
 							//TODO XDSFieldFilterType.Search
 						}
 						break;
 				}
 
+				RepeatingView view = new RepeatingView("field");
+				if (fieldFormItem != null) {
+					fieldFormItem
+						.setLabel(new Model<>(dsField.getTitle()))
+						.setRequired(dsField.getRequired());
+					view.add(fieldFormItem);
+				}
 				item.add(view);
 			}
 		});

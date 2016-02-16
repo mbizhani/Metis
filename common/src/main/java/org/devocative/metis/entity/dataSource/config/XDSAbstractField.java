@@ -14,6 +14,9 @@ public abstract class XDSAbstractField implements Serializable {
 	protected String title;
 
 	@XStreamAsAttribute
+	protected Boolean required;
+
+	@XStreamAsAttribute
 	protected XDSFieldType type;
 
 	@XStreamAsAttribute
@@ -41,6 +44,16 @@ public abstract class XDSAbstractField implements Serializable {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	// Has Default
+	public Boolean getRequired() {
+		return required != null ? required : false;
+	}
+
+	public XDSAbstractField setRequired(Boolean required) {
+		this.required = required;
+		return this;
 	}
 
 	public XDSFieldType getType() {
