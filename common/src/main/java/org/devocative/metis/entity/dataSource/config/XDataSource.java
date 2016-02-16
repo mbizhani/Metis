@@ -4,6 +4,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,16 +22,18 @@ public class XDataSource implements Serializable {
 	@XStreamOmitField
 	private Long connectionInfoId;
 
+	// Has Default
 	public XDSQuery getQuery() {
-		return query;
+		return query != null ? query : new XDSQuery();
 	}
 
 	public void setQuery(XDSQuery query) {
 		this.query = query;
 	}
 
+	// Has Default
 	public List<XDSField> getFields() {
-		return fields;
+		return fields != null ? fields : new ArrayList<XDSField>();
 	}
 
 	public void setFields(List<XDSField> fields) {
@@ -38,7 +41,7 @@ public class XDataSource implements Serializable {
 	}
 
 	public List<XDSParameter> getParams() {
-		return params;
+		return params != null ? params : new ArrayList<XDSParameter>();
 	}
 
 	public void setParams(List<XDSParameter> params) {

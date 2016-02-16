@@ -44,6 +44,7 @@ public class DataSourceForm extends DPage {
 	private XDSQuery xdsQuery;
 	private DataSource dataSource;
 	private List<XDSField> xdsFields;
+	private List<XDSParameter> xdsParams;
 
 	@Inject
 	private IDataSourceService dataSourceService;
@@ -61,9 +62,11 @@ public class DataSourceForm extends DPage {
 			XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
 			xdsQuery = xDataSource.getQuery();
 			xdsFields = xDataSource.getFields();
+			xdsParams = xDataSource.getParams();
 		} else {
 			dataSource = new DataSource();
 			xdsFields = new ArrayList<>();
+			xdsParams = new ArrayList<>();
 			xdsQuery = new XDSQuery();
 		}
 
@@ -73,6 +76,7 @@ public class DataSourceForm extends DPage {
 		OWizard oWizard = new OWizard()
 			.addStep("init", new InitStep())
 			.addStep("query", new QueryStep())
+			.addStep("params", new ParamStep())
 			.addStep("columns", new DefineColumnsStep())
 			.addStep("lookup", new DefineLookupStep());
 		//TODO a review step
@@ -81,10 +85,16 @@ public class DataSourceForm extends DPage {
 			@Override
 			protected void onNext(AjaxRequestTarget target, String stepId) {
 				if ("query".equals(stepId)) {
+					List<XDSParameter> list = dataSourceService.createParams(xdsQuery.getText(), xdsParams);
+					xdsParams.clear();
+					xdsParams.addAll(list);
+
+				} else if ("params".equals(stepId)) {
 					List<XDSField> list = dataSourceService.createFields(
 						xdsFields,
 						xdsQuery,
-						dataSource.getConnection().getId()
+						dataSource.getConnection().getId(),
+						xdsParams
 					);
 					xdsFields.clear();
 					xdsFields.addAll(list);
@@ -93,7 +103,7 @@ public class DataSourceForm extends DPage {
 
 			@Override
 			protected void onFinish(AjaxRequestTarget target, String stepId) {
-				dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields);
+				dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
 			}
 
 			@Override
@@ -207,32 +217,74 @@ public class DataSourceForm extends DPage {
 		}
 	}
 
+	private class ParamStep extends WWizardStepPanel {
+		private Label messageWhenNoParam;
+		private WebMarkupContainer table;
+
+		@Override
+		protected void onInit() {
+			table = new WebMarkupContainer("table");
+			add(table);
+
+			table.add(new ListView<XDSParameter>("params", xdsParams) {
+				@Override
+				protected void populateItem(ListItem<XDSParameter> item) {
+					XDSParameter xdsParameter = item.getModelObject();
+
+					final WSelectionInput type;
+					item.add(new Label("name", xdsParameter.getName()));
+					item.add(new WTextInput("title", new PropertyModel<String>(xdsParameter, "title")));
+					item.add(type = new WSelectionInput("type", new PropertyModel<String>(xdsParameter, "type"),
+						Arrays.asList(XDSFieldType.values()), false));
+					item.add(new CheckBox("required", new PropertyModel<Boolean>(xdsParameter, "required")));
+					item.add(new WTextInput("sampleData", new PropertyModel<String>(xdsParameter, "sampleData")));
+
+					type
+						.setRequired(true)
+						.setLabel(new Model<>(getString("XDSField.type") + " " + xdsParameter.getName()));
+
+				}
+			});
+
+			add(messageWhenNoParam = new Label("messageWhenNoParam", new ResourceModel("DataSource.alert.noParameter")));
+		}
+
+		@Override
+		protected void onBeforeRender() {
+			table.setVisible(xdsParams.size() > 0);
+			messageWhenNoParam.setVisible(xdsParams.size() == 0);
+
+			super.onBeforeRender();
+		}
+	}
+
 	private class DefineColumnsStep extends WWizardStepPanel {
 		@Override
 		protected void onInit() {
 			add(new ListView<XDSField>("fields", xdsFields) {
 				@Override
 				protected void populateItem(ListItem<XDSField> item) {
-					XDSField field = item.getModelObject();
+					XDSField xdsField = item.getModelObject();
 
 					final WSelectionInput type, filterType;
 
-					item.add(new Label("name", field.getName()));
-					item.add(new Label("dbType", field.getDbType()));
-					item.add(new Label("dbSize", field.getDbSize()));
-					item.add(new WTextInput("title", new PropertyModel<String>(field, "title")));
-					item.add(type = new WSelectionInput("type", new PropertyModel<String>(field, "type"), Arrays.asList(XDSFieldType.values()), false));
-					item.add(new CheckBox("required", new PropertyModel<Boolean>(field, "required")));
-					item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(field, "inFilterPanel")));
-					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(field, "filterType"), Arrays.asList(field.getType().getProperFilterTypes()), false));
-					item.add(new WSelectionInput("resultType", new PropertyModel<String>(field, "resultType"), Arrays.asList(XDSFieldResultType.values()), false)
+					item.add(new Label("name", xdsField.getName()));
+					item.add(new Label("dbType", xdsField.getDbType()));
+					item.add(new Label("dbSize", xdsField.getDbSize()));
+					item.add(new WTextInput("title", new PropertyModel<String>(xdsField, "title")));
+					item.add(type = new WSelectionInput("type", new PropertyModel<String>(xdsField, "type"), Arrays.asList(XDSFieldType.values()), false));
+					item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(xdsField, "inFilterPanel")));
+					//TODO show required checkbox when inFilterPanel is true
+					item.add(new CheckBox("required", new PropertyModel<Boolean>(xdsField, "required")));
+					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(xdsField, "filterType"), Arrays.asList(xdsField.getType().getProperFilterTypes()), false));
+					item.add(new WSelectionInput("resultType", new PropertyModel<String>(xdsField, "resultType"), Arrays.asList(XDSFieldResultType.values()), false)
 						.setRequired(true)
-						.setLabel(new Model<>(getString("XDSField.resultType") + " " + field.getName())));
-					item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(field, "isKeyField"))
+						.setLabel(new Model<>(getString("XDSField.resultType") + " " + xdsField.getName())));
+					item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(xdsField, "isKeyField"))
 						.add(new AttributeModifier("group", "isKeyField")));
-					item.add(new CheckBox("isTitleField", new PropertyModel<Boolean>(field, "isTitleField"))
+					item.add(new CheckBox("isTitleField", new PropertyModel<Boolean>(xdsField, "isTitleField"))
 						.add(new AttributeModifier("group", "isTitleField")));
-					item.add(new CheckBox("isSelfRelPointerField", new PropertyModel<Boolean>(field, "isSelfRelPointerField"))
+					item.add(new CheckBox("isSelfRelPointerField", new PropertyModel<Boolean>(xdsField, "isSelfRelPointerField"))
 						.add(new AttributeModifier("group", "isSelfRelField")));
 
 					type.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
@@ -244,10 +296,10 @@ public class DataSourceForm extends DPage {
 					});
 					type
 						.setRequired(true)
-						.setLabel(new Model<>(getString("XDSField.type") + " " + field.getName()));
+						.setLabel(new Model<>(getString("XDSField.type") + " " + xdsField.getName()));
 					filterType
 						.setRequired(true)
-						.setLabel(new Model<>(getString("XDSField.filterType") + " " + field.getName()));
+						.setLabel(new Model<>(getString("XDSField.filterType") + " " + xdsField.getName()));
 				}
 			});
 		}
@@ -257,26 +309,21 @@ public class DataSourceForm extends DPage {
 		@Inject
 		private IDataSourceService dataSourceService;
 
+		private List<XDSAbstractField> lookupFields = new ArrayList<>();
+		private List<DataSource> dataSourceList = new ArrayList<>();
+
+		private WebMarkupContainer table;
+		private Label messageWhenNoLookUp;
+
 		@Override
 		protected void onInit() {
-			//TODO: the following "for" must be added to service
-			List<XDSField> lookupFields = new ArrayList<>();
-			for (XDSField xdsField : xdsFields) {
-				if (XDSFieldType.LookUp == xdsField.getType()) {
-					lookupFields.add(xdsField);
-				}
-			}
-
-			final List<DataSource> dataSourceList = dataSourceService.getListForLookup();
-
-			WebMarkupContainer table = new WebMarkupContainer("table");
-			table.setVisible(lookupFields.size() > 0);
+			table = new WebMarkupContainer("table");
 			add(table);
 
-			table.add(new ListView<XDSField>("fields", lookupFields) {
+			table.add(new ListView<XDSAbstractField>("fields", lookupFields) {
 				@Override
-				protected void populateItem(ListItem<XDSField> item) {
-					XDSField field = item.getModelObject();
+				protected void populateItem(ListItem<XDSAbstractField> item) {
+					XDSAbstractField field = item.getModelObject();
 					field.setTarget(new DataSource(field.getTargetId()));
 
 					item.add(new Label("name", field.getName()));
@@ -287,11 +334,33 @@ public class DataSourceForm extends DPage {
 				}
 			});
 
-			String message = "";
-			if (lookupFields.size() == 0) {
-				message = "No Lookup field"; //TODO I18N
+			add(messageWhenNoLookUp = new Label("messageWhenNoLookUp", new ResourceModel("DataSource.alert.noLookUp")));
+		}
+
+		@Override
+		protected void onBeforeRender() {
+			//TODO: the following "for" must be added to service
+			lookupFields.clear();
+
+			for (XDSParameter xdsParam : xdsParams) {
+				if (XDSFieldType.LookUp == xdsParam.getType()) {
+					lookupFields.add(xdsParam);
+				}
 			}
-			add(new Label("lbl", message));
+
+			for (XDSField xdsField : xdsFields) {
+				if (XDSFieldType.LookUp == xdsField.getType()) {
+					lookupFields.add(xdsField);
+				}
+			}
+
+			table.setVisible(lookupFields.size() > 0);
+			messageWhenNoLookUp.setVisible(lookupFields.size() == 0);
+
+			dataSourceList.clear();
+			dataSourceList.addAll(dataSourceService.getListForLookup());
+
+			super.onBeforeRender();
 		}
 	}
 

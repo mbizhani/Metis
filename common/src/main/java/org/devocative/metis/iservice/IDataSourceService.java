@@ -2,17 +2,14 @@ package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.dataSource.DataSource;
-import org.devocative.metis.entity.dataSource.config.XDSField;
-import org.devocative.metis.entity.dataSource.config.XDSQuery;
-import org.devocative.metis.entity.dataSource.config.XDSQueryMode;
-import org.devocative.metis.entity.dataSource.config.XDataSource;
+import org.devocative.metis.entity.dataSource.config.*;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 public interface IDataSourceService {
-	void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields);
+	void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters);
 
 	List<DataSource> search(long firstResult, long maxResults);
 
@@ -28,7 +25,10 @@ public interface IDataSourceService {
 
 	long getCountForDataSource(String name, Map<String, Object> filters);
 
-	List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId);
+	List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId,
+								List<XDSParameter> xdsParameters);
+
+	List<XDSParameter> createParams(String query, List<XDSParameter> currentParams);
 
 	List<Map<String, Object>> executeDataSource(String name,
 												Map<String, Object> filters,
@@ -36,7 +36,7 @@ public interface IDataSourceService {
 												Long pageIndex,
 												Long pageSize);
 
-	List<KeyValueVO<Serializable, String>> getLookUpList(XDSField field);
+	List<KeyValueVO<Serializable, String>> getLookUpList(XDSAbstractField field);
 
 	List<Map<String, Object>> getChildrenOfParent(String name, Serializable parentId, Map<String, String> sortFields);
 

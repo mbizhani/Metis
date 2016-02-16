@@ -111,12 +111,15 @@ public class DBConnectionService implements IDBConnectionService {
 			.object();
 	}
 
-	public List<XDSField> getFields(Long dbConnId, String sql) throws SQLException {
+	@Override
+	public List<XDSField> getFields(Long dbConnId, String sql, Map<String, Object> params) throws SQLException {
 		List<XDSField> result = new ArrayList<>();
 
 		try (Connection connection = getConnection(dbConnId)) {
 			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, getSchemaForDB(dbConnId));
 			nps.setFetchSize(1);
+			nps.setParameters(params);
+
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
 			for (int i = 1; i <= metaData.getColumnCount(); i++) {

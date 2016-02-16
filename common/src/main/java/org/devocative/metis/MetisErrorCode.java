@@ -4,6 +4,7 @@ import org.devocative.demeter.imodule.DErrorCode;
 
 public enum MetisErrorCode implements DErrorCode {
 	SQLExecution("SQL Execution"),
+	ParameterFieldNameClash("Same name for both field(s) and parameter(s)"),
 	DBTypeNotSupported("Database type not supported"),
 	SchemaInEql("No schema should be prepend for any table in Eql"),
 	DuplicateAlias("Duplicate alias"),

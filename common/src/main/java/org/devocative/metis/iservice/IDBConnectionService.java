@@ -22,7 +22,7 @@ public interface IDBConnectionService {
 
 	DBConnection getByName(String name);
 
-	List<XDSField> getFields(Long id, String sql) throws SQLException;
+	List<XDSField> getFields(Long id, String sql, Map<String, Object> params) throws SQLException;
 
 	Connection getConnection(Long id);
 

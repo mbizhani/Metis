@@ -25,6 +25,7 @@ public abstract class XDSAbstractField implements Serializable {
 	@XStreamAsAttribute
 	protected Long targetId;
 
+	// -- Volatile Fields
 
 	@XStreamOmitField
 	protected DataSource target;
@@ -44,6 +45,10 @@ public abstract class XDSAbstractField implements Serializable {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public String getSafeTitle() {
+		return title != null ? title : getName();
 	}
 
 	// Has Default

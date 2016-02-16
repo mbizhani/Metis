@@ -18,9 +18,7 @@ import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.DemeterWebSession;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.dataSource.DataSource;
-import org.devocative.metis.entity.dataSource.config.XDSField;
-import org.devocative.metis.entity.dataSource.config.XDSFieldFilterType;
-import org.devocative.metis.entity.dataSource.config.XDSFieldType;
+import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
@@ -58,6 +56,7 @@ public class DataSourceViewer extends DPage {
 
 	private DataSource dataSource;
 	private List<XDSField> xdsFieldList;
+	private List<XDSParameter> xdsParameterList;
 
 	public DataSourceViewer(String id, List<String> params) {
 		super(id, params);
@@ -69,7 +68,9 @@ public class DataSourceViewer extends DPage {
 		if (params.size() > 0) {
 			dataSource = dataSourceService.getDataSource(params.get(0));
 			logger.info("DataSource param = {}", dataSource.getName());
-			xdsFieldList = dataSourceService.getXDataSource(dataSource).getFields();
+			XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
+			xdsFieldList = xDataSource.getFields();
+			xdsParameterList = xDataSource.getParams();
 			title = String.format("%s (%s)", dataSource.getTitle(), dataSource.getName());
 
 			filters = new HashMap<>();
@@ -77,7 +78,6 @@ public class DataSourceViewer extends DPage {
 			gridDS.setEnabled(false);
 		} else {
 			mainTable.setVisible(false);
-			xdsFieldList = new ArrayList<>();
 			title = "No DataSource defined!"; // TODO use ResourceModel
 		}
 
@@ -92,11 +92,11 @@ public class DataSourceViewer extends DPage {
 		mainTable.add(searchPanel);
 
 		Form<Map<String, Object>> dynamicForm = new Form<>("dynamicForm", new CompoundPropertyModel<>(filters));
-		dynamicForm.add(new ListView<XDSField>("fields", getFieldForFilter()) {
+		dynamicForm.add(new ListView<XDSAbstractField>("fields", getFieldForFilter()) {
 			@Override
-			protected void populateItem(ListItem<XDSField> item) {
-				XDSField dsField = item.getModelObject();
-				item.add(new Label("label", dsField.getTitle()));
+			protected void populateItem(ListItem<XDSAbstractField> item) {
+				XDSAbstractField dsField = item.getModelObject();
+				item.add(new Label("label", dsField.getSafeTitle()));
 
 				FormComponent fieldFormItem = null;
 				switch (dsField.getType()) {
@@ -177,7 +177,7 @@ public class DataSourceViewer extends DPage {
 					case None:
 						break;
 					case Shown:
-						OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getTitle()), dsField.getName())
+						OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getSafeTitle()), dsField.getName())
 							.setSortable(true);
 						switch (dsField.getType()) {
 							case Integer:
@@ -240,11 +240,18 @@ public class DataSourceViewer extends DPage {
 		;
 	}
 
-	private List<XDSField> getFieldForFilter() {
-		List<XDSField> result = new ArrayList<>();
-		for (XDSField field : xdsFieldList) {
-			if (field.getInFilterPanel()) {
-				result.add(field);
+	private List<XDSAbstractField> getFieldForFilter() {
+		List<XDSAbstractField> result = new ArrayList<>();
+
+		if (xdsParameterList != null) {
+			result.addAll(xdsParameterList);
+		}
+
+		if (xdsFieldList != null) {
+			for (XDSField field : xdsFieldList) {
+				if (field.getInFilterPanel()) {
+					result.add(field);
+				}
 			}
 		}
 		return result;

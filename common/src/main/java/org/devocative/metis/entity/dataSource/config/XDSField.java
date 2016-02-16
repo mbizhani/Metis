@@ -36,16 +36,18 @@ public class XDSField extends XDSAbstractField {
 		return format;
 	}
 
-	public void setFormat(String format) {
+	public XDSField setFormat(String format) {
 		this.format = format;
+		return this;
 	}
 
 	public Boolean getInFilterPanel() {
 		return inFilterPanel;
 	}
 
-	public void setInFilterPanel(Boolean inFilterPanel) {
+	public XDSField setInFilterPanel(Boolean inFilterPanel) {
 		this.inFilterPanel = inFilterPanel;
+		return this;
 	}
 
 	// Has Default
@@ -62,24 +64,27 @@ public class XDSField extends XDSAbstractField {
 		return isKeyField;
 	}
 
-	public void setIsKeyField(Boolean isKeyField) {
+	public XDSField setIsKeyField(Boolean isKeyField) {
 		this.isKeyField = isKeyField;
+		return this;
 	}
 
 	public Boolean getIsTitleField() {
 		return isTitleField;
 	}
 
-	public void setIsTitleField(Boolean isTitleField) {
+	public XDSField setIsTitleField(Boolean isTitleField) {
 		this.isTitleField = isTitleField;
+		return this;
 	}
 
 	public Boolean getIsSelfRelPointerField() {
 		return isSelfRelPointerField;
 	}
 
-	public void setIsSelfRelPointerField(Boolean isSelfRelPointerField) {
+	public XDSField setIsSelfRelPointerField(Boolean isSelfRelPointerField) {
 		this.isSelfRelPointerField = isSelfRelPointerField;
+		return this;
 	}
 
 	// ---------------------- VOLATILE PROPERTIES

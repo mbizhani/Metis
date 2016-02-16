@@ -47,7 +47,7 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields) {
+	public void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters) {
 		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
 
 		if (dataSource.getId() != null) {
@@ -103,11 +103,28 @@ public class DataSourceService implements IDataSourceService {
 			}
 		}
 
+		for (XDSParameter xdsParameter : parameters) {
+			if (XDSFieldType.LookUp == xdsParameter.getType()) {
+				xdsParameter.setTargetId(xdsParameter.getTarget().getId());
+
+				DataSourceRelation rel = relationsMap.get(xdsParameter.getName());
+				if (rel == null) {
+					rel = new DataSourceRelation();
+				}
+				rel.setSourcePointerField(xdsParameter.getName());
+				rel.setDeleted(false);
+				rel.setSource(dataSource);
+				rel.setTarget(xdsParameter.getTarget());
+				relationsMap.put(xdsParameter.getName(), rel);
+			}
+		}
+
 		xdsQuery.setText(String.format("\n<![CDATA[\n%s\n]]>\n", xdsQuery.getText().trim()));
 
 		XDataSource xDataSource = new XDataSource();
 		xDataSource.setQuery(xdsQuery);
 		xDataSource.setFields(fields);
+		xDataSource.setParams(parameters);
 
 		ConfigLob config = dataSource.getConfig();
 		if (config == null) {
@@ -219,18 +236,37 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId) {
+	public List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId,
+									   List<XDSParameter> xdsParameters) {
 		List<XDSField> result = new ArrayList<>();
 		List<XDSField> fieldsFromDB;
 		try {
+			Map<String, Object> params = new HashMap<>();
+			for (XDSParameter xdsParameter : xdsParameters) {
+				params.put(xdsParameter.getName(), xdsParameter.getSampleData());
+			}
 			fieldsFromDB = dbConnectionService.getFields(
 				connectionId,
 				processQuery(
 					connectionId,
 					xdsQuery.getMode(),
-					xdsQuery.getText()));
+					xdsQuery.getText()
+				),
+				params);
 		} catch (SQLException e) {
 			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
+		}
+
+		//TODO check param & field name clash
+		List<String> nameClash = new ArrayList<>();
+		for (XDSParameter xdsParameter : xdsParameters) {
+			if (fieldsFromDB.contains(xdsParameter)) {
+				nameClash.add(xdsParameter.getName());
+			}
+		}
+
+		if (nameClash.size() > 0) {
+			throw new MetisException(MetisErrorCode.ParameterFieldNameClash, nameClash.toString());
 		}
 
 		for (XDSField fieldFromDB : fieldsFromDB) {
@@ -243,6 +279,30 @@ public class DataSourceService implements IDataSourceService {
 				result.add(currentField);
 			} else {
 				result.add(fieldFromDB);
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public List<XDSParameter> createParams(String query, List<XDSParameter> currentParams) {
+		List<XDSParameter> result = new ArrayList<>();
+		Pattern p = Pattern.compile("(['].*?['])|[:]([\\w\\d_]+)");
+		Matcher matcher = p.matcher(query);
+		while (matcher.find()) {
+			if (matcher.group(1) == null) {
+				String param = matcher.group(2).toLowerCase();
+
+				XDSParameter xdsParameter = new XDSParameter();
+				xdsParameter.setName(param);
+				xdsParameter.setRequired(true);
+
+				int idx = currentParams.indexOf(xdsParameter);
+				if (idx > -1) {
+					result.add(currentParams.get(idx));
+				} else {
+					result.add(xdsParameter);
+				}
 			}
 		}
 		return result;
@@ -300,7 +360,7 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> getLookUpList(XDSField field) {
+	public List<KeyValueVO<Serializable, String>> getLookUpList(XDSAbstractField field) {
 		Long dataSrcId = field.getTarget().getId();
 		DataSource dataSource = persistorService.get(DataSource.class, dataSrcId);
 		XDataSource xDataSource = getXDataSource(dataSource);
@@ -459,7 +519,7 @@ public class DataSourceService implements IDataSourceService {
 			// Using ~ char instead of . to be ignored in the column replacement (next paragraph),
 			// and then at the end the ~ replaced with .
 			joinCondMatcher.appendReplacement(joinCondReplacerBuffer,
-					String.format("on %s~%s=%s~%s", leftAlias, leftColumn, rightAlias, rightColumn));
+				String.format("on %s~%s=%s~%s", leftAlias, leftColumn, rightAlias, rightColumn));
 		}
 		joinCondMatcher.appendTail(joinCondReplacerBuffer);
 
@@ -518,9 +578,9 @@ public class DataSourceService implements IDataSourceService {
 		if (filters != null && filters.size() > 0) {
 			builder.append(" where 1=1 ");
 			for (Map.Entry<String, Object> filter : filters.entrySet()) {
-				XDSField dsField = dataSource.getField(filter.getKey());
-				if (dsField != null) {
-					switch (dsField.getFilterType()) {
+				XDSField xdsField = dataSource.getField(filter.getKey());
+				if (xdsField != null) {
+					switch (xdsField.getFilterType()) {
 
 						case Equal: // All types
 							Object value = filter.getValue();
@@ -528,41 +588,46 @@ public class DataSourceService implements IDataSourceService {
 								value = ((KeyValueVO) value).getKey();
 							}
 							if (value instanceof Collection) { //TODO?
-								builder.append(String.format("and %1$s in (:%1$s) ", dsField.getName()));
+								builder.append(String.format("and %1$s in (:%1$s) ", xdsField.getName()));
 							} else {
-								builder.append(String.format("and %1$s  = :%1$s ", dsField.getName()));
+								builder.append(String.format("and %1$s  = :%1$s ", xdsField.getName()));
 							}
-							queryParams.put(dsField.getName(), value);
+							queryParams.put(xdsField.getName(), value);
 							break;
 
 						case Contain: // Only String
-							builder.append(String.format("and %1$s like :%1$s ", dsField.getName()));
-							queryParams.put(dsField.getName(), filter.getValue());
+							builder.append(String.format("and %1$s like :%1$s ", xdsField.getName()));
+							queryParams.put(xdsField.getName(), filter.getValue());
 							break;
 
 						case Range: // Date & Number
 							RangeVO rangeVO = (RangeVO) filter.getValue();
 							if (rangeVO.getLower() != null) {
-								builder.append(String.format("and %1$s >= :%1$s_l ", dsField.getName()));
-								queryParams.put(dsField.getName() + "_l", rangeVO.getLower());
+								builder.append(String.format("and %1$s >= :%1$s_l ", xdsField.getName()));
+								queryParams.put(xdsField.getName() + "_l", rangeVO.getLower());
 							}
 							if (rangeVO.getUpper() != null) {
-								builder.append(String.format("and %1$s < :%1$s_u ", dsField.getName()));
-								queryParams.put(dsField.getName() + "_u", rangeVO.getUpper());
+								builder.append(String.format("and %1$s < :%1$s_u ", xdsField.getName()));
+								queryParams.put(xdsField.getName() + "_u", rangeVO.getUpper());
 							}
 							break;
 
 						case List: // All types (except boolean)
-							builder.append(String.format("and %1$s in (:%1$s) ", dsField.getName()));
+							builder.append(String.format("and %1$s in (:%1$s) ", xdsField.getName()));
 							List<Serializable> items = new ArrayList<>();
 							List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
 							for (KeyValueVO<Serializable, String> keyValue : list) {
 								items.add(keyValue.getKey());
 							}
-							queryParams.put(dsField.getName(), items);
+							queryParams.put(xdsField.getName(), items);
 							break;
 					}
-				} // TODO else check in params
+				}
+			}
+
+			// All params must be set in NPS, even its value is null
+			for (XDSParameter xdsParameter : dataSource.getParams()) {
+				queryParams.put(xdsParameter.getName(), filters.get(xdsParameter.getName()));
 			}
 		}
 
