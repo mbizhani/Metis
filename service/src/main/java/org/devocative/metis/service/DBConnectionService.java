@@ -122,9 +122,10 @@ public class DBConnectionService implements IDBConnectionService {
 			for (int i = 1; i <= metaData.getColumnCount(); i++) {
 				XDSField field = new XDSField();
 				field
-					.setName(metaData.getColumnName(i))
 					.setDbType(metaData.getColumnTypeName(i))
-					.setDbSize(metaData.getColumnDisplaySize(i));
+					.setDbSize(metaData.getColumnDisplaySize(i))
+					.setName(metaData.getColumnName(i))
+				;
 
 				if (STRING_TYPES.contains(metaData.getColumnType(i))) {
 					field.setType(XDSFieldType.String);
