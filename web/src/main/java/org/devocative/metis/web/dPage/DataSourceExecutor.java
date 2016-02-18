@@ -44,8 +44,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.*;
 
-public class DataSourceViewer extends DPage {
-	private static final Logger logger = LoggerFactory.getLogger(DataSourceViewer.class);
+public class DataSourceExecutor extends DPage {
+	private static final Logger logger = LoggerFactory.getLogger(DataSourceExecutor.class);
 
 	@Inject
 	private IDataSourceService dataSourceService;
@@ -58,7 +58,7 @@ public class DataSourceViewer extends DPage {
 	private List<XDSField> xdsFieldList;
 	private List<XDSParameter> xdsParameterList;
 
-	public DataSourceViewer(String id, List<String> params) {
+	public DataSourceExecutor(String id, List<String> params) {
 		super(id, params);
 
 		WebMarkupContainer mainTable = new WebMarkupContainer("mainTable");

@@ -17,11 +17,24 @@
 	</entities>
 
 	<dPages>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceViewer" title="KEY:dPage.mts.DataSourceViewer"
-			   uri="/dsviewer"/>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceForm" title="KEY:dPage.mts.DataSourceForm" uri="/dsform"/>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceList" title="KEY:dPage.mts.DataSourceList" uri="/dslist"/>
-		<dPage type="org.devocative.metis.web.dPage.DBConnectionForm" title="KEY:dPage.mts.DBConnectionForm"
-			   uri="/dbcform"/>
+		<dPage type="org.devocative.metis.web.dPage.DataSourceExecutor"
+			   title="KEY:dPage.mts.DataSourceViewer"
+			   uri="/dsexec"
+			   inMenu="false"/>
+
+		<dPage type="org.devocative.metis.web.dPage.DataSourceForm"
+			   title="KEY:dPage.mts.DataSourceForm"
+			   uri="/dsform"
+			   inMenu="true"/>
+
+		<dPage type="org.devocative.metis.web.dPage.DataSourceList"
+			   title="KEY:dPage.mts.DataSourceList"
+			   uri="/dslist"
+			   inMenu="true"/>
+
+		<dPage type="org.devocative.metis.web.dPage.DBConnectionForm"
+			   title="KEY:dPage.mts.DBConnectionForm"
+			   uri="/dbcform"
+			   inMenu="true"/>
 	</dPages>
 </module>
