@@ -10,31 +10,37 @@
 		mainResource="org.devocative.metis.web.MetisDModule">
 
 	<entities>
-		<entity type="org.devocative.metis.entity.connection.DBConnection"/>
 		<entity type="org.devocative.metis.entity.ConfigLob"/>
+		<entity type="org.devocative.metis.entity.connection.DBConnection"/>
+		<entity type="org.devocative.metis.entity.connection.DBConnectionGroup"/>
 		<entity type="org.devocative.metis.entity.dataSource.DataSource"/>
 		<entity type="org.devocative.metis.entity.dataSource.DataSourceRelation"/>
 	</entities>
 
 	<dPages>
 		<dPage type="org.devocative.metis.web.dPage.DataSourceExecutor"
-			   title="KEY:dPage.mts.DataSourceViewer"
-			   uri="/dsexec"
+			   title="KEY:dPage.mts.DataSourceExecutor"
+			   uri="/dsExec"
 			   inMenu="false"/>
 
 		<dPage type="org.devocative.metis.web.dPage.DataSourceForm"
 			   title="KEY:dPage.mts.DataSourceForm"
-			   uri="/dsform"
+			   uri="/dsForm"
 			   inMenu="true"/>
 
 		<dPage type="org.devocative.metis.web.dPage.DataSourceList"
 			   title="KEY:dPage.mts.DataSourceList"
-			   uri="/dslist"
+			   uri="/dsList"
 			   inMenu="true"/>
 
 		<dPage type="org.devocative.metis.web.dPage.DBConnectionForm"
 			   title="KEY:dPage.mts.DBConnectionForm"
-			   uri="/dbcform"
+			   uri="/dbcForm"
+			   inMenu="true"/>
+
+		<dPage type="org.devocative.metis.web.dPage.DBConnectionGroupForm"
+			   title="KEY:dPage.mts.DBConnectionGroupForm"
+			   uri="/dbcGrpForm"
 			   inMenu="true"/>
 	</dPages>
 </module>

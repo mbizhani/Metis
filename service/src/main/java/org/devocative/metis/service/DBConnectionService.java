@@ -105,7 +105,7 @@ public class DBConnectionService implements IDBConnectionService {
 	public DBConnection getByName(String name) {
 		return persistorService
 			.createQueryBuilder()
-			.addSelect("from DBConnection ent")
+			.addFrom(DBConnection.class, "ent")
 			.addWhere("and ent.name=:name")
 			.addParam("name", name)
 			.object();
@@ -237,21 +237,24 @@ public class DBConnectionService implements IDBConnectionService {
 	@Override
 	public boolean isOracle(Long dbConnId) {
 		DBConnection connection = getDBConnection(dbConnId);
-		return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:oracle");
+		return connection.getSafeDriver().contains("OracleDriver") || connection.getSafeUrl().startsWith("jdbc:oracle");
 	}
 
 	@Override
 	public boolean isMySQL(Long dbConnId) {
 		DBConnection connection = getDBConnection(dbConnId);
-		return connection.getDriver().contains("OracleDriver") || connection.getUrl().startsWith("jdbc:mysql");
+		return connection.getSafeDriver().contains("OracleDriver") || connection.getSafeUrl().startsWith("jdbc:mysql");
 	}
 
 	@Override
 	public XSchema getSchemaOfMapping(Long dbConnId) {
 		if (!CONNECTION_MAPPING_MAP.containsKey(dbConnId)) {
-			String config = persistorService.createQueryBuilder().addSelect("select cfg.value from DBConnection ent join ent.config cfg")
+			Long safeConfigId = getDBConnection(dbConnId).getSafeConfigId();
+			String config = persistorService.createQueryBuilder()
+				.addSelect("select ent.value")
+				.addFrom(ConfigLob.class, "ent")
 				.addWhere("and ent.id = :id")
-				.addParam("id", dbConnId)
+				.addParam("id", safeConfigId)
 				.object();
 
 			if (config != null) {
@@ -262,12 +265,28 @@ public class DBConnectionService implements IDBConnectionService {
 		return CONNECTION_MAPPING_MAP.get(dbConnId);
 	}
 
+	@Override
+	public boolean checkConnection(Long id) {
+		DBConnection dbConnection = getDBConnection(id);
+		if (dbConnection.getSafeTestQuery() != null) {
+			try (Connection connection = getConnection(id)) {
+				Statement st = connection.createStatement();
+				st.executeQuery(dbConnection.getSafeTestQuery());
+				st.close();
+				return true;
+			} catch (SQLException e) {
+				return false;
+			}
+		}
+		return false;
+	}
+
 	private Connection getUnsureConnection(Long dbConnId) throws Exception {
 		DBConnection dbConnection = getDBConnection(dbConnId);
 		if (!CONNECTION_POOL_MAP.containsKey(dbConnId)) {
 			ComboPooledDataSource cpds = new ComboPooledDataSource();
-			cpds.setDriverClass(dbConnection.getDriver());
-			cpds.setJdbcUrl(dbConnection.getUrl());
+			cpds.setDriverClass(dbConnection.getSafeDriver());
+			cpds.setJdbcUrl(dbConnection.getSafeUrl());
 			cpds.setUser(dbConnection.getUsername());
 			cpds.setPassword(dbConnection.getPassword());
 
@@ -275,9 +294,9 @@ public class DBConnectionService implements IDBConnectionService {
 		}
 
 		Connection connection = CONNECTION_POOL_MAP.get(dbConnId).getConnection();
-		if (dbConnection.getTestQuery() != null) {
+		if (dbConnection.getSafeTestQuery() != null) {
 			Statement st = connection.createStatement();
-			st.executeQuery(dbConnection.getTestQuery());
+			st.executeQuery(dbConnection.getSafeTestQuery());
 			st.close();
 		}
 		return connection;

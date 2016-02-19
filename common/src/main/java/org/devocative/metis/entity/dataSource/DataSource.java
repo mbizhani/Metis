@@ -61,7 +61,8 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_creator_user", foreignKey = @ForeignKey(name = "datasrc_crtrusr2user"), insertable = false, updatable = false)
+	@JoinColumn(name = "f_creator_user", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(name = "datasrc_crtrusr2user"))
 	private User creatorUser;
 
 	@NotAudited
@@ -73,7 +74,8 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	private Date modificationDate;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_modifier_user", foreignKey = @ForeignKey(name = "datasrc_mdfrusr2user"), insertable = false, updatable = false)
+	@JoinColumn(name = "f_modifier_user", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(name = "datasrc_mdfrusr2user"))
 	private User modifierUser;
 
 	@Column(name = "f_modifier_user")
@@ -176,10 +178,6 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 		return creatorUser;
 	}
 
-	public void setCreatorUser(User creatorUser) {
-		this.creatorUser = creatorUser;
-	}
-
 	@Override
 	public Long getCreatorUserId() {
 		return creatorUserId;
@@ -202,10 +200,6 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	public User getModifierUser() {
 		return modifierUser;
-	}
-
-	public void setModifierUser(User modifierUser) {
-		this.modifierUser = modifierUser;
 	}
 
 	@Override

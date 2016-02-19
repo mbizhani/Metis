@@ -10,16 +10,16 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_db_conn")
-public class DBConnection implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+@Table(name = "t_mts_db_conn_grp")
+public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
-	@GeneratedValue(generator = "mts_db_conn")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_db_conn", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+	@GeneratedValue(generator = "mts_db_conn_grp")
+	@org.hibernate.annotations.GenericGenerator(name = "mts_db_conn_grp", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 		parameters = {
 			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
 			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
 			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_db_conn")
+			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_db_conn_grp")
 		})
 	private Long id;
 
@@ -32,28 +32,11 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "c_url")
 	private String url;
 
-	@Column(name = "c_username", nullable = false)
-	private String username;
-
-	@Column(name = "c_password")
-	private String password;
-
-	@Column(name = "c_schema")
-	private String schema;
-
 	@Column(name = "c_test_query")
 	private String testQuery;
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "f_group", nullable = false, foreignKey = @ForeignKey(name = "dbconn2group"))
-	private DBConnectionGroup group;
-
-	@Column(name = "f_group", insertable = false, updatable = false)
-	private Long groupId;
-
-
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "dbconn2cfglob"))
+	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "dbconngrp2cfglob"))
 	private ConfigLob config;
 
 	@Column(name = "f_config", insertable = false, updatable = false)
@@ -68,7 +51,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_creator_user", insertable = false, updatable = false,
-		foreignKey = @ForeignKey(name = "dbconn_crtrusr2user"))
+		foreignKey = @ForeignKey(name = "dbconngrp_crtrusr2user"))
 	private User creatorUser;
 
 	@NotAudited
@@ -81,7 +64,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_modifier_user", insertable = false, updatable = false,
-		foreignKey = @ForeignKey(name = "dbconn_mdfrusr2user"))
+		foreignKey = @ForeignKey(name = "dbconngrp_mdfrusr2user"))
 	private User modifierUser;
 
 	@Column(name = "f_modifier_user")
@@ -123,48 +106,12 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 		this.url = url;
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getSchema() {
-		return schema;
-	}
-
-	public void setSchema(String schema) {
-		this.schema = schema;
-	}
-
 	public String getTestQuery() {
 		return testQuery;
 	}
 
 	public void setTestQuery(String testQuery) {
 		this.testQuery = testQuery;
-	}
-
-	public DBConnectionGroup getGroup() {
-		return group;
-	}
-
-	public void setGroup(DBConnectionGroup group) {
-		this.group = group;
-	}
-
-	public Long getGroupId() {
-		return groupId;
 	}
 
 	public ConfigLob getConfig() {
@@ -179,29 +126,10 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 		return configId;
 	}
 
-	// ------------ Safe Getter
-
-	public String getSafeDriver() {
-		return getDriver() != null ? getDriver() : getGroup().getDriver();
+	public void setConfigId(Long configId) {
+		this.configId = configId;
 	}
 
-	public String getSafeUrl() {
-		return getUrl() != null ? getUrl() : getGroup().getUrl();
-	}
-
-	public String getSafeTestQuery() {
-		return getTestQuery() != null ? getTestQuery() : getGroup().getTestQuery();
-	}
-
-	public ConfigLob getSafeConfig() {
-		return getConfig() != null ? getConfig() : getGroup().getConfig();
-	}
-
-	public Long getSafeConfigId() {
-		return getConfigId() != null ? getConfigId() : getGroup().getConfigId();
-	}
-
-	// ------------ Create/Modify Methods
 	@Override
 	public Date getCreationDate() {
 		return creationDate;
@@ -263,9 +191,9 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (!(o instanceof DBConnection)) return false;
+		if (!(o instanceof DBConnectionGroup)) return false;
 
-		DBConnection that = (DBConnection) o;
+		DBConnectionGroup that = (DBConnectionGroup) o;
 
 		return !(getId() != null ? !getId().equals(that.getId()) : that.getId() != null);
 

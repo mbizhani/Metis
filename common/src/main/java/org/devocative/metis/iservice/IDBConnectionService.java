@@ -37,4 +37,6 @@ public interface IDBConnectionService {
 	boolean isMySQL(Long id);
 
 	XSchema getSchemaOfMapping(Long id);
+
+	boolean checkConnection(Long id);
 }

@@ -134,7 +134,6 @@ public class DataSourceForm extends DPage {
 			final WSelectionInput connection, queryMode;
 
 			add(new WTextInput("name", new PropertyModel<String>(DataSourceForm.this, "dataSource.name"))
-					.add(new AttributeModifier("style", "direction:ltr;"))
 					.setRequired(true)
 					.setLabel(new ResourceModel("DataSource.name"))
 			);
@@ -151,7 +150,7 @@ public class DataSourceForm extends DPage {
 				.setLabel(new ResourceModel("DataSource.connection"));
 
 			List<XDSQueryMode> modes;
-			if (dataSource.getConnection() != null && dataSource.getConnection().getConfigId() != null) {
+			if (dataSource.getConnection() != null && dataSource.getConnection().getSafeConfigId() != null) {
 				modes = Arrays.asList(XDSQueryMode.values());
 			} else {
 				modes = Arrays.asList(XDSQueryMode.Sql);
@@ -166,7 +165,7 @@ public class DataSourceForm extends DPage {
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
 					DBConnection dbConnection = (DBConnection) getComponent().getDefaultModelObject();
-					if (dbConnection.getConfigId() != null) {
+					if (dbConnection.getSafeConfigId() != null) {
 						queryMode.updateChoices(target, Arrays.asList(XDSQueryMode.values()));
 					} else {
 						queryMode.updateChoices(target, Arrays.asList(XDSQueryMode.Sql));
@@ -190,7 +189,7 @@ public class DataSourceForm extends DPage {
 				@Override
 				protected void onSubmit(AjaxRequestTarget target) {
 					String sql = dataSourceService.processQuery(dataSource.getConnection().getId(), xdsQuery.getMode(), xdsQuery.getText());
-					WMessager.show("SQL", String.format("<div style='direction:ltr;text-align:left'>%s</div>", sql), target);
+					WMessager.show("SQL", String.format("<p class='al-ltr'>%s</p>", sql), target);
 				}
 
 				@Override
@@ -324,7 +323,9 @@ public class DataSourceForm extends DPage {
 				@Override
 				protected void populateItem(ListItem<XDSAbstractField> item) {
 					XDSAbstractField field = item.getModelObject();
-					field.setTarget(new DataSource(field.getTargetId()));
+					if (field.getTargetId() != null) {
+						field.setTarget(new DataSource(field.getTargetId()));
+					}
 
 					item.add(new Label("name", field.getName()));
 					item.add(new WSelectionInput("dataSources", new PropertyModel(field, "target"),
