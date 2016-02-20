@@ -34,6 +34,7 @@
 			<properties>
 				<property name="id" column="id" isId="true"/>
 				<property name="name" column="c_name"/>
+				<property name="bigCity" column="b_big_city"/>
 				<many2one name="state" column="f_state"/>
 			</properties>
 		</entity>

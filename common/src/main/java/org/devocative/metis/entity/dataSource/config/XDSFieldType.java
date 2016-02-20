@@ -7,7 +7,7 @@ public enum XDSFieldType {
 	Date(XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
 	DateTime(XDSFieldFilterType.Equal, XDSFieldFilterType.Range),
 	Boolean(XDSFieldFilterType.Equal),
-	LookUp(XDSFieldFilterType.List, XDSFieldFilterType.Search);
+	LookUp(XDSFieldFilterType.List/*, TODO XDSFieldFilterType.Search*/);
 
 	private XDSFieldFilterType[] properFilterTypes;
 

@@ -1,6 +1,7 @@
 package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
@@ -30,8 +31,8 @@ import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
+import org.devocative.wickomp.html.WEasyLayout;
 import org.devocative.wickomp.opt.OHorizontalAlign;
-import org.devocative.wickomp.opt.OSize;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -49,6 +50,11 @@ public class DBConnectionForm extends DPage {
 
 	public DBConnectionForm(String id, List<String> params) {
 		super(id, params);
+
+		WebMarkupContainer west = new WebMarkupContainer("west");
+		WEasyLayout layout = new WEasyLayout("layout");
+		layout.setWest(west);
+		add(layout);
 
 		DBConnection dbConnection = params.size() == 0 ?
 			new DBConnection() :
@@ -110,7 +116,7 @@ public class DBConnectionForm extends DPage {
 			}
 		});
 
-		add(form);
+		west.add(form);
 
 		form.add(new EqualPasswordInputValidator(password, password2));
 
@@ -153,10 +159,10 @@ public class DBConnectionForm extends DPage {
 		oGrid
 			.setColumns(columnList)
 			.setMultiSort(false)
-			.setHeight(OSize.fixed(350))
-			.setWidth(OSize.percent(100));
+			.setFit(true)
+		;
 
-		add(new WDataGrid<>("grid", oGrid, new WGridDataSource<DBConnection>() {
+		layout.add(new WDataGrid<>("grid", oGrid, new WGridDataSource<DBConnection>() {
 			@Override
 			public List<DBConnection> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return connectionService.search(pageIndex, pageSize);

@@ -4,6 +4,7 @@ import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.iservice.IDBConnectionGroupService;
+import org.devocative.metis.iservice.IDBConnectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,9 @@ public class DBConnectionGroupService implements IDBConnectionGroupService {
 
 	@Autowired
 	private IPersistorService persistorService;
+
+	@Autowired
+	private IDBConnectionService connectionService;
 
 	@Override
 	public List<DBConnectionGroup> search(long firstResult, long maxResults) {
@@ -45,6 +49,8 @@ public class DBConnectionGroupService implements IDBConnectionGroupService {
 
 		persistorService.saveOrUpdate(dbConnectionGroup);
 		persistorService.commitOrRollback();
+
+		connectionService.groupChanged(dbConnectionGroup.getId());
 	}
 
 	@Override

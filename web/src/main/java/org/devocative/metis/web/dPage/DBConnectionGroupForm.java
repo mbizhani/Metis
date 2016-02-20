@@ -1,5 +1,6 @@
 package org.devocative.metis.web.dPage;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -23,8 +24,8 @@ import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
+import org.devocative.wickomp.html.WEasyLayout;
 import org.devocative.wickomp.opt.OHorizontalAlign;
-import org.devocative.wickomp.opt.OSize;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -37,6 +38,11 @@ public class DBConnectionGroupForm extends DPage {
 
 	public DBConnectionGroupForm(String id, List<String> params) {
 		super(id, params);
+
+		WebMarkupContainer west = new WebMarkupContainer("west");
+		WEasyLayout layout = new WEasyLayout("layout");
+		layout.setWest(west);
+		add(layout);
 
 		DBConnectionGroup dbConnectionGroup = params.size() == 0 ?
 			new DBConnectionGroup() :
@@ -66,7 +72,7 @@ public class DBConnectionGroupForm extends DPage {
 				connectionGroupService.saveOrUpdate(form.getModelObject(), mappingXML);
 			}
 		});
-		add(form);
+		west.add(form);
 
 		OColumnList<DBConnectionGroup> columnList = new OColumnList<>();
 		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("DBConnection.name"), "name"));
@@ -97,10 +103,9 @@ public class DBConnectionGroupForm extends DPage {
 		oGrid
 			.setColumns(columnList)
 			.setMultiSort(false)
-			.setHeight(OSize.fixed(350))
-			.setWidth(OSize.percent(100));
+			.setFit(true);
 
-		add(new WDataGrid<>("grid", oGrid, new WGridDataSource<DBConnectionGroup>() {
+		layout.add(new WDataGrid<>("grid", oGrid, new WGridDataSource<DBConnectionGroup>() {
 			@Override
 			public List<DBConnectionGroup> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return connectionGroupService.search(pageIndex, pageSize);

@@ -1,6 +1,5 @@
 package org.devocative.metis.web.dPage;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -15,7 +14,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPage;
-import org.devocative.demeter.web.DemeterWebSession;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.*;
@@ -35,7 +33,7 @@ import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
-import org.devocative.wickomp.opt.OLayoutDirection;
+import org.devocative.wickomp.html.WEasyLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +59,9 @@ public class DataSourceExecutor extends DPage {
 	public DataSourceExecutor(String id, List<String> params) {
 		super(id, params);
 
-		WebMarkupContainer mainTable = new WebMarkupContainer("mainTable");
+		WebMarkupContainer searchPanel = new WebMarkupContainer("searchPanel");
+		WEasyLayout mainTable = new WEasyLayout("mainTable");
+		mainTable.setWest(searchPanel);
 		add(mainTable);
 
 		String title;
@@ -82,14 +82,6 @@ public class DataSourceExecutor extends DPage {
 		}
 
 		add(new Label("title", title));
-
-		WebMarkupContainer searchPanel = new WebMarkupContainer("searchPanel");
-		if (DemeterWebSession.get().getLayoutDirection() == OLayoutDirection.RTL) {
-			searchPanel.add(new AttributeModifier("data-options", "region:'east',split:true"));
-		} else {
-			searchPanel.add(new AttributeModifier("data-options", "region:'west',split:true"));
-		}
-		mainTable.add(searchPanel);
 
 		Form<Map<String, Object>> dynamicForm = new Form<>("dynamicForm", new CompoundPropertyModel<>(filters));
 		dynamicForm.add(new ListView<XDSAbstractField>("fields", getFieldForFilter()) {

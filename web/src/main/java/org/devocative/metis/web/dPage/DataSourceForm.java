@@ -305,9 +305,6 @@ public class DataSourceForm extends DPage {
 	}
 
 	private class DefineLookupStep extends WWizardStepPanel {
-		@Inject
-		private IDataSourceService dataSourceService;
-
 		private List<XDSAbstractField> lookupFields = new ArrayList<>();
 		private List<DataSource> dataSourceList = new ArrayList<>();
 

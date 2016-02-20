@@ -89,11 +89,7 @@ public class DBConnectionService implements IDBConnectionService {
 		persistorService.saveOrUpdate(dbConnection);
 		persistorService.commitOrRollback();
 
-		CONNECTION_MAP.remove(dbConnection.getId());
-		CONNECTION_MAPPING_MAP.remove(dbConnection.getId());
-
-		// TODO only necessary changed data need close
-		closePoolSafely(dbConnection.getId());
+		connectionChanged(dbConnection.getId());
 	}
 
 	@Override
@@ -281,6 +277,21 @@ public class DBConnectionService implements IDBConnectionService {
 		return false;
 	}
 
+	@Override
+	public void groupChanged(Long groupId) {
+		List<Long> ids = persistorService
+			.createQueryBuilder()
+			.addSelect("select ent.id")
+			.addFrom(DBConnection.class, "ent")
+			.addWhere("and ent.group.id = :groupId")
+			.addParam("groupId", groupId)
+			.list();
+
+		for (Long id : ids) {
+			connectionChanged(id);
+		}
+	}
+
 	private Connection getUnsureConnection(Long dbConnId) throws Exception {
 		DBConnection dbConnection = getDBConnection(dbConnId);
 		if (!CONNECTION_POOL_MAP.containsKey(dbConnId)) {
@@ -313,6 +324,14 @@ public class DBConnectionService implements IDBConnectionService {
 
 	private String getSchemaForDB(Long dbConnId) {
 		return getDBConnection(dbConnId).getSchema();
+	}
+
+	private void connectionChanged(Long id) {
+		CONNECTION_MAP.remove(id);
+		CONNECTION_MAPPING_MAP.remove(id);
+
+		// TODO only necessary changed data need close
+		closePoolSafely(id);
 	}
 
 	private synchronized void closePoolSafely(Long dbConnId) {

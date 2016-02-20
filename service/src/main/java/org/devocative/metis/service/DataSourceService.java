@@ -428,8 +428,8 @@ public class DataSourceService implements IDataSourceService {
 			case Eql:
 				finalQuery = processEntityQuery(dbConnId, query);
 				break;
-			case SqlAndEql:
-				throw new RuntimeException("Mode SqlAndEql not implemented!"); //TODO
+			/*case SqlAndEql:
+				throw new RuntimeException("Mode SqlAndEql not implemented!"); //TODO*/
 				//break;
 		}
 		logger.debug("Process Query: FINAL = {}", finalQuery);

@@ -43,6 +43,7 @@ CREATE TABLE t_state (
 CREATE TABLE t_city (
   id      NUMBER(10, 0),
   c_name  VARCHAR2(255 CHAR),
+  b_big_city NUMBER(1, 0),
   f_state NUMBER(10, 0),
 
   CONSTRAINT t_city_pk PRIMARY KEY (id),
@@ -109,7 +110,8 @@ BEGIN
 
     FOR ct IN 1..dbms_random.value(1, 9)
     LOOP
-      INSERT INTO t_city (id, c_name, f_state) VALUES (ct_id, st_name || '.C' || ct, st);
+      INSERT INTO t_city (id, c_name, b_big_city, f_state)
+      VALUES (ct_id, st_name || '.C' || ct, dbms_random.value(0, 1), st);
       ct_id := ct_id + 1;
     END LOOP;
 

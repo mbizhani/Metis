@@ -39,4 +39,6 @@ public interface IDBConnectionService {
 	XSchema getSchemaOfMapping(Long id);
 
 	boolean checkConnection(Long id);
+
+	void groupChanged(Long groupId);
 }
