@@ -20,4 +20,5 @@
 		<!ATTLIST one2many
 				name CDATA #REQUIRED
 				manySideColumn CDATA #REQUIRED
+				manySideEntity CDATA #REQUIRED
 				>

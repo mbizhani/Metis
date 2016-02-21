@@ -430,7 +430,7 @@ public class DataSourceService implements IDataSourceService {
 				break;
 			/*case SqlAndEql:
 				throw new RuntimeException("Mode SqlAndEql not implemented!"); //TODO*/
-				//break;
+			//break;
 		}
 		logger.debug("Process Query: FINAL = {}", finalQuery);
 		return finalQuery;
@@ -485,6 +485,9 @@ public class DataSourceService implements IDataSourceService {
 				String[] split = joinCondMatcher.group(1).split("\\.");
 				leftAlias = split[0].trim();
 				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, leftAlias).findProperty(split[1].trim());
+
+				checkJoinProperty(xAProp, joinCondMatcher.group(1));
+
 				if (xAProp instanceof XMany2One) {
 					XMany2One xMany2One = (XMany2One) xAProp;
 					leftColumn = xMany2One.getColumn();
@@ -496,13 +499,13 @@ public class DataSourceService implements IDataSourceService {
 					rightAlias = joinCondMatcher.group(3);
 					rightColumn = xOne2Many.getManySideColumn();
 				}
-			} else {
+			} else { //joinCondMatcher.group(4) != null
 				String[] split = joinCondMatcher.group(3).split("\\.");
 				rightAlias = split[0].trim();
 				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, rightAlias).findProperty(split[1].trim());
-				if (xAProp == null) {
-					throw new MetisException(MetisErrorCode.EqlUnknownProperty, joinCondMatcher.group(3));
-				}
+
+				checkJoinProperty(xAProp, joinCondMatcher.group(3));
+
 				if (xAProp instanceof XMany2One) {
 					XMany2One xMany2One = (XMany2One) xAProp;
 					rightColumn = xMany2One.getColumn();
@@ -545,6 +548,15 @@ public class DataSourceService implements IDataSourceService {
 		columnMatcher.appendTail(columnReplacerBuffer);
 
 		return columnReplacerBuffer.toString().replace('~', '.');
+	}
+
+	private void checkJoinProperty(XAbstractProperty xAProp, String joinClause) {
+		if (xAProp == null) {
+			throw new MetisException(MetisErrorCode.EqlUnknownProperty, joinClause);
+		}
+		if (!(xAProp instanceof XMany2One) && !(xAProp instanceof XOne2Many)) {
+			throw new MetisException(MetisErrorCode.EqlJoinOnProperty, joinClause);
+		}
 	}
 
 	private StringBuilder createSelectAndFrom(XDataSource xDataSource) {

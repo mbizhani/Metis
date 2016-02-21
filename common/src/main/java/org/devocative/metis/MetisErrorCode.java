@@ -12,6 +12,7 @@ public enum MetisErrorCode implements DErrorCode {
 	EqlInvalidJoin("Eql invalid join"),
 	UnknownAlias("Unknown alias"),
 	EqlUnknownProperty("Unknown property"),
+	EqlJoinOnProperty("Join on property"),
 	EqlInvalidAssociationUsage("Invalid association usage"),
 	DBConnection("Can't get connection from database");
 

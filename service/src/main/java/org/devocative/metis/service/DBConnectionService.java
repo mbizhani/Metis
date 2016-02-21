@@ -200,8 +200,23 @@ public class DBConnectionService implements IDBConnectionService {
 			List<Map<String, Object>> result = new ArrayList<>();
 			while (rs.next()) {
 				Map<String, Object> row = new HashMap<>();
-				for (String column : columns) {
-					row.put(column, rs.getObject(column));
+				for (int i = 0; i < columns.size(); i++) {
+					String column = columns.get(i);
+					Object value;
+					switch (metaData.getColumnType(i + 1)) {
+						case Types.DATE:
+							value = rs.getDate(column);
+							break;
+						case Types.TIME:
+							value = rs.getTime(column);
+							break;
+						case Types.TIMESTAMP:
+							value = rs.getTimestamp(column);
+							break;
+						default:
+							value = rs.getObject(column);
+					}
+					row.put(column, value);
 				}
 				result.add(row);
 			}
@@ -279,6 +294,7 @@ public class DBConnectionService implements IDBConnectionService {
 
 	@Override
 	public void groupChanged(Long groupId) {
+		logger.info("DBConnection(s) updating: DBConnectionGroup changed = {}", groupId);
 		List<Long> ids = persistorService
 			.createQueryBuilder()
 			.addSelect("select ent.id")
@@ -290,6 +306,7 @@ public class DBConnectionService implements IDBConnectionService {
 		for (Long id : ids) {
 			connectionChanged(id);
 		}
+		logger.info(" DBConnectionGroup changed = {} => DBConnection(s) updated = {} ", groupId, ids.size());
 	}
 
 	private Connection getUnsureConnection(Long dbConnId) throws Exception {
@@ -332,12 +349,13 @@ public class DBConnectionService implements IDBConnectionService {
 
 		// TODO only necessary changed data need close
 		closePoolSafely(id);
+		logger.info("DBConnection changed: {}", id);
 	}
 
 	private synchronized void closePoolSafely(Long dbConnId) {
 		ComboPooledDataSource pool = CONNECTION_POOL_MAP.get(dbConnId);
 		if (pool != null) {
-			//TODO not safely
+			//TODO assert safely closing
 			pool.close();
 			CONNECTION_POOL_MAP.remove(dbConnId);
 		}
