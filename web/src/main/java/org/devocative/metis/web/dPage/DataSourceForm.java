@@ -13,6 +13,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.imodule.DModuleException;
 import org.devocative.demeter.web.DPage;
+import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.dataSource.DataSource;
@@ -185,16 +186,11 @@ public class DataSourceForm extends DPage {
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.query")));
 
-			add(showSQL = new WAjaxButton("showSQL") {
+			add(showSQL = new DAjaxButton("showSQL") {
 				@Override
 				protected void onSubmit(AjaxRequestTarget target) {
 					String sql = dataSourceService.processQuery(dataSource.getConnection().getId(), xdsQuery.getMode(), xdsQuery.getText());
 					WMessager.show("SQL", String.format("<p class='al-ltr'>%s</p>", sql), target);
-				}
-
-				@Override
-				protected void onException(AjaxRequestTarget target, Exception e) {
-					super.onException(target, e);
 				}
 			});
 		}
