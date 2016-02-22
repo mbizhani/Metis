@@ -57,9 +57,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>connectorj</artifactId>
-			<version>5.1.36</version>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.38</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -110,6 +110,9 @@
 					<webAppSourceDirectory>src/test/webapp</webAppSourceDirectory>
 					<stopKey/>
 					<stopPort/>
+					<webApp>
+						<contextPath>${jetty.context}</contextPath>
+					</webApp>
 					<connectors>
 						<connector implementation="org.eclipse.jetty.server.bio.SocketConnector">
 							<port>8080</port>

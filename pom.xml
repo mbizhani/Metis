@@ -14,7 +14,9 @@
 		<demeter.version>1.0-SNAPSHOT</demeter.version>
 
 		<spring.version>4.2.4.RELEASE</spring.version>
+
 		<jetty.version>8.1.16.v20140903</jetty.version>
+		<jetty.context>/ctx</jetty.context>
 	</properties>
 
 	<modules>
