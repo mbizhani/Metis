@@ -122,6 +122,7 @@ public class DBConnectionForm extends DPage {
 
 		OColumnList<DBConnection> columnList = new OColumnList<>();
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.name"), "name"));
+		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.group"), "group"));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.driver"), "safeDriver"));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.url"), "safeUrl"));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.username"), "username"));
