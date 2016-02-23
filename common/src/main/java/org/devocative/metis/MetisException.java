@@ -13,6 +13,6 @@ public class MetisException extends DModuleException {
 
 	// Main Constructor
 	public MetisException(MetisErrorCode errorCode, String errorParameter, Throwable cause) {
-		super("MTS", errorCode, errorParameter, cause);
+		super("mts", errorCode, errorParameter, cause);
 	}
 }

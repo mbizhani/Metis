@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDataSourceService {
+	DataSource get(Long id);
+
 	void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters);
 
 	List<DataSource> search(long firstResult, long maxResults);

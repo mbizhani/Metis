@@ -105,6 +105,8 @@ public class DataSourceForm extends DPage {
 			@Override
 			protected void onFinish(AjaxRequestTarget target, String stepId) {
 				dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
+
+				//TODO redirect to another page, e.g. DataSourceList or Execution !
 			}
 
 			@Override

@@ -1,5 +1,6 @@
 package org.devocative.metis.web.dPage;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -87,7 +88,7 @@ public class DataSourceExecutor extends DPage {
 		dynamicForm.add(new ListView<XDSAbstractField>("fields", getFieldForFilter()) {
 			@Override
 			protected void populateItem(ListItem<XDSAbstractField> item) {
-				XDSAbstractField dsField = item.getModelObject();
+				final XDSAbstractField dsField = item.getModelObject();
 				item.add(new Label("label", dsField.getSafeTitle()));
 
 				FormComponent fieldFormItem = null;
@@ -136,7 +137,20 @@ public class DataSourceExecutor extends DPage {
 							List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dsField);
 							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true);
 						} else {
-							//TODO XDSFieldFilterType.Search
+							fieldFormItem = new WClientSearchableListInput<KeyValueVO<Serializable, String>>(dsField.getName()) {
+								@Override
+								protected Component createSelectionPanel(String selectionPanelId) {
+									// TODO redundant DataSource get from DB
+									String name = dataSourceService.get(dsField.getTargetId()).getName();
+									return new DataSourceExecutor(selectionPanelId, Arrays.asList(name))
+										.setSelectionJSCallback(getJSCallback());
+								}
+
+								@Override
+								protected KeyValueVO<Serializable, String> createServerObject(String key) {
+									return new KeyValueVO<Serializable, String>(key, null);
+								}
+							};
 						}
 						break;
 				}
@@ -191,7 +205,7 @@ public class DataSourceExecutor extends DPage {
 						columns.add(column);
 						break;
 					case Hidden:
-						//TODO add hidden column, usefull for client interaction
+						//TODO add hidden column, useful for client interaction
 						break;
 				}
 			}
@@ -203,7 +217,6 @@ public class DataSourceExecutor extends DPage {
 			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
 			gridOptions
 				.setGroupStyle("background-color:#dddddd")
-				.setIdField(dataSource.getKeyField())
 				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
@@ -213,7 +226,6 @@ public class DataSourceExecutor extends DPage {
 			gridOptions
 				.setParentIdField(dataSource.getSelfRelPointerField())
 				.setTreeField(dataSource.getTitleField())
-				.setIdField(dataSource.getKeyField())
 				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
@@ -224,12 +236,23 @@ public class DataSourceExecutor extends DPage {
 			.setColumns(columns)
 			.setMultiSort(true)
 			.setSelectionIndicator(true)
+			.setIdField(dataSource.getKeyField())
+			.setTitleField(dataSource.getTitleField())
 			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				MetisIcon.EXPORT_EXCEL,
 				String.format("%s-export.xlsx", dataSource.getName()),
 				10000))
 			.setFit(true)
 		;
+
+		if (!getWebRequest().getRequestParameters().getParameterValue("window").isEmpty()) {
+			oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
+		}
+	}
+
+	public DataSourceExecutor setSelectionJSCallback(String jsCallback) {
+		grid.getOptions().setSelectionJSHandler(jsCallback);
+		return this;
 	}
 
 	private List<XDSAbstractField> getFieldForFilter() {

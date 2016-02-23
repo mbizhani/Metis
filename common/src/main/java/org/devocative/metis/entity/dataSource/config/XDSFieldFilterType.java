@@ -1,5 +1,5 @@
 package org.devocative.metis.entity.dataSource.config;
 
 public enum XDSFieldFilterType {
-	Equal, Contain, Range, List/*, TODO Search*/
+	Equal, Contain, Range, List, Search
 }

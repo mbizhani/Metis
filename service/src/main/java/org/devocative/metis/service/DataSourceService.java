@@ -47,6 +47,11 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
+	public DataSource get(Long id) {
+		return persistorService.get(DataSource.class, id);
+	}
+
+	@Override
 	public void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters) {
 		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
 
@@ -625,6 +630,7 @@ public class DataSourceService implements IDataSourceService {
 							break;
 
 						case List: // All types (except boolean)
+						case Search:
 							builder.append(String.format("and %1$s in (:%1$s) ", xdsField.getName()));
 							List<Serializable> items = new ArrayList<>();
 							List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
