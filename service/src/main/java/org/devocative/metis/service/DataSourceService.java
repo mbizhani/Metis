@@ -5,6 +5,7 @@ import com.thoughtworks.xstream.core.util.QuickWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -41,6 +42,9 @@ public class DataSourceService implements IDataSourceService {
 	@Autowired
 	private IPersistorService persistorService;
 
+	@Autowired
+	private ISecurityService securityService;
+
 	public DataSourceService() {
 		xstream = new XStream();
 		xstream.processAnnotations(XDataSource.class);
@@ -53,7 +57,11 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters) {
-		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
+		logger.info("Saving DataSource(user={}): name={}, fields#={}, params#={}",
+			securityService.getCurrentUser(), fields.size(), parameters.size());
+
+		Map<String, DataSourceRelation> oldRelationsMap = new HashMap<>();
+		List<DataSourceRelation> newRelations = new ArrayList<>();
 
 		if (dataSource.getId() != null) {
 			persistorService
@@ -70,10 +78,23 @@ public class DataSourceService implements IDataSourceService {
 				.list();
 
 			for (DataSourceRelation relation : relations) {
-				relationsMap.put(relation.getSourcePointerField(), relation);
+				oldRelationsMap.put(relation.getSourcePointerField(), relation);
+			}
+		} else {
+			long count = persistorService
+				.createQueryBuilder()
+				.addSelect("select count(1)")
+				.addFrom(DataSource.class, "ent")
+				.addWhere("and ent.name = :name")
+				.addParam("name", dataSource.getName())
+				.object();
+
+			if (count > 0) {
+				throw new MetisException(MetisErrorCode.DuplicateDataSourceName, dataSource.getName());
 			}
 		}
 
+		// ---- Processing Fields
 		for (XDSField xdsField : fields) {
 			if (xdsField.getIsKeyField()) {
 				dataSource.setKeyField(xdsField.getName());
@@ -96,7 +117,7 @@ public class DataSourceService implements IDataSourceService {
 			if (XDSFieldType.LookUp == xdsField.getType()) {
 				xdsField.setTargetId(xdsField.getTarget().getId());
 
-				DataSourceRelation rel = relationsMap.get(xdsField.getName());
+				DataSourceRelation rel = oldRelationsMap.get(xdsField.getName());
 				if (rel == null) {
 					rel = new DataSourceRelation();
 				}
@@ -104,15 +125,16 @@ public class DataSourceService implements IDataSourceService {
 				rel.setDeleted(false);
 				rel.setSource(dataSource);
 				rel.setTarget(xdsField.getTarget());
-				relationsMap.put(xdsField.getName(), rel);
+				newRelations.add(rel);
 			}
 		}
 
+		// ---- Processing Parameters
 		for (XDSParameter xdsParameter : parameters) {
 			if (XDSFieldType.LookUp == xdsParameter.getType()) {
 				xdsParameter.setTargetId(xdsParameter.getTarget().getId());
 
-				DataSourceRelation rel = relationsMap.get(xdsParameter.getName());
+				DataSourceRelation rel = oldRelationsMap.get(xdsParameter.getName());
 				if (rel == null) {
 					rel = new DataSourceRelation();
 				}
@@ -120,14 +142,16 @@ public class DataSourceService implements IDataSourceService {
 				rel.setDeleted(false);
 				rel.setSource(dataSource);
 				rel.setTarget(xdsParameter.getTarget());
-				relationsMap.put(xdsParameter.getName(), rel);
+				newRelations.add(rel);
 			}
 		}
 
-		xdsQuery.setText(String.format("\n<![CDATA[\n%s\n]]>\n", xdsQuery.getText().trim()));
+		XDSQuery newXdsQuery = new XDSQuery();
+		newXdsQuery.setMode(xdsQuery.getMode());
+		newXdsQuery.setText(String.format("\n<![CDATA[\n%s\n]]>\n", xdsQuery.getText().trim()));
 
 		XDataSource xDataSource = new XDataSource();
-		xDataSource.setQuery(xdsQuery);
+		xDataSource.setQuery(newXdsQuery);
 		xDataSource.setFields(fields);
 		xDataSource.setParams(parameters);
 
@@ -143,10 +167,13 @@ public class DataSourceService implements IDataSourceService {
 
 		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataSource);
-		for (DataSourceRelation relation : relationsMap.values()) {
+		for (DataSourceRelation relation : newRelations) {
 			persistorService.saveOrUpdate(relation);
 		}
 		persistorService.commitOrRollback();
+
+		logger.info("Saved DataSource(user={}): name={}, fields#={}, relations#={}, params#={}",
+			securityService.getCurrentUser(), fields.size(), newRelations.size(), parameters.size());
 	}
 
 	@Override

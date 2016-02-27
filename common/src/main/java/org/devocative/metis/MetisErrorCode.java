@@ -14,7 +14,9 @@ public enum MetisErrorCode implements DErrorCode {
 	EqlUnknownProperty("Unknown property"),
 	EqlJoinOnProperty("Join on property"),
 	EqlInvalidAssociationUsage("Invalid association usage"),
-	DBConnection("Can't get connection from database");
+	DBConnection("Can't get connection from database"),
+	DuplicateDataSourceName("Duplicate DataSource name");
+	;
 
 	private String defaultDescription;
 

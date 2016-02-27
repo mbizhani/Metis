@@ -6,6 +6,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -14,7 +15,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.adroit.vo.KeyValueVO;
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.web.DPage;
+import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.*;
@@ -30,11 +33,13 @@ import org.devocative.wickomp.formatter.ONumberFormatter;
 import org.devocative.wickomp.grid.*;
 import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
+import org.devocative.wickomp.grid.column.OHiddenColumn;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.WEasyLayout;
+import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +54,9 @@ public class DataSourceExecutor extends DPage {
 	@Inject
 	private IDataSourceService dataSourceService;
 
+	@Inject
+	private ISecurityService securityService;
+
 	private SearchDataSource gridDS;
 	private Map<String, Object> filters;
 	private WBaseGrid<Map<String, Object>> grid;
@@ -57,17 +65,33 @@ public class DataSourceExecutor extends DPage {
 	private List<XDSField> xdsFieldList;
 	private List<XDSParameter> xdsParameterList;
 
+	private WebMarkupContainer edit;
+
+	public DataSourceExecutor(String id, DataSource ds) {
+		this(id, new ArrayList<String>(), ds);
+	}
+
 	public DataSourceExecutor(String id, List<String> params) {
+		this(id, params, null);
+	}
+
+	// Main Constructor
+	public DataSourceExecutor(String id, List<String> params, DataSource ds) {
 		super(id, params);
 
 		WebMarkupContainer searchPanel = new WebMarkupContainer("searchPanel");
+
 		WEasyLayout mainTable = new WEasyLayout("mainTable");
 		mainTable.setWest(searchPanel);
 		add(mainTable);
 
-		String title;
+		dataSource = ds;
 		if (params.size() > 0) {
 			dataSource = dataSourceService.getDataSource(params.get(0));
+		}
+
+		String title;
+		if (dataSource != null) {
 			logger.info("DataSource param = {}", dataSource.getName());
 			XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
 			xdsFieldList = xDataSource.getFields();
@@ -77,12 +101,19 @@ public class DataSourceExecutor extends DPage {
 			filters = new HashMap<>();
 			gridDS = new SearchDataSource();
 			gridDS.setEnabled(false);
+
+			String editUri = String.format("%s/%s", UrlUtil.createUri(DataSourceForm.class, true), dataSource.getName());
+			edit = new ExternalLink("edit", editUri);
 		} else {
 			mainTable.setVisible(false);
 			title = "No DataSource defined!"; // TODO use ResourceModel
+
+			edit = new WebMarkupContainer("edit");
+			edit.setVisible(false);
 		}
 
 		add(new Label("title", title));
+		add(edit);
 
 		Form<Map<String, Object>> dynamicForm = new Form<>("dynamicForm", new CompoundPropertyModel<>(filters));
 		dynamicForm.add(new ListView<XDSAbstractField>("fields", getFieldForFilter()) {
@@ -138,12 +169,21 @@ public class DataSourceExecutor extends DPage {
 							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true);
 						} else {
 							fieldFormItem = new WClientSearchableListInput<KeyValueVO<Serializable, String>>(dsField.getName()) {
+								{
+									getModalWindowOptions().setWidth(OSize.percent(80));
+								}
+
 								@Override
 								protected Component createSelectionPanel(String selectionPanelId) {
-									// TODO redundant DataSource get from DB
-									String name = dataSourceService.get(dsField.getTargetId()).getName();
-									return new DataSourceExecutor(selectionPanelId, Arrays.asList(name))
-										.setSelectionJSCallback(getJSCallback());
+									DataSource dataSource = dataSourceService.get(dsField.getTargetId());
+
+									getModalWindowOptions().setTitle(String.format("%s: %s (%s)",
+										dsField.getSafeTitle(), dataSource.getTitle(), dataSource.getName()));
+
+									return
+										new DataSourceExecutor(selectionPanelId, dataSource)
+											.setSelectionJSCallback(getJSCallback())
+											.setEditVisible(false);
 								}
 
 								@Override
@@ -168,11 +208,11 @@ public class DataSourceExecutor extends DPage {
 		dynamicForm.add(new DAjaxButton("search", new ResourceModel("label.search", "Search"), MetisIcon.SEARCH) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
-				logger.debug("Map: {}", filters);
+				logger.info("Execute search [{}] with parameters (User={}): {}",
+					dataSource.getName(), securityService.getCurrentUser().getUsername(), filters);
 				gridDS.setEnabled(true);
 				grid.loadData(target);
 			}
-
 		});
 		searchPanel.add(dynamicForm);
 
@@ -182,9 +222,16 @@ public class DataSourceExecutor extends DPage {
 				switch (dsField.getResultType()) {
 					case None:
 						break;
+					case Hidden:
 					case Shown:
-						OColumn<Map<String, Object>> column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getSafeTitle()), dsField.getName())
-							.setSortable(true);
+						OColumn<Map<String, Object>> column;
+						if (dsField.getResultType() == XDSFieldResultType.Shown)
+							column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getSafeTitle()), dsField.getName())
+								.setSortable(true);
+						else {
+							column = new OHiddenColumn<>(dsField.getName());
+						}
+
 						switch (dsField.getType()) {
 							case Integer:
 								column.setFormatter(ONumberFormatter.integer());
@@ -203,9 +250,6 @@ public class DataSourceExecutor extends DPage {
 								break;
 						}
 						columns.add(column);
-						break;
-					case Hidden:
-						//TODO add hidden column, useful for client interaction
 						break;
 				}
 			}
@@ -247,11 +291,17 @@ public class DataSourceExecutor extends DPage {
 
 		if (!getWebRequest().getRequestParameters().getParameterValue("window").isEmpty()) {
 			oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
+			setEditVisible(false);
 		}
 	}
 
 	public DataSourceExecutor setSelectionJSCallback(String jsCallback) {
 		grid.getOptions().setSelectionJSHandler(jsCallback);
+		return this;
+	}
+
+	public DataSourceExecutor setEditVisible(boolean visible) {
+		edit.setVisible(visible);
 		return this;
 	}
 

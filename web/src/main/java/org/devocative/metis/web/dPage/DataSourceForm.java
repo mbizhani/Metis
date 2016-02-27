@@ -2,17 +2,20 @@ package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.imodule.DModuleException;
 import org.devocative.demeter.web.DPage;
+import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XSchema;
@@ -86,6 +89,8 @@ public class DataSourceForm extends DPage {
 			@Override
 			protected void onNext(AjaxRequestTarget target, String stepId) {
 				if ("query".equals(stepId)) {
+					setTitle(dataSource.getName());
+
 					List<XDSParameter> list = dataSourceService.createParams(xdsQuery.getText(), xdsParams);
 					xdsParams.clear();
 					xdsParams.addAll(list);
@@ -106,7 +111,7 @@ public class DataSourceForm extends DPage {
 			protected void onFinish(AjaxRequestTarget target, String stepId) {
 				dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
 
-				//TODO redirect to another page, e.g. DataSourceList or Execution !
+				UrlUtil.redirectTo(DataSourceExecutor.class, dataSource.getName());
 			}
 
 			@Override
@@ -128,7 +133,7 @@ public class DataSourceForm extends DPage {
 					super.onException(target, stepId, e);
 				}
 			}
-		});
+		}.setTitle(dataSource.getName()));
 	}
 
 	private class InitStep extends WWizardStepPanel {
@@ -263,17 +268,31 @@ public class DataSourceForm extends DPage {
 				protected void populateItem(ListItem<XDSField> item) {
 					XDSField xdsField = item.getModelObject();
 
+
 					final WSelectionInput type, filterType;
+					final CheckBox required;
 
 					item.add(new Label("name", xdsField.getName()));
 					item.add(new Label("dbType", xdsField.getDbType()));
 					item.add(new Label("dbSize", xdsField.getDbSize()));
 					item.add(new WTextInput("title", new PropertyModel<String>(xdsField, "title")));
 					item.add(type = new WSelectionInput("type", new PropertyModel<String>(xdsField, "type"), Arrays.asList(XDSFieldType.values()), false));
-					item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(xdsField, "inFilterPanel")));
-					//TODO show required checkbox when inFilterPanel is true
-					item.add(new CheckBox("required", new PropertyModel<Boolean>(xdsField, "required")));
+
+					item.add(required = new CheckBox("required", new PropertyModel<Boolean>(xdsField, "required")));
 					item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(xdsField, "filterType"), Arrays.asList(xdsField.getType().getProperFilterTypes()), false));
+					item.add(new AjaxCheckBox("inFilterPanel", new PropertyModel<Boolean>(xdsField, "inFilterPanel")) {
+						@Override
+						protected void onUpdate(AjaxRequestTarget target) {
+							IModel<?> defaultModel = getDefaultModel();
+							Boolean bool = (Boolean) defaultModel.getObject();
+							if (bool == null) {
+								bool = false;
+							}
+							target.add(required.setVisible(bool));
+							target.add(filterType.setVisible(bool));
+						}
+					});
+
 					item.add(new WSelectionInput("resultType", new PropertyModel<String>(xdsField, "resultType"), Arrays.asList(XDSFieldResultType.values()), false)
 						.setRequired(true)
 						.setLabel(new Model<>(getString("XDSField.resultType") + " " + xdsField.getName())));
@@ -291,12 +310,21 @@ public class DataSourceForm extends DPage {
 							filterType.updateChoices(target, Arrays.asList(type.getProperFilterTypes()));
 						}
 					});
+
+					boolean needFilter = xdsField.getInFilterPanel() != null && xdsField.getInFilterPanel();
 					type
 						.setRequired(true)
 						.setLabel(new Model<>(getString("XDSField.type") + " " + xdsField.getName()));
 					filterType
-						.setRequired(true)
-						.setLabel(new Model<>(getString("XDSField.filterType") + " " + xdsField.getName()));
+						.setLabel(new Model<>(getString("XDSField.filterType") + " " + xdsField.getName()))
+						.setRequired(needFilter)
+						.setVisible(needFilter)
+						.setOutputMarkupId(true)
+						.setOutputMarkupPlaceholderTag(true);
+					required
+						.setOutputMarkupId(true)
+						.setOutputMarkupPlaceholderTag(true)
+						.setVisible(needFilter);
 				}
 			});
 		}
