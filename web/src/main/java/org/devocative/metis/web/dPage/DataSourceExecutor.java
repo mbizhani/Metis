@@ -218,40 +218,38 @@ public class DataSourceExecutor extends DPage {
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 		for (XDSField dsField : xdsFieldList) {
-			if (XDSFieldType.LookUp != dsField.getType()) {
-				switch (dsField.getResultType()) {
-					case None:
-						break;
-					case Hidden:
-					case Shown:
-						OColumn<Map<String, Object>> column;
-						if (dsField.getResultType() == XDSFieldResultType.Shown)
-							column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getSafeTitle()), dsField.getName())
-								.setSortable(true);
-						else {
-							column = new OHiddenColumn<>(dsField.getName());
-						}
+			switch (dsField.getResultType()) {
+				case None:
+					break;
+				case Hidden:
+				case Shown:
+					OColumn<Map<String, Object>> column;
+					if (dsField.getResultType() == XDSFieldResultType.Shown)
+						column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getSafeTitle()), dsField.getName())
+							.setSortable(true);
+					else {
+						column = new OHiddenColumn<>(dsField.getName());
+					}
 
-						switch (dsField.getType()) {
-							case Integer:
-								column.setFormatter(ONumberFormatter.integer());
-								break;
-							case Real:
-								column.setFormatter(ONumberFormatter.real());
-								break;
-							case Date:
-								column.setFormatter(ODateFormatter.prDate());
-								break;
-							case DateTime:
-								column.setFormatter(ODateFormatter.prDateTime());
-								break;
-							case Boolean:
-								column.setFormatter(OBooleanFormatter.bool());
-								break;
-						}
-						columns.add(column);
-						break;
-				}
+					switch (dsField.getType()) {
+						case Integer:
+							column.setFormatter(ONumberFormatter.integer());
+							break;
+						case Real:
+							column.setFormatter(ONumberFormatter.real());
+							break;
+						case Date:
+							column.setFormatter(ODateFormatter.prDate());
+							break;
+						case DateTime:
+							column.setFormatter(ODateFormatter.prDateTime());
+							break;
+						case Boolean:
+							column.setFormatter(OBooleanFormatter.bool());
+							break;
+					}
+					columns.add(column);
+					break;
 			}
 		}
 
