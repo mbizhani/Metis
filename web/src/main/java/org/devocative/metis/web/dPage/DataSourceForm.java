@@ -142,10 +142,12 @@ public class DataSourceForm extends DPage {
 			final WSelectionInput connection, queryMode;
 
 			add(new WTextInput("name", new PropertyModel<String>(DataSourceForm.this, "dataSource.name"))
+					.setLabelVisible(false)
 					.setRequired(true)
 					.setLabel(new ResourceModel("DataSource.name"))
 			);
 			add(new WTextInput("title", new PropertyModel<String>(DataSourceForm.this, "dataSource.title"))
+				.setLabelVisible(false)
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.title")));
 			add(connection = new WSelectionInput("connection",
@@ -154,6 +156,7 @@ public class DataSourceForm extends DPage {
 				false
 			));
 			connection
+				.setLabelVisible(false)
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.connection"));
 
@@ -166,6 +169,7 @@ public class DataSourceForm extends DPage {
 
 			add(queryMode = new WSelectionInput("queryMode", new PropertyModel(xdsQuery, "mode"), modes, false));
 			queryMode
+				.setLabelVisible(false)
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.query.mode"));
 
@@ -235,13 +239,16 @@ public class DataSourceForm extends DPage {
 
 					final WSelectionInput type;
 					item.add(new Label("name", xdsParameter.getName()));
-					item.add(new WTextInput("title", new PropertyModel<String>(xdsParameter, "title")));
+					item.add(new WTextInput("title", new PropertyModel<String>(xdsParameter, "title"))
+						.setLabelVisible(false));
 					item.add(type = new WSelectionInput("type", new PropertyModel<String>(xdsParameter, "type"),
 						Arrays.asList(XDSFieldType.values()), false));
 					item.add(new CheckBox("required", new PropertyModel<Boolean>(xdsParameter, "required")));
-					item.add(new WTextInput("sampleData", new PropertyModel<String>(xdsParameter, "sampleData")));
+					item.add(new WTextInput("sampleData", new PropertyModel<String>(xdsParameter, "sampleData"))
+						.setLabelVisible(false));
 
 					type
+						.setLabelVisible(false)
 						.setRequired(true)
 						.setLabel(new Model<>(getString("XDSField.type") + " " + xdsParameter.getName()));
 
@@ -275,7 +282,7 @@ public class DataSourceForm extends DPage {
 					item.add(new Label("name", xdsField.getName()));
 					item.add(new Label("dbType", xdsField.getDbType()));
 					item.add(new Label("dbSize", xdsField.getDbSize()));
-					item.add(new WTextInput("title", new PropertyModel<String>(xdsField, "title")));
+					item.add(new WTextInput("title", new PropertyModel<String>(xdsField, "title")).setLabelVisible(false));
 					item.add(type = new WSelectionInput("type", new PropertyModel<String>(xdsField, "type"), Arrays.asList(XDSFieldType.values()), false));
 
 					item.add(required = new CheckBox("required", new PropertyModel<Boolean>(xdsField, "required")));
@@ -294,6 +301,7 @@ public class DataSourceForm extends DPage {
 					});
 
 					item.add(new WSelectionInput("resultType", new PropertyModel<String>(xdsField, "resultType"), Arrays.asList(XDSFieldResultType.values()), false)
+						.setLabelVisible(false)
 						.setRequired(true)
 						.setLabel(new Model<>(getString("XDSField.resultType") + " " + xdsField.getName())));
 					item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(xdsField, "isKeyField"))
@@ -313,9 +321,11 @@ public class DataSourceForm extends DPage {
 
 					boolean needFilter = xdsField.getInFilterPanel() != null && xdsField.getInFilterPanel();
 					type
+						.setLabelVisible(false)
 						.setRequired(true)
 						.setLabel(new Model<>(getString("XDSField.type") + " " + xdsField.getName()));
 					filterType
+						.setLabelVisible(false)
 						.setLabel(new Model<>(getString("XDSField.filterType") + " " + xdsField.getName()))
 						.setRequired(needFilter)
 						.setVisible(needFilter)
@@ -353,6 +363,7 @@ public class DataSourceForm extends DPage {
 					item.add(new Label("name", field.getName()));
 					item.add(new WSelectionInput("dataSources", new PropertyModel(field, "target"),
 						dataSourceList, false)
+						.setLabelVisible(false)
 						.setRequired(true)
 						.setLabel(new Model<>(field.getName())));
 				}
