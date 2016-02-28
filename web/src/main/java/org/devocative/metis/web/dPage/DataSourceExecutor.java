@@ -126,15 +126,19 @@ public class DataSourceExecutor extends DPage {
 				switch (dsField.getType()) {
 
 					case String:
-						fieldFormItem = new WTextInput(dsField.getName());
+						fieldFormItem = new WTextInput(dsField.getName())
+							.setLabelVisible(false);
 						break;
 
 					case Integer:
 						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
-							fieldFormItem = new WNumberRangeInput(dsField.getName(), Long.class).setThousandSeparator(",");
+							fieldFormItem = new WNumberRangeInput(dsField.getName(), Long.class)
+								.setThousandSeparator(",")
+								.setLabelVisible(false);
 						} else {
 							fieldFormItem = new WNumberInput(dsField.getName(), Long.class)
-								.setThousandSeparator(",");
+								.setThousandSeparator(",")
+								.setLabelVisible(false);
 						}
 						break;
 
@@ -142,31 +146,37 @@ public class DataSourceExecutor extends DPage {
 						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
 							fieldFormItem = new WNumberRangeInput(dsField.getName(), BigDecimal.class).setPrecision(2)
 								.setThousandSeparator(",")
-								.setPrecision(3);
+								.setPrecision(3)
+								.setLabelVisible(false);
 						} else {
 							fieldFormItem = new WNumberInput(dsField.getName(), BigDecimal.class).setPrecision(2)
 								.setThousandSeparator(",")
-								.setPrecision(3);
+								.setPrecision(3)
+								.setLabelVisible(false);
 						}
 						break;
 
 					case Boolean:
-						fieldFormItem = new WBooleanInput(dsField.getName());
+						fieldFormItem = new WBooleanInput(dsField.getName())
+							.setLabelVisible(false);
 						break;
 
 					case Date:
 					case DateTime:
 						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
-							fieldFormItem = new WDateRangeInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType());
+							fieldFormItem = new WDateRangeInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType())
+								.setLabelVisible(false);
 						} else {
-							fieldFormItem = new WDateInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType());
+							fieldFormItem = new WDateInput(dsField.getName()).setTimePartVisible(XDSFieldType.DateTime == dsField.getType())
+								.setLabelVisible(false);
 						}
 						break;
 
 					case LookUp:
 						if (dsField.getFilterType() == XDSFieldFilterType.List) {
 							List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dsField);
-							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true);
+							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true)
+								.setLabelVisible(false);
 						} else {
 							fieldFormItem = new WClientSearchableListInput<KeyValueVO<Serializable, String>>(dsField.getName()) {
 								{
@@ -190,7 +200,8 @@ public class DataSourceExecutor extends DPage {
 								protected KeyValueVO<Serializable, String> createServerObject(String key) {
 									return new KeyValueVO<Serializable, String>(key, null);
 								}
-							};
+							}
+								.setLabelVisible(false);
 						}
 						break;
 				}

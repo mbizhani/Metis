@@ -3,6 +3,7 @@ package org.devocative.metis.iservice;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.*;
+import org.devocative.metis.vo.filter.DataSourceFVO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -13,9 +14,9 @@ public interface IDataSourceService {
 
 	void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters);
 
-	List<DataSource> search(long pageIndex, long pageSize);
+	List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize);
 
-	long count();
+	long count(DataSourceFVO filter);
 
 	List<DataSource> getListForLookup();
 

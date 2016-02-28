@@ -16,6 +16,7 @@ import org.devocative.metis.entity.dataSource.DataSourceRelation;
 import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.metis.vo.filter.DataSourceFVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,19 +178,22 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<DataSource> search(long pageIndex, long pageSize) {
+	public List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize) {
 		return persistorService
 			.createQueryBuilder()
+			.addSelect("select ent")
 			.addFrom(DataSource.class, "ent")
+			.applyFilter(DataSource.class, "ent", filter)
 			.list((pageIndex - 1) * pageSize, pageSize);
 	}
 
 	@Override
-	public long count() {
+	public long count(DataSourceFVO filter) {
 		return persistorService
 			.createQueryBuilder()
 			.addSelect("select count(1)")
 			.addFrom(DataSource.class, "ent")
+			.applyFilter(DataSource.class, "ent", filter)
 			.object();
 	}
 
