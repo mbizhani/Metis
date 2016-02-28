@@ -5,7 +5,7 @@ import org.devocative.metis.entity.connection.DBConnectionGroup;
 import java.util.List;
 
 public interface IDBConnectionGroupService {
-	List<DBConnectionGroup> search(long firstResult, long maxResults);
+	List<DBConnectionGroup> search(long pageIndex, long pageSize);
 
 	long count();
 

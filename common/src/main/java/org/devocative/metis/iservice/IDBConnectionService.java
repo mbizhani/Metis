@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDBConnectionService {
-	List<DBConnection> search(long firstResult, long maxResults);
+	List<DBConnection> search(long pageIndex, long pageSize);
 
 	long count();
 

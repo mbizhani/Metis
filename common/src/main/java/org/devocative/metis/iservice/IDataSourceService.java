@@ -13,7 +13,7 @@ public interface IDataSourceService {
 
 	void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters);
 
-	List<DataSource> search(long firstResult, long maxResults);
+	List<DataSource> search(long pageIndex, long pageSize);
 
 	long count();
 

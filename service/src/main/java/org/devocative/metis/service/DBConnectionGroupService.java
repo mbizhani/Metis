@@ -20,11 +20,11 @@ public class DBConnectionGroupService implements IDBConnectionGroupService {
 	private IDBConnectionService connectionService;
 
 	@Override
-	public List<DBConnectionGroup> search(long firstResult, long maxResults) {
+	public List<DBConnectionGroup> search(long pageIndex, long pageSize) {
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DBConnectionGroup.class, "ent")
-			.list((firstResult - 1) * maxResults, firstResult * maxResults);
+			.list((pageIndex - 1) * pageSize, pageSize);
 	}
 
 	@Override

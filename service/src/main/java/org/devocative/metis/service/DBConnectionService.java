@@ -57,11 +57,11 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public List<DBConnection> search(long firstResult, long maxResults) {
+	public List<DBConnection> search(long pageIndex, long pageSize) {
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DBConnection.class, "ent")
-			.list((firstResult - 1) * maxResults, firstResult * maxResults);
+			.list((pageIndex - 1) * pageSize, pageSize);
 	}
 
 	@Override

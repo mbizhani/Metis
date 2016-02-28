@@ -177,11 +177,11 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<DataSource> search(long firstResult, long maxResults) {
+	public List<DataSource> search(long pageIndex, long pageSize) {
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DataSource.class, "ent")
-			.list((firstResult - 1) * maxResults, firstResult * maxResults);
+			.list((pageIndex - 1) * pageSize, pageSize);
 	}
 
 	@Override
