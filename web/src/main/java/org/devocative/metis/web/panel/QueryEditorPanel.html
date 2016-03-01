@@ -1,0 +1,24 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+	<form wicket:id="form">
+		<div>
+			<div wicket:id="editor"></div>
+		</div>
+		<button wicket:id="execute"></button>
+	</form>
+
+	<br/>
+
+	<table wicket:id="resultTable" border="1" align="center">
+		<tr>
+			<wicket:container wicket:id="headerRow">
+				<th wicket:id="headerCell"></th>
+			</wicket:container>
+		</tr>
+
+		<tr wicket:id="rows">
+			<td wicket:id="row"><span wicket:id="cell"></span></td>
+		</tr>
+	</table>
+</wicket:panel>
+</html>

@@ -23,6 +23,7 @@ import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.metis.web.panel.QueryEditorPanel;
 import org.devocative.wickomp.form.WAjaxButton;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
@@ -34,6 +35,8 @@ import org.devocative.wickomp.form.wizard.OWizard;
 import org.devocative.wickomp.form.wizard.WWizardPanel;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 import org.devocative.wickomp.html.WMessager;
+import org.devocative.wickomp.html.window.WModalWindow;
+import org.devocative.wickomp.opt.OSize;
 import org.devocative.wickomp.wrcs.EasyUIBehavior;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,9 +193,17 @@ public class DataSourceForm extends DPage {
 	private class QueryStep extends WWizardStepPanel {
 		private WAjaxButton showSQL;
 		private OCode oCode = new OCode(OCodeMode.SQL);
+		private WModalWindow modalWindow;
 
 		@Override
 		protected void onInit() {
+			add(modalWindow = new WModalWindow("modal"));
+			modalWindow
+				.getOptions()
+				.setTitle("Query Editor")
+				.setWidth(OSize.percent(70))
+				.setHeight(OSize.fixed(800));
+
 			add(new WCodeInput("query", new PropertyModel<String>(xdsQuery, "text"), oCode)
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.query")));
@@ -201,7 +212,19 @@ public class DataSourceForm extends DPage {
 				@Override
 				protected void onSubmit(AjaxRequestTarget target) {
 					String sql = dataSourceService.processQuery(dataSource.getConnection().getId(), xdsQuery.getMode(), xdsQuery.getText());
-					WMessager.show("SQL", String.format("<p class='al-ltr'>%s</p>", sql), target);
+
+					Map<String, Object> params = new HashMap<>();
+					for (XDSParameter xdsParam : xdsParams) {
+						params.put(xdsParam.getName(), xdsParam.getSampleData());
+					}
+
+					modalWindow.setContent(new QueryEditorPanel(
+						modalWindow.getContentId(),
+						dataSource.getConnection().getId(),
+						sql,
+						params));
+					modalWindow.show(target);
+					//WMessager.show("SQL", String.format("<p class='al-ltr'>%s</p>", sql), target);
 				}
 			});
 		}

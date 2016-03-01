@@ -4,6 +4,7 @@ import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.dataSource.config.XDSField;
+import org.devocative.metis.vo.QueryResultVO;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -29,6 +30,8 @@ public interface IDBConnectionService {
 	List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params, String comment) throws SQLException;
 
 	List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long id, String query) throws SQLException;
+
+	QueryResultVO executeQuery(Long id, String query, Map<String, Object> params);
 
 	void closeAllPools();
 

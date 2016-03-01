@@ -4,6 +4,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
+import org.devocative.demeter.DSystemException;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -16,6 +17,7 @@ import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.dataSource.config.XDSField;
 import org.devocative.metis.entity.dataSource.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.vo.QueryResultVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -243,6 +245,54 @@ public class DBConnectionService implements IDBConnectionService {
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public QueryResultVO executeQuery(Long dbConnId, String query, Map<String, Object> params) {
+		QueryResultVO resultVO = new QueryResultVO();
+
+		try (Connection connection = getConnection(dbConnId)) {
+			query = String.format("/* SIMPLE */ %s", query);
+			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
+			nps.setDateClassReplacement(Timestamp.class);
+			if (params != null) {
+				nps.setParameters(params);
+			}
+
+			ResultSet rs = nps.executeQuery();
+			ResultSetMetaData metaData = rs.getMetaData();
+
+			for (int i = 1; i <= metaData.getColumnCount(); i++) {
+				resultVO.addHeader(metaData.getColumnName(i).toLowerCase());
+			}
+
+			int count = 0;
+			while (rs.next() && (count++) < 10) {
+				List<String> row = new ArrayList<>();
+				for (int i = 0; i < resultVO.getHeader().size(); i++) {
+					String column = resultVO.getHeader().get(i);
+					Object value;
+					switch (metaData.getColumnType(i + 1)) {
+						case Types.DATE:
+							value = rs.getDate(column);
+							break;
+						case Types.TIME:
+							value = rs.getTime(column);
+							break;
+						case Types.TIMESTAMP:
+							value = rs.getTimestamp(column);
+							break;
+						default:
+							value = rs.getObject(column);
+					}
+					row.add(value != null ? value.toString() : "");
+				}
+				resultVO.addRow(row);
+			}
+			return resultVO;
+		} catch (Exception e) {
+			throw new DSystemException(e.getMessage(), e);
+		}
 	}
 
 	@Override
