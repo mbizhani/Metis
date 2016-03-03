@@ -52,13 +52,17 @@ public class DBConnectionGroupForm extends DPage {
 		form.setMultiPart(true);
 
 		form.add(new WTextInput("name")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.name"))
 			.setRequired(true));
 		form.add(new WTextInput("driver")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.driver")));
 		form.add(new WTextInput("url")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.url")));
 		form.add(new WTextInput("testQuery")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.testQuery")));
 		form.add(configFile = new FileUploadField("configFile", new WModel<List<FileUpload>>()));
 		form.add(new DButton("save", new ResourceModel("label.save"), MetisIcon.SAVE) {

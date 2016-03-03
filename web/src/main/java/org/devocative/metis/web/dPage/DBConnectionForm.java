@@ -66,16 +66,21 @@ public class DBConnectionForm extends DPage {
 		form.setMultiPart(true);
 
 		form.add(new WTextInput("name")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.name"))
 			.setRequired(true));
 		form.add(new WSelectionInput("group", connectionGroupService.list(), false)
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.group"))
 			.setRequired(true));
 		form.add(new WTextInput("driver")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.driver")));
 		form.add(new WTextInput("url")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.url")));
 		form.add(new WTextInput("username")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.username"))
 			.setRequired(true));
 		form.add(password = new PasswordTextField("password")
@@ -84,8 +89,10 @@ public class DBConnectionForm extends DPage {
 		form.add(password2 = new PasswordTextField("password2", new Model<String>())
 			.setLabel(new ResourceModel("DBConnection.password2"))
 			.setRequired(true));
-		form.add(new WTextInput("schema"));
+		form.add(new WTextInput("schema")
+			.setLabelVisible(false));
 		form.add(new WTextInput("testQuery")
+			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DBConnection.testQuery")));
 		form.add(configFile = new FileUploadField("configFile", new WModel<List<FileUpload>>()));
 		form.add(new DButton("save", new ResourceModel("label.save"), MetisIcon.SAVE) {
