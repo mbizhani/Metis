@@ -3,6 +3,8 @@ package org.devocative.metis.service;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.core.util.QuickWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.ISecurityService;
@@ -36,6 +38,7 @@ public class DataSourceService implements IDataSourceService {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceService.class);
 
 	private XStream xstream;
+	private Configuration freeMarkerCfg;
 
 	@Autowired
 	private IDBConnectionService dbConnectionService;
@@ -49,6 +52,8 @@ public class DataSourceService implements IDataSourceService {
 	public DataSourceService() {
 		xstream = new XStream();
 		xstream.processAnnotations(XDataSource.class);
+
+		freeMarkerCfg = new Configuration(Configuration.VERSION_2_3_23);
 	}
 
 	@Override
@@ -149,9 +154,11 @@ public class DataSourceService implements IDataSourceService {
 
 		XDSQuery newXdsQuery = new XDSQuery();
 		newXdsQuery.setMode(xdsQuery.getMode());
+		newXdsQuery.setDynamic(xdsQuery.getDynamic());
 		newXdsQuery.setText(String.format("\n<![CDATA[\n%s\n]]>\n", xdsQuery.getText().trim()));
 
 		XDataSource xDataSource = new XDataSource();
+		xDataSource.setName(dataSource.getName());
 		xDataSource.setQuery(newXdsQuery);
 		xDataSource.setFields(fields);
 		xDataSource.setParams(parameters);
@@ -247,8 +254,8 @@ public class DataSourceService implements IDataSourceService {
 		StringBuilder builder = new StringBuilder();
 		builder
 			.append("select count(1) cnt from (")
-			.append(xDataSource.getQuery().getText()) //TODO
-			.append(")");
+			.append(processDynamicQuery(name, xDataSource.getQuery(), filters))
+			.append("\n)");
 
 		Map<String, Object> queryParams = appendWhere(filters, xDataSource, builder);
 
@@ -293,14 +300,12 @@ public class DataSourceService implements IDataSourceService {
 			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
 		}
 
-		//TODO check param & field name clash
 		List<String> nameClash = new ArrayList<>();
 		for (XDSParameter xdsParameter : xdsParameters) {
 			if (fieldsFromDB.contains(xdsParameter)) {
 				nameClash.add(xdsParameter.getName());
 			}
 		}
-
 		if (nameClash.size() > 0) {
 			throw new MetisException(MetisErrorCode.ParameterFieldNameClash, nameClash.toString());
 		}
@@ -352,7 +357,7 @@ public class DataSourceService implements IDataSourceService {
 													   Long pageSize) {
 		XDataSource xDataSource = getXDataSource(name);
 
-		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource);
+		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource, filters);
 
 		Map<String, Object> queryParams = appendWhere(filters, xDataSource, mainQueryBuilder);
 
@@ -408,7 +413,9 @@ public class DataSourceService implements IDataSourceService {
 		} else {
 			queryBuilder.append(dataSource.getKeyField());
 		}
-		queryBuilder.append(" from (").append(xDataSource.getQuery().getText()).append(")"); //TODO
+		queryBuilder.append(" from (")
+			.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), null))
+			.append("\n)");
 
 		try {
 			Long dbConnId = dataSource.getConnectionId();
@@ -428,7 +435,7 @@ public class DataSourceService implements IDataSourceService {
 		DataSource dataSource = getDataSource(name);
 
 		XDataSource xDataSource = getXDataSource(dataSource);
-		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource);
+		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource, null);
 
 		mainQueryBuilder.append(" where ").append(dataSource.getSelfRelPointerField()).append(" = :parentId");
 
@@ -455,7 +462,6 @@ public class DataSourceService implements IDataSourceService {
 	@Override
 	public String processQuery(Long dbConnId, XDSQueryMode mode, String query) {
 		String finalQuery = null;
-		//TODO apply FreeMarker for query modification
 
 		switch (mode) {
 			case Sql:
@@ -595,7 +601,7 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
-	private StringBuilder createSelectAndFrom(XDataSource xDataSource) {
+	private StringBuilder createSelectAndFrom(XDataSource xDataSource, Map<String, Object> params) {
 		List<XDSField> selectFields = new ArrayList<>();
 		for (XDSField field : xDataSource.getFields()) {
 			switch (field.getResultType()) {
@@ -615,8 +621,8 @@ public class DataSourceService implements IDataSourceService {
 
 		mainQueryBuilder
 			.append(" from (")
-			.append(xDataSource.getQuery().getText()) //TODO: the sql must be process by FreeMarker template engine
-			.append(")");
+			.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), params))
+			.append("\n)");
 		return mainQueryBuilder;
 	}
 
@@ -674,9 +680,10 @@ public class DataSourceService implements IDataSourceService {
 				}
 			}
 
-			// All params must be set in NPS, even its value is null
 			for (XDSParameter xdsParameter : dataSource.getParams()) {
-				queryParams.put(xdsParameter.getName(), filters.get(xdsParameter.getName()));
+				if (filters.containsKey(xdsParameter.getName()) || xdsParameter.getRequired()) {
+					queryParams.put(xdsParameter.getName(), filters.get(xdsParameter.getName()));
+				}
 			}
 		}
 
@@ -707,6 +714,21 @@ public class DataSourceService implements IDataSourceService {
 			throw new MetisException(MetisErrorCode.UnknownAlias, alias);
 		}
 		return map.get(alias);
+	}
+
+	private String processDynamicQuery(String name, XDSQuery xdsQuery, Map<String, Object> params) {
+		if (xdsQuery.getDynamic()) {
+			StringWriter out = new StringWriter();
+			try {
+				Template template = new Template(name, xdsQuery.getText(), freeMarkerCfg); //TODO cache template
+				template.process(params, out);
+				return out.toString();
+			} catch (Exception e) {
+				logger.warn("processDynamicQuery", e);
+				throw new MetisException(MetisErrorCode.DynamicQuery);
+			}
+		}
+		return xdsQuery.getText();
 	}
 
 

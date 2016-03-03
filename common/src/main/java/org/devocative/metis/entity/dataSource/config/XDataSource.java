@@ -1,6 +1,7 @@
 package org.devocative.metis.entity.dataSource.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import java.io.Serializable;
@@ -11,6 +12,9 @@ import java.util.Map;
 
 @XStreamAlias("dataSource")
 public class XDataSource implements Serializable {
+	@XStreamAsAttribute
+	private String name;
+
 	private XDSQuery query;
 
 	private List<XDSField> fields;
@@ -21,6 +25,14 @@ public class XDataSource implements Serializable {
 
 	@XStreamOmitField
 	private Long connectionInfoId;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 	// Has Default
 	public XDSQuery getQuery() {

@@ -10,6 +10,7 @@ import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.IUserService;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.demeter.web.component.grid.DDataGrid;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -24,7 +25,6 @@ import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.grid.OGrid;
-import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.html.WFloatTable;
@@ -36,7 +36,7 @@ import java.util.List;
 public class DataSourceList extends DPage {
 	private DataSourceFVO filter = new DataSourceFVO();
 
-	private WDataGrid<DataSource> grid;
+	private DDataGrid<DataSource> grid;
 
 	@Inject
 	private IDataSourceService dataSourceService;
@@ -64,7 +64,7 @@ public class DataSourceList extends DPage {
 		floatTable.add(new WDateRangeInput("modificationDate").setLabel(new ResourceModel("entity.modificationDate")));
 		floatTable.add(new WSelectionInput("modifierUser", users, true).setLabel(new ResourceModel("entity.modifierUser")));
 		form.add(floatTable);
-		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH){
+		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				grid.getDataSource().setEnabled(true);
@@ -98,7 +98,7 @@ public class DataSourceList extends DPage {
 			.setHeight(OSize.fixed(350))
 			.setWidth(OSize.percent(100));
 
-		add(grid = new WDataGrid<>("grid", oGrid, new WGridDataSource<DataSource>() {
+		add(grid = new DDataGrid<>("grid", oGrid, new WGridDataSource<DataSource>() {
 			@Override
 			public List<DataSource> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return dataSourceService.search(filter, pageIndex, pageSize);

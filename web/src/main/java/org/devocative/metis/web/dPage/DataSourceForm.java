@@ -13,8 +13,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.devocative.demeter.imodule.DModuleException;
 import org.devocative.demeter.web.DPage;
+import org.devocative.demeter.web.DemeterExceptionToMessageHandler;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.connection.DBConnection;
@@ -89,54 +89,42 @@ public class DataSourceForm extends DPage {
 		//TODO a review step
 
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
-			@Override
-			protected void onNext(AjaxRequestTarget target, String stepId) {
-				if ("query".equals(stepId)) {
-					setTitle(dataSource.getName());
+				@Override
+				protected void onNext(AjaxRequestTarget target, String stepId) {
+					if ("query".equals(stepId)) {
+						setTitle(dataSource.getName());
 
-					List<XDSParameter> list = dataSourceService.createParams(xdsQuery.getText(), xdsParams);
-					xdsParams.clear();
-					xdsParams.addAll(list);
+						List<XDSParameter> list = dataSourceService.createParams(xdsQuery.getText(), xdsParams);
+						xdsParams.clear();
+						xdsParams.addAll(list);
 
-				} else if ("params".equals(stepId)) {
-					List<XDSField> list = dataSourceService.createFields(
-						xdsFields,
-						xdsQuery,
-						dataSource.getConnection().getId(),
-						xdsParams
-					);
-					xdsFields.clear();
-					xdsFields.addAll(list);
-				}
-			}
-
-			@Override
-			protected void onFinish(AjaxRequestTarget target, String stepId) {
-				dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
-
-				UrlUtil.redirectTo(DataSourceExecutor.class, dataSource.getName());
-			}
-
-			@Override
-			protected void onError(AjaxRequestTarget target, String stepId, List<Serializable> errors) {
-				WMessager.show(getString("label.error"), errors, target);
-			}
-
-			@Override
-			protected void onException(AjaxRequestTarget target, String stepId, Exception e) {
-				if (e instanceof DModuleException) {
-					DModuleException de = (DModuleException) e;
-					String error = getString(de.getMessage(), null, de.getDefaultDescription());
-					if (de.getErrorParameter() != null) {
-						error += ": " + de.getErrorParameter();
+					} else if ("params".equals(stepId)) {
+						List<XDSField> list = dataSourceService.createFields(
+							xdsFields,
+							xdsQuery,
+							dataSource.getConnection().getId(),
+							xdsParams
+						);
+						xdsFields.clear();
+						xdsFields.addAll(list);
 					}
-					WMessager.show(getString("label.error", null, "Error"), error, target);
-				} else {
-					logger.error("onException", e);
-					super.onException(target, stepId, e);
 				}
-			}
-		}.setTitle(dataSource.getName()));
+
+				@Override
+				protected void onFinish(AjaxRequestTarget target, String stepId) {
+					dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
+
+					UrlUtil.redirectTo(DataSourceExecutor.class, dataSource.getName());
+				}
+
+				@Override
+				protected void onError(AjaxRequestTarget target, String stepId, List<Serializable> errors) {
+					WMessager.show(getString("label.error"), errors, target);
+				}
+
+			}.setTitle(dataSource.getName())
+				.setExceptionToMessageHandler(DemeterExceptionToMessageHandler.get())
+		);
 	}
 
 	private class InitStep extends WWizardStepPanel {
@@ -203,6 +191,8 @@ public class DataSourceForm extends DPage {
 				.setTitle("Query Editor")
 				.setWidth(OSize.percent(70))
 				.setHeight(OSize.fixed(800));
+
+			add(new CheckBox("dynamic", new PropertyModel<Boolean>(xdsQuery, "dynamic")));
 
 			add(new WCodeInput("query", new PropertyModel<String>(xdsQuery, "text"), oCode)
 				.setRequired(true)

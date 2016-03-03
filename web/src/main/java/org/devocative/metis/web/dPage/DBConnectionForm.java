@@ -14,6 +14,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DButton;
+import org.devocative.demeter.web.component.grid.DDataGrid;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.iservice.IDBConnectionGroupService;
@@ -26,7 +27,6 @@ import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.grid.OGrid;
-import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
@@ -163,7 +163,7 @@ public class DBConnectionForm extends DPage {
 			.setFit(true)
 		;
 
-		layout.add(new WDataGrid<>("grid", oGrid, new WGridDataSource<DBConnection>() {
+		layout.add(new DDataGrid<>("grid", oGrid, new WGridDataSource<DBConnection>() {
 			@Override
 			public List<DBConnection> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return connectionService.search(pageIndex, pageSize);

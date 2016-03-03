@@ -19,6 +19,7 @@ import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.demeter.web.component.grid.DDataGrid;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDataSourceService;
@@ -273,7 +274,7 @@ public class DataSourceExecutor extends DPage {
 				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
-			mainTable.add(grid = new WDataGrid<>("grid", gridOptions, gridDS));
+			mainTable.add(grid = new DDataGrid<>("grid", gridOptions, gridDS));
 		} else {
 			OTreeGrid<Map<String, Object>> gridOptions = new OTreeGrid<>();
 			gridOptions
