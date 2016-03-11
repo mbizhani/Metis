@@ -21,12 +21,12 @@ import org.devocative.metis.iservice.IDBConnectionGroupService;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
-import org.devocative.wickomp.data.WGridDataSource;
-import org.devocative.wickomp.data.WSortField;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.formatter.ODateFormatter;
+import org.devocative.wickomp.grid.IGridDataSource;
 import org.devocative.wickomp.grid.OGrid;
+import org.devocative.wickomp.grid.WSortField;
 import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
@@ -170,7 +170,7 @@ public class DBConnectionForm extends DPage {
 			.setFit(true)
 		;
 
-		layout.add(new DDataGrid<>("grid", oGrid, new WGridDataSource<DBConnection>() {
+		layout.add(new DDataGrid<>("grid", oGrid, new IGridDataSource<DBConnection>() {
 			@Override
 			public List<DBConnection> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return connectionService.search(pageIndex, pageSize);

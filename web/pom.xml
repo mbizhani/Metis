@@ -102,23 +102,18 @@
 		<plugins>
 			<!-- Jetty -->
 			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
+				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
 				<configuration>
-					<useTestClasspath>true</useTestClasspath>
+					<useTestScope>true</useTestScope>
 					<webAppSourceDirectory>src/test/webapp</webAppSourceDirectory>
-					<stopKey/>
-					<stopPort/>
 					<webApp>
 						<contextPath>${jetty.context}</contextPath>
 					</webApp>
-					<connectors>
-						<connector implementation="org.eclipse.jetty.server.bio.SocketConnector">
-							<port>8080</port>
-							<maxIdleTime>3600000</maxIdleTime>
-						</connector>
-					</connectors>
+					<httpConnector>
+						<port>8080</port>
+					</httpConnector>
 				</configuration>
 			</plugin>
 

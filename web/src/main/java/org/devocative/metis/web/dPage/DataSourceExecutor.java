@@ -25,8 +25,6 @@ import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
-import org.devocative.wickomp.data.WSortField;
-import org.devocative.wickomp.data.WTreeGridDataSource;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
 import org.devocative.wickomp.formatter.ODateFormatter;
@@ -58,7 +56,6 @@ public class DataSourceExecutor extends DPage {
 	@Inject
 	private ISecurityService securityService;
 
-	private SearchDataSource gridDS;
 	private Map<String, Object> filters;
 	private WBaseGrid<Map<String, Object>> grid;
 
@@ -100,8 +97,6 @@ public class DataSourceExecutor extends DPage {
 			title = String.format("%s (%s)", dataSource.getTitle(), dataSource.getName());
 
 			filters = new HashMap<>();
-			gridDS = new SearchDataSource();
-			gridDS.setEnabled(false);
 
 			String editUri = String.format("%s/%s", UrlUtil.createUri(DataSourceForm.class, true), dataSource.getName());
 			edit = new ExternalLink("edit", editUri);
@@ -222,7 +217,7 @@ public class DataSourceExecutor extends DPage {
 			protected void onSubmit(AjaxRequestTarget target) {
 				logger.info("Execute search [{}] with parameters (User={}): {}",
 					dataSource.getName(), securityService.getCurrentUser().getUsername(), filters);
-				gridDS.setEnabled(true);
+				grid.setEnabled(true);
 				grid.loadData(target);
 			}
 		});
@@ -274,7 +269,7 @@ public class DataSourceExecutor extends DPage {
 				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
-			mainTable.add(grid = new DDataGrid<>("grid", gridOptions, gridDS));
+			mainTable.add(grid = new DDataGrid<>("grid", gridOptions, new SearchDataSource()));
 		} else {
 			OTreeGrid<Map<String, Object>> gridOptions = new OTreeGrid<>();
 			gridOptions
@@ -283,9 +278,10 @@ public class DataSourceExecutor extends DPage {
 				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
-			mainTable.add(grid = new WTreeGrid<>("grid", gridOptions, gridDS));
+			mainTable.add(grid = new WTreeGrid<>("grid", gridOptions, new SearchDataSource()));
 		}
 
+		grid.setEnabled(false);
 		oBaseGrid
 			.setColumns(columns)
 			.setMultiSort(true)
@@ -342,7 +338,7 @@ public class DataSourceExecutor extends DPage {
 		return filtersCloned;
 	}
 
-	private class SearchDataSource extends WTreeGridDataSource<Map<String, Object>> {
+	private class SearchDataSource implements ITreeGridDataSource<Map<String, Object>> {
 		@Override
 		public List<Map<String, Object>> list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
 			return dataSourceService.executeDataSource(dataSource.getName(), getFilterMap(), getSortFieldsMap(sortFieldList),

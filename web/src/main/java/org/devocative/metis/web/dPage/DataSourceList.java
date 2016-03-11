@@ -18,13 +18,13 @@ import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.filter.DataSourceFVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
-import org.devocative.wickomp.data.WGridDataSource;
-import org.devocative.wickomp.data.WSortField;
 import org.devocative.wickomp.form.WDateRangeInput;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.formatter.ODateFormatter;
+import org.devocative.wickomp.grid.IGridDataSource;
 import org.devocative.wickomp.grid.OGrid;
+import org.devocative.wickomp.grid.WSortField;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.html.WFloatTable;
@@ -67,7 +67,7 @@ public class DataSourceList extends DPage {
 		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
-				grid.getDataSource().setEnabled(true);
+				grid.setEnabled(true);
 				grid.loadData(target);
 			}
 		});
@@ -98,7 +98,7 @@ public class DataSourceList extends DPage {
 			.setHeight(OSize.fixed(350))
 			.setWidth(OSize.percent(100));
 
-		add(grid = new DDataGrid<>("grid", oGrid, new WGridDataSource<DataSource>() {
+		add(grid = new DDataGrid<>("grid", oGrid, new IGridDataSource<DataSource>() {
 			@Override
 			public List<DataSource> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return dataSourceService.search(filter, pageIndex, pageSize);
@@ -113,6 +113,7 @@ public class DataSourceList extends DPage {
 			public IModel<DataSource> model(DataSource object) {
 				return new WModel<>(object);
 			}
-		}.setEnabled(false)));
+		}));
+		grid.setEnabled(false);
 	}
 }
