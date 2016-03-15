@@ -14,7 +14,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
-import org.devocative.demeter.web.DemeterExceptionToMessageHandler;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.connection.DBConnection;
@@ -123,7 +122,6 @@ public class DataSourceForm extends DPage {
 				}
 
 			}.setTitle(dataSource.getName())
-				.setExceptionToMessageHandler(DemeterExceptionToMessageHandler.get())
 		);
 	}
 

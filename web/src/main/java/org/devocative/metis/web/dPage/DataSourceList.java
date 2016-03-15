@@ -10,7 +10,6 @@ import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.IUserService;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
-import org.devocative.demeter.web.component.grid.DDataGrid;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -24,6 +23,7 @@ import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.grid.IGridDataSource;
 import org.devocative.wickomp.grid.OGrid;
+import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.WSortField;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
@@ -36,7 +36,7 @@ import java.util.List;
 public class DataSourceList extends DPage {
 	private DataSourceFVO filter = new DataSourceFVO();
 
-	private DDataGrid<DataSource> grid;
+	private WDataGrid<DataSource> grid;
 
 	@Inject
 	private IDataSourceService dataSourceService;
@@ -98,7 +98,7 @@ public class DataSourceList extends DPage {
 			.setHeight(OSize.fixed(350))
 			.setWidth(OSize.percent(100));
 
-		add(grid = new DDataGrid<>("grid", oGrid, new IGridDataSource<DataSource>() {
+		add(grid = new WDataGrid<>("grid", oGrid, new IGridDataSource<DataSource>() {
 			@Override
 			public List<DataSource> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return dataSourceService.search(filter, pageIndex, pageSize);
