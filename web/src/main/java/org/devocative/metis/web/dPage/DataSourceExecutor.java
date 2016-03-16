@@ -2,6 +2,7 @@ package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -14,17 +15,21 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
+import org.devocative.adroit.ObjectBuilder;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
-import org.devocative.demeter.web.component.grid.DDataGrid;
 import org.devocative.metis.entity.dataSource.DataSource;
 import org.devocative.metis.entity.dataSource.config.*;
 import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.metis.vo.async.DataSourceRVO;
+import org.devocative.metis.web.MetisDModule;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
+import org.devocative.wickomp.async.AsyncBehavior;
+import org.devocative.wickomp.async.IAsyncResponseHandler;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
 import org.devocative.wickomp.formatter.ODateFormatter;
@@ -45,9 +50,12 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class DataSourceExecutor extends DPage {
+public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceExecutor.class);
 
 	@Inject
@@ -58,6 +66,7 @@ public class DataSourceExecutor extends DPage {
 
 	private Map<String, Object> filters;
 	private WBaseGrid<Map<String, Object>> grid;
+	private AsyncBehavior asyncBehavior;
 
 	private DataSource dataSource;
 	private List<XDSField> xdsFieldList;
@@ -189,7 +198,7 @@ public class DataSourceExecutor extends DPage {
 									return
 										new DataSourceExecutor(selectionPanelId, dataSource)
 											.setSelectionJSCallback(getJSCallback())
-											.setEditVisible(false);
+											.setEditButtonVisible(false);
 								}
 
 								@Override
@@ -269,7 +278,7 @@ public class DataSourceExecutor extends DPage {
 				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
-			mainTable.add(grid = new DDataGrid<>("grid", gridOptions, new SearchDataSource()));
+			mainTable.add(grid = new WDataGrid<>("grid", gridOptions, new SearchDataSource()));
 		} else {
 			OTreeGrid<Map<String, Object>> gridOptions = new OTreeGrid<>();
 			gridOptions
@@ -278,10 +287,11 @@ public class DataSourceExecutor extends DPage {
 				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
-			mainTable.add(grid = new WTreeGrid<>("grid", gridOptions, new SearchDataSource()));
+			//mainTable.add(grid = new WTreeGrid<>("grid", gridOptions, new SearchDataSource()));
 		}
 
 		grid.setEnabled(false);
+
 		oBaseGrid
 			.setColumns(columns)
 			.setMultiSort(true)
@@ -297,8 +307,10 @@ public class DataSourceExecutor extends DPage {
 
 		if (!getWebRequest().getRequestParameters().getParameterValue("window").isEmpty()) {
 			oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
-			setEditVisible(false);
+			setEditButtonVisible(false);
 		}
+
+		add(asyncBehavior = new AsyncBehavior(this));
 	}
 
 	public DataSourceExecutor setSelectionJSCallback(String jsCallback) {
@@ -306,9 +318,15 @@ public class DataSourceExecutor extends DPage {
 		return this;
 	}
 
-	public DataSourceExecutor setEditVisible(boolean visible) {
+	public DataSourceExecutor setEditButtonVisible(boolean visible) {
 		edit.setVisible(visible);
 		return this;
+	}
+
+	@Override
+	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Serializable result) {
+		DataSourceRVO dataSourceRVO = (DataSourceRVO) result;
+		grid.pushData(handler, dataSourceRVO.getList(), dataSourceRVO.getCount());
 	}
 
 	private List<XDSAbstractField> getFieldForFilter() {
@@ -338,14 +356,38 @@ public class DataSourceExecutor extends DPage {
 		return filtersCloned;
 	}
 
-	private class SearchDataSource implements ITreeGridDataSource<Map<String, Object>> {
-		@Override
-		public List<Map<String, Object>> list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
-			return dataSourceService.executeDataSource(dataSource.getName(), getFilterMap(), getSortFieldsMap(sortFieldList),
-				pageIndex, pageSize);
-		}
+	private class SearchDataSource implements IGridAsyncDataSource<Map<String, Object>> {
+		//------------------------ IGridDataSource
 
 		@Override
+		public void list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
+			/*return dataSourceService.executeDataSource(dataSource.getName(), getFilterMap(), getSortFieldsMap(sortFieldList),
+				pageIndex, pageSize);*/
+			asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_SOURCE,
+				ObjectBuilder
+					.createMap(new HashMap<>())
+					.put("name", dataSource.getName())
+					.put("pageIndex", pageIndex)
+					.put("pageSize", pageSize)
+					.put("sortFieldList", getSortFieldsMap(sortFieldList))
+					.put("filter", getFilterMap())
+					.get()
+			);
+		}
+
+		/*@Override
+		public long count() {
+			return dataSourceService.getCountForDataSource(dataSource.getName(), getFilterMap());
+		}*/
+
+		@Override
+		public IModel<Map<String, Object>> model(final Map<String, Object> objectMap) {
+			return new WModel<>(objectMap);
+		}
+
+		//------------------------ ITreeGridDataSource
+
+		/*@Override
 		public List<Map<String, Object>> listByIds(Set<Serializable> ids, List<WSortField> sortFieldList) {
 			Map<String, Object> filters = new HashMap<>();
 			filters.put(dataSource.getKeyField(), ids);
@@ -362,17 +404,7 @@ public class DataSourceExecutor extends DPage {
 		@Override
 		public boolean hasChildren(Map<String, Object> bean) {
 			return true;
-		}
-
-		@Override
-		public long count() {
-			return dataSourceService.getCountForDataSource(dataSource.getName(), getFilterMap());
-		}
-
-		@Override
-		public IModel<Map<String, Object>> model(final Map<String, Object> objectMap) {
-			return new WModel<>(objectMap);
-		}
+		}*/
 
 		private Map<String, String> getSortFieldsMap(List<WSortField> sortFieldList) {
 			Map<String, String> sortFieldsMap = null;
