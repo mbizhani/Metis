@@ -1,4 +1,4 @@
-package org.devocative.metis.entity.dataSource;
+package org.devocative.metis.entity.data;
 
 import org.devocative.demeter.entity.*;
 import org.hibernate.envers.Audited;

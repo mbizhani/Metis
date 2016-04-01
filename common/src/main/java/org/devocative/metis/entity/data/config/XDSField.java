@@ -1,4 +1,4 @@
-package org.devocative.metis.entity.dataSource.config;
+package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;

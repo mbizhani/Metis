@@ -3,7 +3,7 @@ package org.devocative.metis.iservice;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XSchema;
-import org.devocative.metis.entity.dataSource.config.XDSField;
+import org.devocative.metis.entity.data.config.XDSField;
 import org.devocative.metis.vo.QueryResultVO;
 
 import java.io.Serializable;

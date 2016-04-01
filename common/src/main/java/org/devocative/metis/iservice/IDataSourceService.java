@@ -1,8 +1,8 @@
 package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
-import org.devocative.metis.entity.dataSource.DataSource;
-import org.devocative.metis.entity.dataSource.config.*;
+import org.devocative.metis.entity.data.DataSource;
+import org.devocative.metis.entity.data.config.*;
 import org.devocative.metis.vo.filter.DataSourceFVO;
 
 import java.io.Serializable;

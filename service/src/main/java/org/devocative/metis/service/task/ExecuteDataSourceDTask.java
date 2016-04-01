@@ -1,7 +1,7 @@
 package org.devocative.metis.service.task;
 
 import org.devocative.demeter.iservice.task.DTask;
-import org.devocative.metis.entity.dataSource.DataSource;
+import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.async.DataSourceRVO;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package org.devocative.metis.entity.dataSource;
+package org.devocative.metis.entity.data;
 
 import org.devocative.demeter.entity.*;
 import org.devocative.metis.entity.ConfigLob;
@@ -11,16 +11,16 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_datasrc")
+@Table(name = "t_mts_data_src")
 public class DataSource implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
-	@GeneratedValue(generator = "mts_datasrc")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_datasrc", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+	@GeneratedValue(generator = "mts_data_src")
+	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 		parameters = {
 			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
 			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
 			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_datasrc")
+			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_data_src")
 		})
 	private Long id;
 

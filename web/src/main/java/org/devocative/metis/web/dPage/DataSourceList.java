@@ -11,7 +11,7 @@ import org.devocative.demeter.iservice.IUserService;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
-import org.devocative.metis.entity.dataSource.DataSource;
+import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.filter.DataSourceFVO;

@@ -1,8 +1,8 @@
-package org.devocative.metis.entity.dataSource.config;
+package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import org.devocative.metis.entity.dataSource.DataSource;
+import org.devocative.metis.entity.data.DataSource;
 
 import java.io.Serializable;
 
