@@ -13,8 +13,9 @@
 		<entity type="org.devocative.metis.entity.ConfigLob"/>
 		<entity type="org.devocative.metis.entity.connection.DBConnection"/>
 		<entity type="org.devocative.metis.entity.connection.DBConnectionGroup"/>
-		<entity type="org.devocative.metis.entity.dataSource.DataSource"/>
-		<entity type="org.devocative.metis.entity.dataSource.DataSourceRelation"/>
+		<entity type="org.devocative.metis.entity.data.DataSource"/>
+		<entity type="org.devocative.metis.entity.data.DataSourceRelation"/>
+		<entity type="org.devocative.metis.entity.data.DataView"/>
 	</entities>
 
 	<dPages>
