@@ -61,4 +61,20 @@ public class XDVField implements Serializable {
 	public void setFooter(List<XDVAggregatorFunction> footer) {
 		this.footer = footer;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof XDVField)) return false;
+
+		XDVField xdvField = (XDVField) o;
+
+		return !(getName() != null ? !getName().equals(xdvField.getName()) : xdvField.getName() != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		return getName() != null ? getName().hashCode() : 0;
+	}
 }

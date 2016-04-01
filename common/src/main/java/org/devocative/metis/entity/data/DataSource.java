@@ -27,8 +27,8 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "c_name", nullable = false, unique = true)
 	private String name;
 
-	@Column(name = "c_title", nullable = false)
-	private String title;
+	/*@Column(name = "c_title", nullable = false)
+	private String title;*/
 
 	@Column(name = "c_key_field")
 	private String keyField;
@@ -106,14 +106,6 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
 	}
 
 	public String getKeyField() {

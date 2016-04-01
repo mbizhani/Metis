@@ -28,4 +28,23 @@ public class XDVDetail implements Serializable {
 	public void setDataView(String dataView) {
 		this.dataView = dataView;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof XDVDetail)) return false;
+
+		XDVDetail xdvDetail = (XDVDetail) o;
+
+		if (getLevel() != null ? !getLevel().equals(xdvDetail.getLevel()) : xdvDetail.getLevel() != null) return false;
+		return !(getDataView() != null ? !getDataView().equals(xdvDetail.getDataView()) : xdvDetail.getDataView() != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = getLevel() != null ? getLevel().hashCode() : 0;
+		result = 31 * result + (getDataView() != null ? getDataView().hashCode() : 0);
+		return result;
+	}
 }
