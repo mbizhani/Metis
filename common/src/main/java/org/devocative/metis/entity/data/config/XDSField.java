@@ -6,12 +6,15 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 @XStreamAlias("field")
 public class XDSField extends XDSAbstractField {
+	@Deprecated
 	@XStreamAsAttribute
 	private String format;
 
+	@Deprecated
 	@XStreamAsAttribute
 	private Boolean inFilterPanel;
 
+	@Deprecated
 	@XStreamAsAttribute
 	private XDSFieldResultType resultType;
 
@@ -26,25 +29,31 @@ public class XDSField extends XDSAbstractField {
 
 	// -- Volatile Fields
 
+	@Deprecated
 	@XStreamOmitField
 	private String dbType;
 
+	@Deprecated
 	@XStreamOmitField
 	private Integer dbSize;
 
+	@Deprecated
 	public String getFormat() {
 		return format;
 	}
 
+	@Deprecated
 	public XDSField setFormat(String format) {
 		this.format = format;
 		return this;
 	}
 
+	@Deprecated
 	public Boolean getInFilterPanel() {
 		return inFilterPanel;
 	}
 
+	@Deprecated
 	public XDSField setInFilterPanel(Boolean inFilterPanel) {
 		this.inFilterPanel = inFilterPanel;
 		return this;
@@ -89,19 +98,23 @@ public class XDSField extends XDSAbstractField {
 
 	// ---------------------- VOLATILE PROPERTIES
 
+	@Deprecated
 	public String getDbType() {
 		return dbType;
 	}
 
+	@Deprecated
 	public XDSField setDbType(String dbType) {
 		this.dbType = dbType;
 		return this;
 	}
 
+	@Deprecated
 	public Integer getDbSize() {
 		return dbSize;
 	}
 
+	@Deprecated
 	public XDSField setDbSize(Integer dbSize) {
 		this.dbSize = dbSize;
 		return this;
