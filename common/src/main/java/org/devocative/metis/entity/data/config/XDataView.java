@@ -12,7 +12,7 @@ public class XDataView implements Serializable {
 	private String name;
 
 	@XStreamAsAttribute
-	private String dataSource;
+	private String dataSourceName;
 
 	private List<XDVField> fields;
 
@@ -26,12 +26,12 @@ public class XDataView implements Serializable {
 		this.name = name;
 	}
 
-	public String getDataSource() {
-		return dataSource;
+	public String getDataSourceName() {
+		return dataSourceName;
 	}
 
-	public void setDataSource(String dataSource) {
-		this.dataSource = dataSource;
+	public void setDataSourceName(String dataSourceName) {
+		this.dataSourceName = dataSourceName;
 	}
 
 	public List<XDVField> getFields() {

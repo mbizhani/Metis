@@ -91,6 +91,17 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
+	//----------------------------- CONSTRUCTORS
+
+	public DBConnection() {
+	}
+
+	public DBConnection(Long id) {
+		this.id = id;
+	}
+
+	//----------------------------- ACCESSORS
+
 	public Long getId() {
 		return id;
 	}
