@@ -1,19 +1,29 @@
 package org.devocative.metis.vo;
 
+import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.data.config.XDSQuery;
 import org.devocative.metis.entity.data.config.XDVDetail;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataVO implements Serializable {
+	private Long dataViewId;
+
+	private Long dataSourceId;
+
+	private Long dbConnectionId;
+
+	private Boolean dbConnectionHasMapping = false;
+
+	// ----
+
 	private String name;
 
 	private String title;
 
-	private String dataSource;
-
-	private Long connectionInfoId;
+	private String dataSourceName;
 
 	private XDSQuery query;
 
@@ -22,6 +32,50 @@ public class DataVO implements Serializable {
 	private List<DataParameterVO> params;
 
 	private List<XDVDetail> details;
+
+	// --------------------- ACCESSORS
+
+	public Long getDataViewId() {
+		return dataViewId;
+	}
+
+	public void setDataViewId(Long dataViewId) {
+		this.dataViewId = dataViewId;
+	}
+
+	public Long getDataSourceId() {
+		return dataSourceId;
+	}
+
+	public void setDataSourceId(Long dataSourceId) {
+		this.dataSourceId = dataSourceId;
+	}
+
+	public Long getDbConnectionId() {
+		return dbConnectionId;
+	}
+
+	public void setDbConnectionId(Long dbConnectionId) {
+		this.dbConnectionId = dbConnectionId;
+	}
+
+	public Boolean getDbConnectionHasMapping() {
+		return dbConnectionHasMapping;
+	}
+
+	public void setDbConnectionHasMapping(Boolean dbConnectionHasMapping) {
+		this.dbConnectionHasMapping = dbConnectionHasMapping;
+	}
+
+	public DBConnection getConnection() {
+		return getDbConnectionId() != null ? new DBConnection(getDbConnectionId()) : null;
+	}
+
+	public void setConnection(DBConnection connection) {
+		setDbConnectionId(connection.getId());
+	}
+
+	// ----
 
 	public String getName() {
 		return name;
@@ -39,20 +93,12 @@ public class DataVO implements Serializable {
 		this.title = title;
 	}
 
-	public String getDataSource() {
-		return dataSource;
+	public String getDataSourceName() {
+		return dataSourceName;
 	}
 
-	public void setDataSource(String dataSource) {
-		this.dataSource = dataSource;
-	}
-
-	public Long getConnectionInfoId() {
-		return connectionInfoId;
-	}
-
-	public void setConnectionInfoId(Long connectionInfoId) {
-		this.connectionInfoId = connectionInfoId;
+	public void setDataSourceName(String dataSourceName) {
+		this.dataSourceName = dataSourceName;
 	}
 
 	public XDSQuery getQuery() {
@@ -72,6 +118,9 @@ public class DataVO implements Serializable {
 	}
 
 	public List<DataParameterVO> getParams() {
+		if (params == null) {
+			params = new ArrayList<>();
+		}
 		return params;
 	}
 

@@ -24,6 +24,8 @@ public class DataFieldVO extends DataAbstractFieldVO {
 
 	private List<XDVAggregatorFunction> footer;
 
+	// --------------------- ACCESSORS
+
 	public Boolean getIsKeyField() {
 		return isKeyField;
 	}

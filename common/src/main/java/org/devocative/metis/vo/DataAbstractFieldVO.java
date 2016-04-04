@@ -19,6 +19,8 @@ public abstract class DataAbstractFieldVO implements Serializable {
 
 	private Long targetId;
 
+	// --------------------- ACCESSORS
+
 	public String getName() {
 		return name;
 	}
