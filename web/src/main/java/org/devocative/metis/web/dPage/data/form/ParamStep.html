@@ -1,0 +1,44 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+	<div wicket:id="messageWhenNoParam"></div>
+
+	<table wicket:id="table" class="dmt-simple" cellpadding="5">
+		<thead>
+		<tr>
+			<td>
+				<wicket:message key="XDSField.name"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.title"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.type"/>
+			</td>
+			<td>
+				<wicket:message key="XDSField.required"/>
+			</td>
+			<td>
+				<wicket:message key="XDSParameter.sampleData"/>
+			</td>
+		</tr>
+		</thead>
+		<tbody>
+		<tr wicket:id="params">
+			<td wicket:id="name"></td>
+			<td>
+				<div wicket:id="title"></div>
+			</td>
+			<td>
+				<div wicket:id="type"></div>
+			</td>
+			<td align="center">
+				<input type="checkbox" wicket:id="required"/>
+			</td>
+			<td>
+				<div wicket:id="sampleData"></div>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</wicket:panel>
+</html>
