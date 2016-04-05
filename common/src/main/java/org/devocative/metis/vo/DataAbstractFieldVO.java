@@ -7,16 +7,36 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import java.io.Serializable;
 
 public abstract class DataAbstractFieldVO implements Serializable {
+	/**
+	 * XDSAbstractField.name
+	 * XDVField.name
+	 */
 	private String name;
 
+	/**
+	 * XDSAbstractField.title
+	 */
 	private String title;
 
+	/**
+	 * XDSAbstractField.required
+	 */
 	private Boolean required;
 
+	/**
+	 * XDSAbstractField.type
+	 */
 	private XDSFieldType type;
 
+	/**
+	 * XDSAbstractField.filterType
+	 */
 	private XDSFieldFilterType filterType;
 
+	/**
+	 * XDSAbstractField.targetId
+	 * TODO: it must be targetDSName or targetDVName
+	 */
 	private Long targetId;
 
 	// --------------------- ACCESSORS

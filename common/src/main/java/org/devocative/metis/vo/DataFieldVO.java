@@ -6,22 +6,43 @@ import org.devocative.metis.entity.data.config.XDVAggregatorFunction;
 import java.util.List;
 
 public class DataFieldVO extends DataAbstractFieldVO {
+	/**
+	 * XDSField.isKeyField
+	 */
 	private Boolean isKeyField;
 
+	/**
+	 * XDSField.isTitleField
+	 */
 	private Boolean isTitleField;
 
+	/**
+	 * XDSField.isSelfRelPointerField
+	 */
 	private Boolean isSelfRelPointerField;
 
 	private String dbType;
 
 	private Integer dbSize;
 
+	/**
+	 * XDVField.format
+	 */
 	private String format;
 
+	/**
+	 * XDVField.inFilterPanel
+	 */
 	private Boolean inFilterPanel;
 
+	/**
+	 * XDVField.resultType
+	 */
 	private XDSFieldResultType resultType;
 
+	/**
+	 * XDVField.footer
+	 */
 	private List<XDVAggregatorFunction> footer;
 
 	// --------------------- ACCESSORS

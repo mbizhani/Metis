@@ -9,28 +9,61 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataVO implements Serializable {
+	/**
+	 * DataView.id
+	 */
 	private Long dataViewId;
 
+	/**
+	 * DataSource.id
+	 */
 	private Long dataSourceId;
 
+	/**
+	 * DataSource.connectionId
+	 */
 	private Long dbConnectionId;
 
+	/**
+	 * DataSource.connection.configId != null
+	 */
 	private Boolean dbConnectionHasMapping = false;
 
 	// ----
 
+	/**
+	 * XDataView.name = DataView.name
+	 */
 	private String name;
 
+	/**
+	 * DataView.title
+	 */
 	private String title;
 
+	/**
+	 * XDataView.dataSourceName
+	 */
 	private String dataSourceName;
 
+	/**
+	 * XDataSource.query
+	 */
 	private XDSQuery query;
 
+	/**
+	 * merge of XDataView.fields & XDataSource.fields
+	 */
 	private List<DataFieldVO> fields;
 
+	/**
+	 * XDataSource.params
+	 */
 	private List<DataParameterVO> params;
 
+	/**
+	 * XDataView.details
+	 */
 	private List<XDVDetail> details;
 
 	// --------------------- ACCESSORS

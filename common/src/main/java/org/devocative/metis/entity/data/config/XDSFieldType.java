@@ -18,4 +18,8 @@ public enum XDSFieldType {
 	public XDSFieldFilterType[] getProperFilterTypes() {
 		return properFilterTypes;
 	}
+
+	public boolean isNumerical() {
+		return this == Integer || this == Real;
+	}
 }

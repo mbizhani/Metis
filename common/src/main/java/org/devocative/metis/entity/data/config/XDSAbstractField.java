@@ -22,6 +22,7 @@ public abstract class XDSAbstractField implements Serializable {
 	@XStreamAsAttribute
 	protected XDSFieldFilterType filterType;
 
+	// TODO: it must be targetDSName or targetDVName
 	@XStreamAsAttribute
 	protected Long targetId;
 
