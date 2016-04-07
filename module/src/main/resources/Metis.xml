@@ -29,6 +29,11 @@
 			   uri="/dsForm"
 			   inMenu="true"/>
 
+		<dPage type="org.devocative.metis.web.dPage.data.form.DataViewFormDPage"
+			   title="ASD"
+			   uri="dform"
+			   inMenu="true"/>
+
 		<dPage type="org.devocative.metis.web.dPage.DataSourceList"
 			   title="KEY:dPage.mts.DataSourceList"
 			   uri="/dsList"

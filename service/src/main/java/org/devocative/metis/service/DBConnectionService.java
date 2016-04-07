@@ -14,9 +14,9 @@ import org.devocative.metis.entity.connection.mapping.XMany2One;
 import org.devocative.metis.entity.connection.mapping.XOne2Many;
 import org.devocative.metis.entity.connection.mapping.XProperty;
 import org.devocative.metis.entity.connection.mapping.XSchema;
-import org.devocative.metis.entity.data.config.XDSField;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.QueryResultVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +110,8 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public List<XDSField> getFields(Long dbConnId, String sql, Map<String, Object> params) throws SQLException {
-		List<XDSField> result = new ArrayList<>();
+	public List<DataFieldVO> getFields(Long dbConnId, String sql, Map<String, Object> params) throws SQLException {
+		List<DataFieldVO> result = new ArrayList<>();
 
 		try (Connection connection = getConnection(dbConnId)) {
 			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, getSchemaForDB(dbConnId));
@@ -121,25 +121,23 @@ public class DBConnectionService implements IDBConnectionService {
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
 			for (int i = 1; i <= metaData.getColumnCount(); i++) {
-				XDSField field = new XDSField();
-				field
-					.setDbType(metaData.getColumnTypeName(i))
-					.setDbSize(metaData.getColumnDisplaySize(i))
-					.setName(metaData.getColumnName(i))
-				;
+				DataFieldVO fieldVO = new DataFieldVO();
+				fieldVO.setDbType(metaData.getColumnTypeName(i));
+				fieldVO.setDbSize(metaData.getColumnDisplaySize(i));
+				fieldVO.setName(metaData.getColumnName(i));
 
 				if (STRING_TYPES.contains(metaData.getColumnType(i))) {
-					field.setType(XDSFieldType.String);
+					fieldVO.setType(XDSFieldType.String);
 				} else if (DATE_TYPES.contains(metaData.getColumnType(i))) {
-					field.setType(XDSFieldType.Date);
+					fieldVO.setType(XDSFieldType.Date);
 				} else if (INTEGER_TYPES.contains(metaData.getColumnType(i))) {
-					field.setType(XDSFieldType.Integer);
+					fieldVO.setType(XDSFieldType.Integer);
 				} else if (REAL_TYPES.contains(metaData.getColumnType(i))) {
-					field.setType(XDSFieldType.Real);
+					fieldVO.setType(XDSFieldType.Real);
 				} else {
 					logger.warn("Unknown type: name={}, id={}", metaData.getColumnTypeName(i), metaData.getColumnType(i));
 				}
-				result.add(field);
+				result.add(fieldVO);
 			}
 			nps.close();
 		}

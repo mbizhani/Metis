@@ -20,51 +20,32 @@ import java.util.Arrays;
 
 class ColumnDefStep extends WWizardStepPanel {
 	private DataVO dataVO;
-	private boolean newDataSource;
 
-	public ColumnDefStep(DataVO dataVO, boolean newDataSource) {
+	public ColumnDefStep(DataVO dataVO) {
 		this.dataVO = dataVO;
-		this.newDataSource = newDataSource;
 	}
 
 	@Override
 	protected void onInit() {
-		setEnabled(newDataSource);
+		setEnabled(dataVO.isDataSourceEnabled());
+
 
 		add(new ListView<DataFieldVO>("fields", dataVO.getFields()) {
 			@Override
 			protected void populateItem(ListItem<DataFieldVO> item) {
 				DataFieldVO fieldVO = item.getModelObject();
 
-
 				final WSelectionInput type, filterType;
-				//final CheckBox required;
 
 				item.add(new Label("name", fieldVO.getName()));
 				item.add(new Label("dbType", fieldVO.getDbType()));
 				item.add(new Label("dbSize", fieldVO.getDbSize()));
 				item.add(new WTextInput("title", new PropertyModel<String>(fieldVO, "title")).setLabelVisible(false));
-				item.add(type = new WSelectionInput("type", new PropertyModel<String>(fieldVO, "type"), Arrays.asList(XDSFieldType.values()), false));
-
+				item.add(type = new WSelectionInput("type", new PropertyModel<String>(fieldVO, "type"),
+					Arrays.asList(XDSFieldType.values()), false));
 				item.add(new CheckBox("required", new PropertyModel<Boolean>(fieldVO, "required")));
-				item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(fieldVO, "filterType"), Arrays.asList(fieldVO.getType().getProperFilterTypes()), false));
-				/*item.add(new AjaxCheckBox("inFilterPanel", new PropertyModel<Boolean>(fieldVO, "inFilterPanel")) {
-					@Override
-					protected void onUpdate(AjaxRequestTarget target) {
-						IModel<?> defaultModel = getDefaultModel();
-						Boolean bool = (Boolean) defaultModel.getObject();
-						if (bool == null) {
-							bool = false;
-						}
-						target.add(required.setVisible(bool));
-						target.add(filterType.setVisible(bool));
-					}
-				});*/
-
-				/*item.add(new WSelectionInput("resultType", new PropertyModel<String>(fieldVO, "resultType"), Arrays.asList(XDSFieldResultType.values()), false)
-					.setLabelVisible(false)
-					.setRequired(true)
-					.setLabel(new Model<>(getString("XDSField.resultType") + " " + fieldVO.getName())));*/
+				item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(fieldVO, "filterType"),
+					Arrays.asList(fieldVO.getType().getProperFilterTypes()), false));
 				item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(fieldVO, "isKeyField"))
 					.add(new AttributeModifier("group", "isKeyField")));
 				item.add(new CheckBox("isTitleField", new PropertyModel<Boolean>(fieldVO, "isTitleField"))
@@ -80,7 +61,6 @@ class ColumnDefStep extends WWizardStepPanel {
 					}
 				});
 
-				boolean needFilter = fieldVO.getInFilterPanel() != null && fieldVO.getInFilterPanel();
 				type
 					.setLabelVisible(false)
 					.setRequired(true)
@@ -88,14 +68,8 @@ class ColumnDefStep extends WWizardStepPanel {
 				filterType
 					.setLabelVisible(false)
 					.setLabel(new Model<>(getString("XDSField.filterType") + " " + fieldVO.getName()))
-					.setRequired(needFilter)
-					.setVisible(needFilter)
-					.setOutputMarkupId(true)
-					.setOutputMarkupPlaceholderTag(true);
-				/*required
-					.setOutputMarkupId(true)
-					.setOutputMarkupPlaceholderTag(true)
-					.setVisible(needFilter);*/
+					.setRequired(true)
+					.setOutputMarkupId(true);
 			}
 		});
 	}

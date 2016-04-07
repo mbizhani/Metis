@@ -1,6 +1,7 @@
 package org.devocative.metis.vo;
 
 import org.devocative.metis.entity.data.DataSource;
+import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 
@@ -34,10 +35,14 @@ public abstract class DataAbstractFieldVO implements Serializable {
 	private XDSFieldFilterType filterType;
 
 	/**
-	 * XDSAbstractField.targetId
-	 * TODO: it must be targetDSName or targetDVName
+	 * XDSAbstractField.targetDSName
 	 */
-	private Long targetId;
+	private String targetDSName;
+
+	/**
+	 * XDVAbstractField.targetDVName
+	 */
+	private String targetDVName;
 
 	// --------------------- ACCESSORS
 
@@ -81,20 +86,36 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		this.filterType = filterType;
 	}
 
-	public Long getTargetId() {
-		return targetId;
+	public String getTargetDSName() {
+		return targetDSName;
 	}
 
-	public void setTargetId(Long targetId) {
-		this.targetId = targetId;
+	public void setTargetDSName(String targetDSName) {
+		this.targetDSName = targetDSName;
 	}
 
-	public DataSource getTarget() {
-		return new DataSource(getTargetId());
+	public DataSource getTargetDS() {
+		return new DataSource(getTargetDSName());
 	}
 
-	public void setTarget(DataSource target) {
-		setTargetId(target.getId());
+	public void setTargetDS(DataSource target) {
+		setTargetDSName(target.getName());
+	}
+
+	public String getTargetDVName() {
+		return targetDVName;
+	}
+
+	public void setTargetDVName(String targetDVName) {
+		this.targetDVName = targetDVName;
+	}
+
+	public DataView getTargetDV() {
+		return new DataView(getTargetDVName());
+	}
+
+	public void setTargetDV(DataView dataView) {
+		setTargetDVName(dataView.getName());
 	}
 
 	@Override
@@ -111,5 +132,10 @@ public abstract class DataAbstractFieldVO implements Serializable {
 	@Override
 	public int hashCode() {
 		return getName() != null ? getName().hashCode() : 0;
+	}
+
+	@Override
+	public String toString() {
+		return getName() != null ? getName() : "[?]";
 	}
 }

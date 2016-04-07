@@ -21,7 +21,6 @@ import java.util.List;
 
 class DefineLookupStep extends WWizardStepPanel {
 	private DataVO dataVO;
-	private boolean newDataSource;
 
 	private List<DataAbstractFieldVO> lookupFields = new ArrayList<>();
 	private List<DataSource> dataSourceList = new ArrayList<>();
@@ -35,13 +34,14 @@ class DefineLookupStep extends WWizardStepPanel {
 	@Inject
 	private IDataSourceService dataSourceService;
 
-	public DefineLookupStep(DataVO dataVO, boolean newDataSource) {
+	public DefineLookupStep(DataVO dataVO) {
 		this.dataVO = dataVO;
-		this.newDataSource = newDataSource;
 	}
 
 	@Override
 	protected void onInit() {
+		setEnabled(dataVO.isDataSourceEnabled());
+
 		table = new WebMarkupContainer("table");
 		add(table);
 
@@ -49,12 +49,9 @@ class DefineLookupStep extends WWizardStepPanel {
 			@Override
 			protected void populateItem(ListItem<DataAbstractFieldVO> item) {
 				DataAbstractFieldVO fieldVO = item.getModelObject();
-				if (fieldVO.getTargetId() != null) {
-					fieldVO.setTarget(new DataSource(fieldVO.getTargetId()));
-				}
 
 				item.add(new Label("name", fieldVO.getName()));
-				item.add(new WSelectionInput("dataSources", new PropertyModel(fieldVO, "target"),
+				item.add(new WSelectionInput("targetDS", new PropertyModel(fieldVO, "targetDS"),
 					dataSourceList, false)
 					.setLabelVisible(false)
 					.setRequired(true)

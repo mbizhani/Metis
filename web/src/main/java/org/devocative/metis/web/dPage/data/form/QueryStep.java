@@ -8,6 +8,7 @@ import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
@@ -26,11 +27,13 @@ import java.util.Map;
 
 class QueryStep extends WWizardStepPanel {
 	private DataVO dataVO;
-	private boolean newDataSource;
 
 	private WAjaxButton showSQL;
 	private OCode oCode = new OCode(OCodeMode.SQL);
 	private WModalWindow modalWindow;
+
+	@Inject
+	private IDataService dataService;
 
 	@Inject
 	private IDataSourceService dataSourceService;
@@ -38,9 +41,15 @@ class QueryStep extends WWizardStepPanel {
 	@Inject
 	private IDBConnectionService connectionService;
 
-	public QueryStep(DataVO dataVO, boolean newDataSource) {
+	public QueryStep(DataVO dataVO) {
 		this.dataVO = dataVO;
-		this.newDataSource = newDataSource;
+	}
+
+	@Override
+	public void onStepSubmit() {
+		if (dataVO.isDataSourceEnabled()) {
+			dataService.updateParamsByQuery(dataVO.getQuery().getText(), dataVO.getParams());
+		}
 	}
 
 	@Override
@@ -53,7 +62,7 @@ class QueryStep extends WWizardStepPanel {
 			.setHeight(OSize.fixed(800));
 
 		add(new CheckBox("dynamic", new PropertyModel<Boolean>(dataVO.getQuery(), "dynamic"))
-			.setEnabled(newDataSource));
+			.setEnabled(dataVO.isDataSourceEnabled()));
 
 		add(new WCodeInput("query", new PropertyModel<String>(dataVO.getQuery(), "text"), oCode)
 			.setRequired(true)
@@ -97,6 +106,6 @@ class QueryStep extends WWizardStepPanel {
 			oCode.setHintOptions(null);
 		}
 
-		showSQL.setVisible(dataVO.getQuery().getMode() != XDSQueryMode.Sql);
+		//showSQL.setVisible(dataVO.getQuery().getMode() != XDSQueryMode.Sql);
 	}
 }

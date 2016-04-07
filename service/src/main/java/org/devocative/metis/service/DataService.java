@@ -3,12 +3,16 @@ package org.devocative.metis.service;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.MetisErrorCode;
+import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.entity.data.config.XDataView;
+import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataService;
+import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
@@ -16,8 +20,11 @@ import org.devocative.metis.vo.DataVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +35,12 @@ public class DataService implements IDataService {
 
 	@Autowired
 	private IPersistorService persistorService;
+
+	@Autowired
+	private IDBConnectionService dbConnectionService;
+
+	@Autowired
+	private IDataSourceService dataSourceService;
 
 	{
 		dsXStream = new XStream();
@@ -51,6 +64,7 @@ public class DataService implements IDataService {
 			result = new DataVO();
 
 			XDataView xDataView = (XDataView) dvXStream.fromXML(dataView.getConfig().getValue());
+			result.setTitle(dataView.getTitle());
 
 			updateDataVOByDataSource(result, xDataView.getDataSourceName());
 			result.setDataViewId(dataView.getId());
@@ -66,6 +80,7 @@ public class DataService implements IDataService {
 		XDataSource xDataSource = (XDataSource) dsXStream.fromXML(dataSource.getConfig().getValue());
 
 		dataVO.setDataSourceId(dataSource.getId());
+		dataVO.setDataSourceName(dataSource.getName());
 		dataVO.setDbConnectionId(dataSource.getConnectionId());
 		dataVO.setDbConnectionHasMapping(dataSource.getConnection().getSafeConfigId() != null);
 
@@ -104,27 +119,86 @@ public class DataService implements IDataService {
 		return result;
 	}
 
-	public List<DataParameterVO> createParams(String query, List<DataParameterVO> currentParams) {
-		List<DataParameterVO> result = new ArrayList<>();
+	@Override
+	public void updateParamsByQuery(String query, List<DataParameterVO> currentParams) {
+		List<DataParameterVO> temp = new ArrayList<>();
+
 		Pattern p = Pattern.compile("(['].*?['])|[:]([\\w\\d_]+)");
 		Matcher matcher = p.matcher(query);
+
 		while (matcher.find()) {
 			if (matcher.group(1) == null) {
 				String param = matcher.group(2).toLowerCase();
 
 				DataParameterVO parameterVO = new DataParameterVO();
 				parameterVO.setName(param);
-				parameterVO.setRequired(true);
 
 				int idx = currentParams.indexOf(parameterVO);
-				if (idx > -1) {
-					result.add(currentParams.get(idx));
+				if (idx < 0) {
+					temp.add(parameterVO);
 				} else {
-					result.add(parameterVO);
+					temp.add(currentParams.get(idx));
 				}
 			}
 		}
-		return result;
+
+		currentParams.clear();
+		currentParams.addAll(temp);
+	}
+
+	@Override
+	public void updateFieldsByQuery(DataVO dataVO) {
+		List<DataFieldVO> temp = new ArrayList<>();
+		List<DataFieldVO> fieldsFromDB;
+		try {
+			Map<String, Object> params = new HashMap<>();
+			for (DataParameterVO paramVO : dataVO.getParams()) {
+				params.put(paramVO.getName(), paramVO.getSampleData());
+			}
+
+			String sql = dataSourceService.processQuery(
+				dataVO.getDbConnectionId(),
+				dataVO.getQuery().getMode(),
+				dataVO.getQuery().getText()
+			);
+
+			fieldsFromDB = dbConnectionService.getFields(
+				dataVO.getDbConnectionId(),
+				sql,
+				params);
+		} catch (SQLException e) {
+			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
+		}
+
+		List<String> nameClash = new ArrayList<>();
+		for (DataParameterVO paramVO : dataVO.getParams()) {
+			if (fieldsFromDB.contains(paramVO)) {
+				nameClash.add(paramVO.getName());
+			}
+		}
+		if (nameClash.size() > 0) {
+			throw new MetisException(MetisErrorCode.ParameterFieldNameClash, nameClash.toString());
+		}
+
+		for (DataFieldVO fieldFromDB : fieldsFromDB) {
+			int i = dataVO.getFields().indexOf(fieldFromDB);
+			if (i > -1) {
+				DataFieldVO currentField = dataVO.getFields().get(i);
+				currentField.setDbType(fieldFromDB.getDbType());
+				currentField.setDbSize(fieldFromDB.getDbSize());
+				temp.add(currentField);
+			} else {
+				temp.add(fieldFromDB);
+			}
+		}
+
+		dataVO.getFields().clear();
+		dataVO.getFields().addAll(temp);
+	}
+
+	@Override
+	public void saveOrUpdate(DataVO dataVO) {
+
 	}
 
 	private DataSource getDataSource(String name) {

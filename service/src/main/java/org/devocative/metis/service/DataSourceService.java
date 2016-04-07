@@ -281,6 +281,8 @@ public class DataSourceService implements IDataSourceService {
 	@Override
 	public List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId,
 									   List<XDSParameter> xdsParameters) {
+		throw new RuntimeException("Not Implemeted!");
+		/*
 		List<XDSField> result = new ArrayList<>();
 		List<XDSField> fieldsFromDB;
 		try {
@@ -322,7 +324,7 @@ public class DataSourceService implements IDataSourceService {
 				result.add(fieldFromDB);
 			}
 		}
-		return result;
+		return result;*/
 	}
 
 	@Override

@@ -3,7 +3,7 @@ package org.devocative.metis.iservice;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XSchema;
-import org.devocative.metis.entity.data.config.XDSField;
+import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.QueryResultVO;
 
 import java.io.Serializable;
@@ -23,7 +23,7 @@ public interface IDBConnectionService {
 
 	DBConnection getByName(String name);
 
-	List<XDSField> getFields(Long id, String sql, Map<String, Object> params) throws SQLException;
+	List<DataFieldVO> getFields(Long id, String sql, Map<String, Object> params) throws SQLException;
 
 	Connection getConnection(Long id);
 

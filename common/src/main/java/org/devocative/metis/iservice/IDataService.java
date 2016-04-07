@@ -1,6 +1,7 @@
 package org.devocative.metis.iservice;
 
 import org.devocative.metis.vo.DataAbstractFieldVO;
+import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
 
 import java.util.List;
@@ -13,4 +14,10 @@ public interface IDataService {
 	List<DataAbstractFieldVO> findFilteringFields(DataVO dataVO);
 
 	List<DataAbstractFieldVO> findLookUpFields(DataVO dataVO);
+
+	void updateParamsByQuery(String query, List<DataParameterVO> existingParams);
+
+	void updateFieldsByQuery(DataVO dataVO);
+
+	void saveOrUpdate(DataVO dataVO);
 }

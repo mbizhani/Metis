@@ -135,6 +135,9 @@ public class DataVO implements Serializable {
 	}
 
 	public XDSQuery getQuery() {
+		if (query == null) {
+			query = new XDSQuery();
+		}
 		return query;
 	}
 
@@ -143,6 +146,9 @@ public class DataVO implements Serializable {
 	}
 
 	public List<DataFieldVO> getFields() {
+		if (fields == null) {
+			fields = new ArrayList<>();
+		}
 		return fields;
 	}
 
@@ -167,5 +173,11 @@ public class DataVO implements Serializable {
 
 	public void setDetails(List<XDVDetail> details) {
 		this.details = details;
+	}
+
+	// --------------------- BIZ METHODS
+
+	public boolean isDataSourceEnabled() {
+		return getDataViewId() == null || getName().equals(getDataSourceName());
 	}
 }

@@ -18,14 +18,12 @@ import java.util.List;
 
 class InitStep extends WWizardStepPanel {
 	private DataVO dataVO;
-	private boolean newDataSource;
 
 	@Inject
 	private IDBConnectionService connectionService;
 
-	public InitStep(DataVO dataVO, boolean newDataSource) {
+	public InitStep(DataVO dataVO) {
 		this.dataVO = dataVO;
-		this.newDataSource = newDataSource;
 	}
 
 	@Override
@@ -52,7 +50,7 @@ class InitStep extends WWizardStepPanel {
 			.setLabelVisible(false)
 			.setRequired(true)
 			.setLabel(new ResourceModel("DataSource.connection"))
-			.setEnabled(newDataSource);
+			.setEnabled(dataVO.isDataSourceEnabled());
 
 		List<XDSQueryMode> modes;
 		if (dataVO.getDbConnectionHasMapping()) {
@@ -66,9 +64,9 @@ class InitStep extends WWizardStepPanel {
 			.setLabelVisible(false)
 			.setRequired(true)
 			.setLabel(new ResourceModel("DataSource.query.mode"))
-			.setEnabled(newDataSource);
+			.setEnabled(dataVO.isDataSourceEnabled());
 
-		if (newDataSource) {
+		if (dataVO.isDataSourceEnabled()) {
 			connection.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {

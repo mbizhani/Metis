@@ -9,29 +9,39 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.metis.entity.data.config.XDSFieldType;
+import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 
 class ParamStep extends WWizardStepPanel {
 	private DataVO dataVO;
-	private boolean newDataSource;
 
 	private Label messageWhenNoParam;
 	private WebMarkupContainer table;
 
-	public ParamStep(DataVO dataVO, boolean newDataSource) {
+	@Inject
+	private IDataService dataService;
+
+	public ParamStep(DataVO dataVO) {
 		this.dataVO = dataVO;
-		this.newDataSource = newDataSource;
+	}
+
+	@Override
+	public void onStepSubmit() {
+		if (dataVO.isDataSourceEnabled()) {
+			dataService.updateFieldsByQuery(dataVO);
+		}
 	}
 
 	@Override
 	protected void onInit() {
-		setEnabled(newDataSource);
+		setEnabled(dataVO.isDataSourceEnabled());
 
 		table = new WebMarkupContainer("table");
 		add(table);
