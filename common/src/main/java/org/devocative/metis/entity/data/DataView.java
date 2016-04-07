@@ -31,7 +31,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	private String title;
 
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "datasrc2cfglob"))
+	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "dataview2cfglob"))
 	private ConfigLob config;
 
 	@Column(name = "f_config", insertable = false, updatable = false)
@@ -46,7 +46,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		inverseForeignKey = @ForeignKey(name = "mtdatasrcviw2src"))
 	private List<DataSource> dataSources;
 
-	//----------------------------- CREATE / MODIFY
+	// ----------------------------- CREATE / MODIFY
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -77,6 +77,18 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	@Version
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
+
+	// ----------------------------- CONSTRUCTORS
+
+
+	public DataView() {
+	}
+
+	public DataView(String name) {
+		this.name = name;
+	}
+
+	// ----------------------------- ACCESSORS
 
 	public Long getId() {
 		return id;
@@ -121,6 +133,8 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	public void setDataSources(List<DataSource> dataSources) {
 		this.dataSources = dataSources;
 	}
+
+	// ----------------------------- CREATE / MODIFY ACCESSORS
 
 	@Override
 	public Date getCreationDate() {
@@ -180,6 +194,8 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		this.version = version;
 	}
 
+	// ----------------------------- OBJECT METHODS
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -187,7 +203,9 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 
 		DataView dataView = (DataView) o;
 
-		return !(getId() != null ? !getId().equals(dataView.getId()) : dataView.getId() != null);
+		return
+			!(getId() != null ? !getId().equals(dataView.getId()) : dataView.getId() != null) ||
+				!(getName() != null ? !getName().equals(dataView.getName()) : dataView.getName() != null);
 
 	}
 

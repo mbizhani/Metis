@@ -27,8 +27,8 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "c_name", nullable = false, unique = true)
 	private String name;
 
-	/*@Column(name = "c_title", nullable = false)
-	private String title;*/
+	@Column(name = "c_title", nullable = false)
+	private String title;
 
 	@Column(name = "c_key_field")
 	private String keyField;
@@ -53,7 +53,7 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "f_connection", insertable = false, updatable = false)
 	private Long connectionId;
 
-	//----------------------------- CREATE / MODIFY
+	// ----------------------------- CREATE / MODIFY
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -85,12 +85,20 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
+	// ----------------------------- CONSTRUCTORS
+
 	public DataSource() {
 	}
 
 	public DataSource(Long id) {
 		this.id = id;
 	}
+
+	public DataSource(String name) {
+		this.name = name;
+	}
+
+	// ----------------------------- ACCESSORS
 
 	public Long getId() {
 		return id;
@@ -106,6 +114,14 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public String getKeyField() {
@@ -155,6 +171,8 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	public Long getConnectionId() {
 		return connectionId;
 	}
+
+	// ----------------------------- CREATE / MODIFY ACCESSORS
 
 	@Override
 	public Date getCreationDate() {
@@ -214,6 +232,8 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 		this.version = version;
 	}
 
+	// ----------------------------- OBJECT METHODS
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -221,7 +241,9 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 		DataSource that = (DataSource) o;
 
-		return !(getId() != null ? !getId().equals(that.getId()) : that.getId() != null);
+		return
+			!(getId() != null ? !getId().equals(that.getId()) : that.getId() != null) ||
+				!(getName() != null ? !getName().equals(that.getName()) : that.getName() != null);
 
 	}
 
