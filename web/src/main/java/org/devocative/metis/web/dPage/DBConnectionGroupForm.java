@@ -87,11 +87,21 @@ public class DBConnectionGroupForm extends DPage {
 			public String cellValue(DBConnectionGroup bean, String id, int colNo, String url) {
 				return bean.getTestQuery() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
 			}
+
+			@Override
+			public String footerCellValue(Object bean, int colNo, String url) {
+				return null;
+			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OColumn<DBConnectionGroup>(new ResourceModel("DBConnection.config")) {
 			@Override
 			public String cellValue(DBConnectionGroup bean, String id, int colNo, String url) {
 				return bean.getConfigId() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
+			}
+
+			@Override
+			public String footerCellValue(Object bean, int colNo, String url) {
+				return null;
 			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("entity.creationDate", "Creation Date"), "creationDate")

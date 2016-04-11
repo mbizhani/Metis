@@ -139,11 +139,21 @@ public class DBConnectionForm extends DPage {
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
 				return bean.getSafeTestQuery() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
 			}
+
+			@Override
+			public String footerCellValue(Object bean, int colNo, String url) {
+				return null;
+			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OColumn<DBConnection>(new ResourceModel("DBConnection.config")) {
 			@Override
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
 				return bean.getSafeConfigId() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
+			}
+
+			@Override
+			public String footerCellValue(Object bean, int colNo, String url) {
+				return null;
 			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creationDate", "Creation Date"), "creationDate")
