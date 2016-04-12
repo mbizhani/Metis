@@ -25,6 +25,8 @@ public class DataSourceFVO implements Serializable {
 
 	private List<User> modifierUser;
 
+	// ------------------- ACCESSORS
+
 	public String getName() {
 		return name;
 	}

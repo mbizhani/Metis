@@ -73,6 +73,11 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
+	public List<DataSource> list() {
+		return persistorService.list(DataSource.class);
+	}
+
+	@Override
 	public DataSource saveOrUpdate(Long dataSourceId, Long dbConnId, String title, XDataSource xDataSource) {
 		DataSource dataSource = new DataSource();
 		dataSource.setId(dataSourceId);

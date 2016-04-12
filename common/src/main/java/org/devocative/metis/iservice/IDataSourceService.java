@@ -14,6 +14,8 @@ public interface IDataSourceService {
 
 	DataSource loadByName(String name);
 
+	List<DataSource> list();
+
 	DataSource saveOrUpdate(Long dataSourceId, Long dbConnId, String title, XDataSource xDataSource);
 
 	@Deprecated
