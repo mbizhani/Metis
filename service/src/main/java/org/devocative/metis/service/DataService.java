@@ -5,6 +5,7 @@ import org.devocative.adroit.ObjectUtil;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
+import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldType;
@@ -76,13 +77,13 @@ public class DataService implements IDataService {
 
 	@Override
 	public void updateDataVOByDataSource(DataVO dataVO, String dsName) {
-		DataSource dataSource = getDataSource(dsName);
+		DataSource dataSource = dataSourceService.loadByName(dsName);
 		XDataSource xDataSource = (XDataSource) dsXStream.fromXML(dataSource.getConfig().getValue());
 
 		dataVO.setDataSourceId(dataSource.getId());
 		dataVO.setDataSourceName(dataSource.getName());
-		dataVO.setDbConnectionId(dataSource.getConnectionId());
-		dataVO.setDbConnectionHasMapping(dataSource.getConnection().getSafeConfigId() != null);
+		dataVO.setConnectionId(dataSource.getConnectionId());
+		dataVO.setConnectionHasMapping(dataSource.getConnection().getSafeConfigId() != null);
 
 		ObjectUtil.merge(dataVO, xDataSource, true);
 	}
@@ -157,13 +158,13 @@ public class DataService implements IDataService {
 			}
 
 			String sql = dataSourceService.processQuery(
-				dataVO.getDbConnectionId(),
+				dataVO.getConnectionId(),
 				dataVO.getQuery().getMode(),
 				dataVO.getQuery().getText()
 			);
 
 			fieldsFromDB = dbConnectionService.getFields(
-				dataVO.getDbConnectionId(),
+				dataVO.getConnectionId(),
 				sql,
 				params);
 		} catch (SQLException e) {
@@ -199,14 +200,57 @@ public class DataService implements IDataService {
 	@Override
 	public void saveOrUpdate(DataVO dataVO) {
 
+		if (dataVO.isDataSourceEditable()) {
+			XDataSource xDataSource = dataVO.toXDataSource();
+			xDataSource.setName(dataVO.getName());
+			DataSource dataSource = dataSourceService.saveOrUpdate(
+				dataVO.getDataSourceId(),
+				dataVO.getConnectionId(),
+				dataVO.getTitle(),
+				xDataSource);
+			dataVO.setDataSourceId(dataSource.getId());
+			dataVO.setDataSourceName(dataSource.getName());
+		}
+
+		XDataView xDataView = dataVO.toXDataView();
+		xDataView.setDataSourceId(dataVO.getDataSourceId());
+		xDataView.setDataSourceName(dataVO.getDataSourceName());
+
+		saveOrUpdateDV(dataVO.getDataViewId(), dataVO.getTitle(), xDataView);
+
+		persistorService.commitOrRollback();
+
+		System.out.println("Saved DataVO!!!");
 	}
 
-	private DataSource getDataSource(String name) {
-		return persistorService
-			.createQueryBuilder()
-			.addFrom(DataSource.class, "ent")
-			.addWhere("and ent.name = :name")
-			.addParam("name", name)
-			.object();
+	private void saveOrUpdateDV(Long dataViewId, String title, XDataView xDataView) {
+		DataView dataView = new DataView();
+		dataView.setId(dataViewId);
+		dataView.setName(xDataView.getName());
+		dataView.setTitle(title);
+
+		dataView.setDataSource(new DataSource(xDataView.getDataSourceId()));
+
+		ConfigLob config = new ConfigLob();
+		config.setId(loadConfigId(dataView.getId()));
+		config.setValue(dvXStream.toXML(xDataView));
+
+		dataView.setConfig(config);
+
+		persistorService.saveOrUpdate(config);
+		persistorService.saveOrUpdate(dataView);
+	}
+
+	private Long loadConfigId(Long dataViewId) {
+		if (dataViewId != null) {
+			return persistorService
+				.createQueryBuilder()
+				.addSelect("select ent.config.id")
+				.addFrom(DataView.class, "ent")
+				.addWhere("and ent.id = :id")
+				.addParam("id", dataViewId)
+				.object();
+		}
+		return null;
 	}
 }

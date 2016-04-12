@@ -1,5 +1,8 @@
 package org.devocative.metis.vo;
 
+import org.devocative.adroit.ObjectUtil;
+import org.devocative.metis.entity.data.config.XDSParameter;
+
 public class DataParameterVO extends DataAbstractFieldVO {
 	/**
 	 * XDSParameter.sampleData
@@ -12,5 +15,11 @@ public class DataParameterVO extends DataAbstractFieldVO {
 
 	public void setSampleData(String sampleData) {
 		this.sampleData = sampleData;
+	}
+
+	public XDSParameter toXDSParameter() {
+		XDSParameter xdsParameter = new XDSParameter();
+		ObjectUtil.merge(xdsParameter, this, true);
+		return xdsParameter;
 	}
 }

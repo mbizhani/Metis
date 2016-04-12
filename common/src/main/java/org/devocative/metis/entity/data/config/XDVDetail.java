@@ -11,7 +11,10 @@ public class XDVDetail implements Serializable {
 	private Integer level;
 
 	@XStreamAsAttribute
-	private String dataView;
+	private Long dataViewId;
+
+	@XStreamAsAttribute
+	private String dataViewName;
 
 	public Integer getLevel() {
 		return level;
@@ -21,12 +24,20 @@ public class XDVDetail implements Serializable {
 		this.level = level;
 	}
 
-	public String getDataView() {
-		return dataView;
+	public Long getDataViewId() {
+		return dataViewId;
 	}
 
-	public void setDataView(String dataView) {
-		this.dataView = dataView;
+	public void setDataViewId(Long dataViewId) {
+		this.dataViewId = dataViewId;
+	}
+
+	public String getDataViewName() {
+		return dataViewName;
+	}
+
+	public void setDataViewName(String dataViewName) {
+		this.dataViewName = dataViewName;
 	}
 
 	@Override
@@ -37,14 +48,14 @@ public class XDVDetail implements Serializable {
 		XDVDetail xdvDetail = (XDVDetail) o;
 
 		if (getLevel() != null ? !getLevel().equals(xdvDetail.getLevel()) : xdvDetail.getLevel() != null) return false;
-		return !(getDataView() != null ? !getDataView().equals(xdvDetail.getDataView()) : xdvDetail.getDataView() != null);
+		return !(getDataViewName() != null ? !getDataViewName().equals(xdvDetail.getDataViewName()) : xdvDetail.getDataViewName() != null);
 
 	}
 
 	@Override
 	public int hashCode() {
 		int result = getLevel() != null ? getLevel().hashCode() : 0;
-		result = 31 * result + (getDataView() != null ? getDataView().hashCode() : 0);
+		result = 31 * result + (getDataViewName() != null ? getDataViewName().hashCode() : 0);
 		return result;
 	}
 }

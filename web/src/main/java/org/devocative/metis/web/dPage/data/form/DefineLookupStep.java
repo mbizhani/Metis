@@ -40,7 +40,7 @@ class DefineLookupStep extends WWizardStepPanel {
 
 	@Override
 	protected void onInit() {
-		setEnabled(dataVO.isDataSourceEnabled());
+		setEnabled(dataVO.isDataSourceEditable());
 
 		table = new WebMarkupContainer("table");
 		add(table);

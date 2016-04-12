@@ -1,6 +1,8 @@
 package org.devocative.metis.web.dPage.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.metis.entity.connection.DBConnection;
@@ -30,6 +32,11 @@ class InitStep extends WWizardStepPanel {
 	protected void onInit() {
 		final WSelectionInput connection, queryMode;
 
+		WebMarkupContainer dataSourceLabelRow = new WebMarkupContainer("dataSourceLabelRow");
+		dataSourceLabelRow.setVisible(!dataVO.isDataSourceEditable());
+		dataSourceLabelRow.add(new Label("dataSourceLabel", dataVO.getDataSourceName()));
+		add(dataSourceLabelRow);
+
 		add(new WTextInput("name", new PropertyModel<String>(dataVO, "name"))
 				.setLabelVisible(false)
 				.setRequired(true)
@@ -50,23 +57,20 @@ class InitStep extends WWizardStepPanel {
 			.setLabelVisible(false)
 			.setRequired(true)
 			.setLabel(new ResourceModel("DataSource.connection"))
-			.setEnabled(dataVO.isDataSourceEnabled());
+			.setEnabled(dataVO.isDataSourceEditable());
 
-		List<XDSQueryMode> modes;
-		if (dataVO.getDbConnectionHasMapping()) {
-			modes = Arrays.asList(XDSQueryMode.values());
-		} else {
-			modes = Arrays.asList(XDSQueryMode.Sql);
-		}
+		List<XDSQueryMode> modes = dataVO.getConnectionHasMapping() ?
+			Arrays.asList(XDSQueryMode.values()) :
+			Arrays.asList(XDSQueryMode.Sql);
 
 		add(queryMode = new WSelectionInput("queryMode", new PropertyModel(dataVO, "query.mode"), modes, false));
 		queryMode
 			.setLabelVisible(false)
 			.setRequired(true)
 			.setLabel(new ResourceModel("DataSource.query.mode"))
-			.setEnabled(dataVO.isDataSourceEnabled());
+			.setEnabled(dataVO.isDataSourceEditable());
 
-		if (dataVO.isDataSourceEnabled()) {
+		if (dataVO.isDataSourceEditable()) {
 			connection.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {

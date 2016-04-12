@@ -190,7 +190,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 								@Override
 								protected Component createSelectionPanel(String selectionPanelId) {
-									DataSource dataSource = dataSourceService.get(dsField.getTargetId());
+									DataSource dataSource = dataSourceService.load(dsField.getTargetDSId());
 
 									getModalWindowOptions().setTitle(String.format("%s: %s (%s)",
 										dsField.getSafeTitle(), dataSource.getTitle(), dataSource.getName()));

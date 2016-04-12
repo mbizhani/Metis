@@ -35,12 +35,22 @@ public abstract class DataAbstractFieldVO implements Serializable {
 	private XDSFieldFilterType filterType;
 
 	/**
+	 * XDSAbstractField.targetDSId
+	 */
+	private Long targetDSId;
+
+	/**
 	 * XDSAbstractField.targetDSName
 	 */
 	private String targetDSName;
 
 	/**
-	 * XDVAbstractField.targetDVName
+	 * XDVField.targetDVId
+	 */
+	private Long targetDVId;
+
+	/**
+	 * XDVField.targetDVName
 	 */
 	private String targetDVName;
 
@@ -86,6 +96,31 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		this.filterType = filterType;
 	}
 
+	public Long getTargetDSId() {
+		return targetDSId;
+	}
+
+	public void setTargetDSId(Long targetDSId) {
+		this.targetDSId = targetDSId;
+	}
+
+	public DataSource getTargetDS() {
+		return new DataSource(getTargetDSId());
+	}
+
+	public void setTargetDS(DataSource target) {
+		setTargetDSId(target.getId());
+		setTargetDSName(target.getName());
+	}
+
+	public Long getTargetDVId() {
+		return targetDVId;
+	}
+
+	public void setTargetDVId(Long targetDVId) {
+		this.targetDVId = targetDVId;
+	}
+
 	public String getTargetDSName() {
 		return targetDSName;
 	}
@@ -94,12 +129,13 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		this.targetDSName = targetDSName;
 	}
 
-	public DataSource getTargetDS() {
-		return new DataSource(getTargetDSName());
+	public DataView getTargetDV() {
+		return new DataView(getTargetDVId());
 	}
 
-	public void setTargetDS(DataSource target) {
-		setTargetDSName(target.getName());
+	public void setTargetDV(DataView dataView) {
+		setTargetDVId(dataView.getId());
+		setTargetDVName(dataView.getName());
 	}
 
 	public String getTargetDVName() {
@@ -108,14 +144,6 @@ public abstract class DataAbstractFieldVO implements Serializable {
 
 	public void setTargetDVName(String targetDVName) {
 		this.targetDVName = targetDVName;
-	}
-
-	public DataView getTargetDV() {
-		return new DataView(getTargetDVName());
-	}
-
-	public void setTargetDV(DataView dataView) {
-		setTargetDVName(dataView.getName());
 	}
 
 	@Override

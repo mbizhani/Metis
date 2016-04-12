@@ -4,12 +4,16 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @XStreamAlias("dataView")
 public class XDataView implements Serializable {
 	@XStreamAsAttribute
 	private String name;
+
+	@XStreamAsAttribute
+	private Long dataSourceId;
 
 	@XStreamAsAttribute
 	private String dataSourceName;
@@ -26,6 +30,14 @@ public class XDataView implements Serializable {
 		this.name = name;
 	}
 
+	public Long getDataSourceId() {
+		return dataSourceId;
+	}
+
+	public void setDataSourceId(Long dataSourceId) {
+		this.dataSourceId = dataSourceId;
+	}
+
 	public String getDataSourceName() {
 		return dataSourceName;
 	}
@@ -35,6 +47,9 @@ public class XDataView implements Serializable {
 	}
 
 	public List<XDVField> getFields() {
+		if (fields == null) {
+			fields = new ArrayList<>();
+		}
 		return fields;
 	}
 

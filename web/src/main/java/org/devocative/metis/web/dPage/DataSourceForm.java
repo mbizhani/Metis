@@ -367,8 +367,8 @@ public class DataSourceForm extends DPage {
 				@Override
 				protected void populateItem(ListItem<XDSAbstractField> item) {
 					XDSAbstractField field = item.getModelObject();
-					if (field.getTargetId() != null) {
-						field.setTarget(new DataSource(field.getTargetId()));
+					if (field.getTargetDSId() != null) {
+						field.setTarget(new DataSource(field.getTargetDSId()));
 					}
 
 					item.add(new Label("name", field.getName()));

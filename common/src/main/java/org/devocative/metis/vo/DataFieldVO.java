@@ -1,7 +1,10 @@
 package org.devocative.metis.vo;
 
+import org.devocative.adroit.ObjectUtil;
+import org.devocative.metis.entity.data.config.XDSField;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDVAggregatorFunction;
+import org.devocative.metis.entity.data.config.XDVField;
 
 import java.util.List;
 
@@ -117,5 +120,19 @@ public class DataFieldVO extends DataAbstractFieldVO {
 
 	public void setFooter(List<XDVAggregatorFunction> footer) {
 		this.footer = footer;
+	}
+
+	// --------------------- PUBLIC METHODS
+
+	public XDSField toXDSField() {
+		XDSField xdsField = new XDSField();
+		ObjectUtil.merge(xdsField, this, true);
+		return xdsField;
+	}
+
+	public XDVField toXDVField() {
+		XDVField xdvField = new XDVField();
+		ObjectUtil.merge(xdvField, this, true);
+		return xdvField;
 	}
 }

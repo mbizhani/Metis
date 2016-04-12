@@ -12,6 +12,7 @@ import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.*;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataSourceRelation;
@@ -57,10 +58,105 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public DataSource get(Long id) {
+	public DataSource load(Long id) {
 		return persistorService.get(DataSource.class, id);
 	}
 
+	@Override
+	public DataSource loadByName(String name) {
+		return persistorService
+			.createQueryBuilder()
+			.addFrom(DataSource.class, "ent")
+			.addWhere("and ent.name = :name")
+			.addParam("name", name)
+			.object();
+	}
+
+	@Override
+	public DataSource saveOrUpdate(Long dataSourceId, Long dbConnId, String title, XDataSource xDataSource) {
+		DataSource dataSource = new DataSource();
+		dataSource.setId(dataSourceId);
+		dataSource.setName(xDataSource.getName());
+		dataSource.setTitle(title);
+		dataSource.setConnection(new DBConnection(dbConnId));
+
+		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
+		List<DataSourceRelation> newRelations = new ArrayList<>();
+
+		if (dataSource.getId() != null) {
+			markRelationsAsDeleted(dataSource.getId());
+			loadRelationsToMap(dataSource.getId(), relationsMap);
+		} else {
+			checkDuplicateDataSource(dataSource.getName());
+		}
+
+		// ---- Processing Fields
+		for (XDSField xdsField : xDataSource.getFields()) {
+			if (xdsField.getIsKeyField()) {
+				dataSource.setKeyField(xdsField.getName());
+			}
+
+			if (xdsField.getIsTitleField()) {
+				dataSource.setTitleField(xdsField.getName());
+			}
+
+			if (xdsField.getIsSelfRelPointerField()) {
+				dataSource.setSelfRelPointerField(xdsField.getName());
+			}
+
+			if (XDSFieldType.LookUp == xdsField.getType()) {
+				DataSourceRelation rel = relationsMap.get(xdsField.getName());
+				if (rel == null) {
+					rel = new DataSourceRelation();
+				}
+				rel.setSource(dataSource);
+				rel.setTarget(new DataSource(xdsField.getTargetDSId()));
+				rel.setSourcePointerField(xdsField.getName());
+				rel.setDeleted(false);
+
+				newRelations.add(rel);
+			}
+		}
+
+		// ---- Processing Parameters
+		for (XDSParameter xdsParameter : xDataSource.getParams()) {
+			if (XDSFieldType.LookUp == xdsParameter.getType()) {
+				DataSourceRelation rel = relationsMap.get(xdsParameter.getName());
+				if (rel == null) {
+					rel = new DataSourceRelation();
+				}
+				rel.setSource(dataSource);
+				rel.setTarget(new DataSource(xdsParameter.getTargetDSId()));
+				rel.setSourcePointerField(xdsParameter.getName());
+				rel.setDeleted(false);
+				newRelations.add(rel);
+			}
+		}
+
+		String query = xDataSource.getQuery().getText().trim();
+		if (!query.startsWith("\n<![CDATA[\n")) {
+			xDataSource.getQuery().setText(String.format("\n<![CDATA[\n%s\n]]>\n", query));
+		}
+
+		ConfigLob config = new ConfigLob();
+		config.setId(loadConfigId(dataSource.getId()));
+
+		StringWriter writer = new StringWriter();
+		xstream.marshal(xDataSource, new MyWriter(writer));
+		config.setValue(writer.toString());
+
+		dataSource.setConfig(config);
+
+		persistorService.saveOrUpdate(config);
+		persistorService.saveOrUpdate(dataSource);
+		for (DataSourceRelation relation : newRelations) {
+			persistorService.saveOrUpdate(relation);
+		}
+
+		return dataSource;
+	}
+
+	@Deprecated
 	@Override
 	public void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters) {
 		logger.info("Saving DataSource(user={}): name={}, fields#={}, params#={}",
@@ -121,7 +217,7 @@ public class DataSourceService implements IDataSourceService {
 			}
 
 			if (XDSFieldType.LookUp == xdsField.getType()) {
-				xdsField.setTargetId(xdsField.getTarget().getId());
+				xdsField.setTargetDSId(xdsField.getTarget().getId());
 
 				DataSourceRelation rel = oldRelationsMap.get(xdsField.getName());
 				if (rel == null) {
@@ -138,7 +234,7 @@ public class DataSourceService implements IDataSourceService {
 		// ---- Processing Parameters
 		for (XDSParameter xdsParameter : parameters) {
 			if (XDSFieldType.LookUp == xdsParameter.getType()) {
-				xdsParameter.setTargetId(xdsParameter.getTarget().getId());
+				xdsParameter.setTargetDSId(xdsParameter.getTarget().getId());
 
 				DataSourceRelation rel = oldRelationsMap.get(xdsParameter.getName());
 				if (rel == null) {
@@ -315,7 +411,7 @@ public class DataSourceService implements IDataSourceService {
 		for (XDSField fieldFromDB : fieldsFromDB) {
 			int i = currentFields.indexOf(fieldFromDB);
 			if (i > -1) {
-				XDSField currentField = currentFields.get(i);
+				XDSField currentField = currentFields.load(i);
 				currentField
 					.setDbType(fieldFromDB.getDbType())
 					.setDbSize(fieldFromDB.getDbSize());
@@ -478,6 +574,56 @@ public class DataSourceService implements IDataSourceService {
 		}
 		logger.debug("Process Query: FINAL = {}", finalQuery);
 		return finalQuery;
+	}
+
+	// -------------------------- PRIVATE METHODS
+
+	private void checkDuplicateDataSource(String name) {
+		long count = persistorService
+			.createQueryBuilder()
+			.addSelect("select count(1)")
+			.addFrom(DataSource.class, "ent")
+			.addWhere("and ent.name = :name")
+			.addParam("name", name)
+			.object();
+
+		if (count > 0) {
+			throw new MetisException(MetisErrorCode.DuplicateDataSourceName, name);
+		}
+	}
+
+	private void markRelationsAsDeleted(Long sourceId) {
+		persistorService
+			.createQueryBuilder()
+			.addSelect("update DataSourceRelation ent set ent.deleted = true where ent.source.id = :srcId")
+			.addParam("srcId", sourceId)
+			.update();
+	}
+
+	private void loadRelationsToMap(Long sourceId, Map<String, DataSourceRelation> map) {
+		List<DataSourceRelation> relations = persistorService
+			.createQueryBuilder()
+			.addFrom(DataSourceRelation.class, "ent")
+			.addWhere("and ent.source.id = :srcId")
+			.addParam("srcId", sourceId)
+			.list();
+
+		for (DataSourceRelation relation : relations) {
+			map.put(relation.getSourcePointerField(), relation);
+		}
+	}
+
+	private Long loadConfigId(Long dataSourceId) {
+		if (dataSourceId != null) {
+			return persistorService
+				.createQueryBuilder()
+				.addSelect("select ent.config.id")
+				.addFrom(DataSource.class, "ent")
+				.addWhere("and ent.id = :id")
+				.addParam("id", dataSourceId)
+				.object();
+		}
+		return null;
 	}
 
 	private String processEntityQuery(Long dbConnId, String query) {

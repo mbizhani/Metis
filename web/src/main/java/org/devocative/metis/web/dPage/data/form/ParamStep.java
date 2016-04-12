@@ -34,14 +34,14 @@ class ParamStep extends WWizardStepPanel {
 
 	@Override
 	public void onStepSubmit() {
-		if (dataVO.isDataSourceEnabled()) {
+		if (dataVO.isDataSourceEditable()) {
 			dataService.updateFieldsByQuery(dataVO);
 		}
 	}
 
 	@Override
 	protected void onInit() {
-		setEnabled(dataVO.isDataSourceEnabled());
+		setEnabled(dataVO.isDataSourceEditable());
 
 		table = new WebMarkupContainer("table");
 		add(table);

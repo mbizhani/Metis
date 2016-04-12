@@ -22,12 +22,15 @@ public abstract class XDSAbstractField implements Serializable {
 	@XStreamAsAttribute
 	protected XDSFieldFilterType filterType;
 
-	// TODO: it must be targetDSName or targetDVName
 	@XStreamAsAttribute
-	protected Long targetId;
+	protected Long targetDSId;
+
+	@XStreamAsAttribute
+	protected String targetDSName;
 
 	// -- Volatile Fields
 
+	@Deprecated
 	@XStreamOmitField
 	protected DataSource target;
 
@@ -44,8 +47,9 @@ public abstract class XDSAbstractField implements Serializable {
 		return title;
 	}
 
-	public void setTitle(String title) {
+	public XDSAbstractField setTitle(String title) {
 		this.title = title;
+		return this;
 	}
 
 	public String getSafeTitle() {
@@ -66,8 +70,9 @@ public abstract class XDSAbstractField implements Serializable {
 		return type;
 	}
 
-	public void setType(XDSFieldType type) {
+	public XDSAbstractField setType(XDSFieldType type) {
 		this.type = type;
+		return this;
 	}
 
 	// Has Default
@@ -80,19 +85,31 @@ public abstract class XDSAbstractField implements Serializable {
 		return this;
 	}
 
-	public Long getTargetId() {
-		return targetId;
+	public Long getTargetDSId() {
+		return targetDSId;
 	}
 
-	public void setTargetId(Long targetId) {
-		this.targetId = targetId;
+	public XDSAbstractField setTargetDSId(Long targetDSId) {
+		this.targetDSId = targetDSId;
+		return this;
+	}
+
+	public String getTargetDSName() {
+		return targetDSName;
+	}
+
+	public XDSAbstractField setTargetDSName(String targetDSName) {
+		this.targetDSName = targetDSName;
+		return this;
 	}
 
 	// ---------------------- VOLATILE PROPERTIES
+	@Deprecated
 	public DataSource getTarget() {
 		return target;
 	}
 
+	@Deprecated
 	public void setTarget(DataSource target) {
 		this.target = target;
 	}

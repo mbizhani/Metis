@@ -3,6 +3,8 @@ package org.devocative.metis.vo;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.data.config.XDSQuery;
 import org.devocative.metis.entity.data.config.XDVDetail;
+import org.devocative.metis.entity.data.config.XDataSource;
+import org.devocative.metis.entity.data.config.XDataView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,12 +24,12 @@ public class DataVO implements Serializable {
 	/**
 	 * DataSource.connectionId
 	 */
-	private Long dbConnectionId;
+	private Long connectionId;
 
 	/**
 	 * DataSource.connection.configId != null
 	 */
-	private Boolean dbConnectionHasMapping = false;
+	private Boolean connectionHasMapping = false;
 
 	// ----
 
@@ -84,28 +86,28 @@ public class DataVO implements Serializable {
 		this.dataSourceId = dataSourceId;
 	}
 
-	public Long getDbConnectionId() {
-		return dbConnectionId;
+	public Long getConnectionId() {
+		return connectionId;
 	}
 
-	public void setDbConnectionId(Long dbConnectionId) {
-		this.dbConnectionId = dbConnectionId;
+	public void setConnectionId(Long connectionId) {
+		this.connectionId = connectionId;
 	}
 
-	public Boolean getDbConnectionHasMapping() {
-		return dbConnectionHasMapping;
+	public Boolean getConnectionHasMapping() {
+		return connectionHasMapping;
 	}
 
-	public void setDbConnectionHasMapping(Boolean dbConnectionHasMapping) {
-		this.dbConnectionHasMapping = dbConnectionHasMapping;
+	public void setConnectionHasMapping(Boolean connectionHasMapping) {
+		this.connectionHasMapping = connectionHasMapping;
 	}
 
 	public DBConnection getConnection() {
-		return getDbConnectionId() != null ? new DBConnection(getDbConnectionId()) : null;
+		return getConnectionId() != null ? new DBConnection(getConnectionId()) : null;
 	}
 
 	public void setConnection(DBConnection connection) {
-		setDbConnectionId(connection.getId());
+		setConnectionId(connection.getId());
 	}
 
 	// ----
@@ -177,7 +179,38 @@ public class DataVO implements Serializable {
 
 	// --------------------- BIZ METHODS
 
-	public boolean isDataSourceEnabled() {
-		return getDataViewId() == null || getName().equals(getDataSourceName());
+	public boolean isDataSourceEditable() {
+		return getDataSourceId() == null || getName().equals(getDataSourceName());
+	}
+
+	public XDataSource toXDataSource() {
+		XDataSource xDataSource = new XDataSource();
+		xDataSource.setName(getDataSourceName());
+		xDataSource.setQuery(getQuery());
+
+		for (DataFieldVO fieldVO : getFields()) {
+			xDataSource.getFields().add(fieldVO.toXDSField());
+		}
+
+		for (DataParameterVO paramVO : getParams()) {
+			xDataSource.getParams().add(paramVO.toXDSParameter());
+		}
+
+		return xDataSource;
+	}
+
+	public XDataView toXDataView() {
+		XDataView xDataView = new XDataView();
+		xDataView.setName(getName());
+		xDataView.setDataSourceId(getDataSourceId());
+		xDataView.setDataSourceName(getDataSourceName());
+
+		for (DataFieldVO fieldVO : getFields()) {
+			xDataView.getFields().add(fieldVO.toXDVField());
+		}
+
+		xDataView.setDetails(getDetails());
+
+		return xDataView;
 	}
 }

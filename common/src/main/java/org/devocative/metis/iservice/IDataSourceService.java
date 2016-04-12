@@ -10,8 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDataSourceService {
-	DataSource get(Long id);
+	DataSource load(Long id);
 
+	DataSource loadByName(String name);
+
+	DataSource saveOrUpdate(Long dataSourceId, Long dbConnId, String title, XDataSource xDataSource);
+
+	@Deprecated
 	void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters);
 
 	List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize);

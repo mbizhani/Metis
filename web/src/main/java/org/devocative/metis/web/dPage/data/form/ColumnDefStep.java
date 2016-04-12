@@ -27,7 +27,7 @@ class ColumnDefStep extends WWizardStepPanel {
 
 	@Override
 	protected void onInit() {
-		setEnabled(dataVO.isDataSourceEnabled());
+		setEnabled(dataVO.isDataSourceEditable());
 
 
 		add(new ListView<DataFieldVO>("fields", dataVO.getFields()) {

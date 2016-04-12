@@ -7,7 +7,6 @@ import org.hibernate.envers.NotAudited;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 @Audited
 @Entity
@@ -37,14 +36,14 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	@Column(name = "f_config", insertable = false, updatable = false)
 	private Long configId;
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(
-		name = "mt_mts_data_view2src",
-		joinColumns = {@JoinColumn(name = "f_data_view")},
-		foreignKey = @ForeignKey(name = "mtdatasrcviw2view"),
-		inverseJoinColumns = {@JoinColumn(name = "f_data_src")},
-		inverseForeignKey = @ForeignKey(name = "mtdatasrcviw2src"))
-	private List<DataSource> dataSources;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "f_data_src", foreignKey = @ForeignKey(name = "dataview2datasrc"))
+	private DataSource dataSource;
+
+	@Column(name = "f_data_src", insertable = false, updatable = false)
+	private Long dataSourceId;
+
+	//TODO relation to itself for LookUp & Details
 
 	// ----------------------------- CREATE / MODIFY
 
@@ -80,8 +79,11 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 
 	// ----------------------------- CONSTRUCTORS
 
-
 	public DataView() {
+	}
+
+	public DataView(Long id) {
+		this.id = id;
 	}
 
 	public DataView(String name) {
@@ -126,12 +128,16 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		return configId;
 	}
 
-	public List<DataSource> getDataSources() {
-		return dataSources;
+	public DataSource getDataSource() {
+		return dataSource;
 	}
 
-	public void setDataSources(List<DataSource> dataSources) {
-		this.dataSources = dataSources;
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+
+	public Long getDataSourceId() {
+		return dataSourceId;
 	}
 
 	// ----------------------------- CREATE / MODIFY ACCESSORS

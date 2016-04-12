@@ -20,6 +20,12 @@ public class XDVField implements Serializable {
 	@XStreamAsAttribute
 	private XDSFieldResultType resultType;
 
+	@XStreamAsAttribute
+	private Long targetDVId;
+
+	@XStreamAsAttribute
+	private String targetDVName;
+
 	private List<XDVAggregatorFunction> footer;
 
 	public String getName() {
@@ -54,6 +60,22 @@ public class XDVField implements Serializable {
 		this.resultType = resultType;
 	}
 
+	public Long getTargetDVId() {
+		return targetDVId;
+	}
+
+	public void setTargetDVId(Long targetDVId) {
+		this.targetDVId = targetDVId;
+	}
+
+	public String getTargetDVName() {
+		return targetDVName;
+	}
+
+	public void setTargetDVName(String targetDVName) {
+		this.targetDVName = targetDVName;
+	}
+
 	public List<XDVAggregatorFunction> getFooter() {
 		return footer;
 	}
@@ -70,7 +92,6 @@ public class XDVField implements Serializable {
 		XDVField xdvField = (XDVField) o;
 
 		return !(getName() != null ? !getName().equals(xdvField.getName()) : xdvField.getName() != null);
-
 	}
 
 	@Override

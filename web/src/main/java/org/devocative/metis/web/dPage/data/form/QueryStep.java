@@ -47,7 +47,7 @@ class QueryStep extends WWizardStepPanel {
 
 	@Override
 	public void onStepSubmit() {
-		if (dataVO.isDataSourceEnabled()) {
+		if (dataVO.isDataSourceEditable()) {
 			dataService.updateParamsByQuery(dataVO.getQuery().getText(), dataVO.getParams());
 		}
 	}
@@ -62,7 +62,7 @@ class QueryStep extends WWizardStepPanel {
 			.setHeight(OSize.fixed(800));
 
 		add(new CheckBox("dynamic", new PropertyModel<Boolean>(dataVO.getQuery(), "dynamic"))
-			.setEnabled(dataVO.isDataSourceEnabled()));
+			.setEnabled(dataVO.isDataSourceEditable()));
 
 		add(new WCodeInput("query", new PropertyModel<String>(dataVO.getQuery(), "text"), oCode)
 			.setRequired(true)
@@ -72,7 +72,7 @@ class QueryStep extends WWizardStepPanel {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				String sql = dataSourceService.processQuery(
-					dataVO.getDbConnectionId(),
+					dataVO.getConnectionId(),
 					dataVO.getQuery().getMode(),
 					dataVO.getQuery().getText());
 
@@ -83,7 +83,7 @@ class QueryStep extends WWizardStepPanel {
 
 				modalWindow.setContent(new QueryEditorPanel(
 					modalWindow.getContentId(),
-					dataVO.getDbConnectionId(),
+					dataVO.getConnectionId(),
 					sql,
 					params));
 				modalWindow.show(target);
@@ -97,7 +97,7 @@ class QueryStep extends WWizardStepPanel {
 		super.onBeforeRender();
 
 		if (dataVO.getQuery().getMode() != XDSQueryMode.Sql) {
-			XSchema xSchema = connectionService.getSchemaOfMapping(dataVO.getDbConnectionId());
+			XSchema xSchema = connectionService.getSchemaOfMapping(dataVO.getConnectionId());
 
 			Map<String, Map> tables = new HashMap<>();
 			tables.put("tables", xSchema.getHierarchy());

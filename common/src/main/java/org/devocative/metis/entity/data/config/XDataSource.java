@@ -21,8 +21,10 @@ public class XDataSource implements Serializable {
 
 	private List<XDSParameter> params;
 
-	private transient Map<String, XDSField> fieldMap;
+	@XStreamOmitField
+	private Map<String, XDSField> fieldMap;
 
+	@Deprecated
 	@XStreamOmitField
 	private Long connectionInfoId;
 
@@ -36,7 +38,10 @@ public class XDataSource implements Serializable {
 
 	// Has Default
 	public XDSQuery getQuery() {
-		return query != null ? query : new XDSQuery();
+		if (query == null) {
+			query = new XDSQuery();
+		}
+		return query;
 	}
 
 	public void setQuery(XDSQuery query) {
@@ -45,25 +50,34 @@ public class XDataSource implements Serializable {
 
 	// Has Default
 	public List<XDSField> getFields() {
-		return fields != null ? fields : new ArrayList<XDSField>();
+		if (fields == null) {
+			fields = new ArrayList<>();
+		}
+		return fields;
 	}
 
 	public void setFields(List<XDSField> fields) {
 		this.fields = fields;
 	}
 
+	// Has Default
 	public List<XDSParameter> getParams() {
-		return params != null ? params : new ArrayList<XDSParameter>();
+		if (params == null) {
+			params = new ArrayList<>();
+		}
+		return params;
 	}
 
 	public void setParams(List<XDSParameter> params) {
 		this.params = params;
 	}
 
+	@Deprecated
 	public Long getConnectionInfoId() {
 		return connectionInfoId;
 	}
 
+	@Deprecated
 	public void setConnectionInfoId(Long connectionInfoId) {
 		this.connectionInfoId = connectionInfoId;
 	}
