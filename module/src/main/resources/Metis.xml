@@ -19,19 +19,26 @@
 	</entities>
 
 	<dPages>
+		<!-- Deprecated -->
 		<dPage type="org.devocative.metis.web.dPage.DataSourceExecutor"
 			   title="KEY:dPage.mts.DataSourceExecutor"
 			   uri="/dsExec"
 			   inMenu="false"/>
 
+		<!-- Deprecated -->
 		<dPage type="org.devocative.metis.web.dPage.DataSourceForm"
 			   title="KEY:dPage.mts.DataSourceForm"
 			   uri="/dsForm"
 			   inMenu="true"/>
 
 		<dPage type="org.devocative.metis.web.dPage.data.form.DataViewFormDPage"
-			   title="ASD"
-			   uri="dform"
+			   title="DataViewForm"
+			   uri="dvForm"
+			   inMenu="true"/>
+
+		<dPage type="org.devocative.metis.web.dPage.DataViewListDPage"
+			   title="DataViewList"
+			   uri="dvList"
 			   inMenu="true"/>
 
 		<dPage type="org.devocative.metis.web.dPage.DataSourceList"
