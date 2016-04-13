@@ -122,9 +122,10 @@ public class DBConnectionService implements IDBConnectionService {
 			ResultSetMetaData metaData = rs.getMetaData();
 			for (int i = 1; i <= metaData.getColumnCount(); i++) {
 				DataFieldVO fieldVO = new DataFieldVO();
-				fieldVO.setDbType(metaData.getColumnTypeName(i));
-				fieldVO.setDbSize(metaData.getColumnDisplaySize(i));
-				fieldVO.setName(metaData.getColumnName(i));
+				fieldVO.setName(metaData.getColumnName(i).toLowerCase());
+				fieldVO.setDbType(String.format("%s [%s]",
+					metaData.getColumnTypeName(i).toLowerCase(),
+					metaData.getColumnType(i)));
 
 				if (STRING_TYPES.contains(metaData.getColumnType(i))) {
 					fieldVO.setType(XDSFieldType.String);
@@ -135,7 +136,7 @@ public class DBConnectionService implements IDBConnectionService {
 				} else if (REAL_TYPES.contains(metaData.getColumnType(i))) {
 					fieldVO.setType(XDSFieldType.Real);
 				} else {
-					logger.warn("Unknown type: name={}, id={}", metaData.getColumnTypeName(i), metaData.getColumnType(i));
+					fieldVO.setType(XDSFieldType.Unknown);
 				}
 				result.add(fieldVO);
 			}
