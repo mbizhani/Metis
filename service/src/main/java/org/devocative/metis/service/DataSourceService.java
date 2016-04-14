@@ -79,11 +79,20 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public DataSource saveOrUpdate(Long dataSourceId, Long dbConnId, String title, XDataSource xDataSource) {
-		DataSource dataSource = new DataSource();
-		dataSource.setId(dataSourceId);
+		DataSource dataSource;
+		ConfigLob config;
+
+		if (dataSourceId == null) {
+			dataSource = new DataSource();
+			dataSource.setConnection(new DBConnection(dbConnId));
+			config = new ConfigLob();
+		} else {
+			dataSource = load(dataSourceId);
+			config = dataSource.getConfig();
+		}
+
 		dataSource.setName(xDataSource.getName());
 		dataSource.setTitle(title);
-		dataSource.setConnection(new DBConnection(dbConnId));
 
 		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
 		List<DataSourceRelation> newRelations = new ArrayList<>();
@@ -142,9 +151,6 @@ public class DataSourceService implements IDataSourceService {
 		if (!query.startsWith("\n<![CDATA[\n")) {
 			xDataSource.getQuery().setText(String.format("\n<![CDATA[\n%s\n]]>\n", query));
 		}
-
-		ConfigLob config = new ConfigLob();
-		config.setId(loadConfigId(dataSource.getId()));
 
 		StringWriter writer = new StringWriter();
 		xstream.marshal(xDataSource, new MyWriter(writer));
@@ -616,19 +622,6 @@ public class DataSourceService implements IDataSourceService {
 		for (DataSourceRelation relation : relations) {
 			map.put(relation.getSourcePointerField(), relation);
 		}
-	}
-
-	private Long loadConfigId(Long dataSourceId) {
-		if (dataSourceId != null) {
-			return persistorService
-				.createQueryBuilder()
-				.addSelect("select ent.config.id")
-				.addFrom(DataSource.class, "ent")
-				.addWhere("and ent.id = :id")
-				.addParam("id", dataSourceId)
-				.object();
-		}
-		return null;
 	}
 
 	private String processEntityQuery(Long dbConnId, String query) {

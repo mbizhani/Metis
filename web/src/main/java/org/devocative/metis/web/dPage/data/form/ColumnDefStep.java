@@ -39,7 +39,6 @@ class ColumnDefStep extends WWizardStepPanel {
 
 				item.add(new Label("name", fieldVO.getName()));
 				item.add(new Label("dbType", fieldVO.getDbType()));
-				item.add(new Label("dbSize", fieldVO.getDbSize()));
 				item.add(new WTextInput("title", new PropertyModel<String>(fieldVO, "title")).setLabelVisible(false));
 				item.add(type = new WSelectionInput("type", new PropertyModel<String>(fieldVO, "type"),
 					Arrays.asList(XDSFieldType.values()), false));

@@ -26,8 +26,6 @@ public class DataFieldVO extends DataAbstractFieldVO {
 
 	private String dbType;
 
-	private Integer dbSize;
-
 	/**
 	 * XDVField.format
 	 */
@@ -82,14 +80,6 @@ public class DataFieldVO extends DataAbstractFieldVO {
 		this.dbType = dbType;
 	}
 
-	public Integer getDbSize() {
-		return dbSize;
-	}
-
-	public void setDbSize(Integer dbSize) {
-		this.dbSize = dbSize;
-	}
-
 	public String getFormat() {
 		return format;
 	}
@@ -134,5 +124,15 @@ public class DataFieldVO extends DataAbstractFieldVO {
 		XDVField xdvField = new XDVField();
 		ObjectUtil.merge(xdvField, this, true);
 		return xdvField;
+	}
+
+	public DataFieldVO fromXDSField(XDSField xdsField) {
+		ObjectUtil.merge(this, xdsField, true);
+		return this;
+	}
+
+	public DataFieldVO fromXDVField(XDVField xdvField) {
+		ObjectUtil.merge(this, xdvField, true);
+		return this;
 	}
 }

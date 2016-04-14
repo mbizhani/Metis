@@ -22,4 +22,9 @@ public class DataParameterVO extends DataAbstractFieldVO {
 		ObjectUtil.merge(xdsParameter, this, true);
 		return xdsParameter;
 	}
+
+	public DataParameterVO fromXDSParameter(XDSParameter xdsParameter) {
+		ObjectUtil.merge(this, xdsParameter, true);
+		return this;
+	}
 }

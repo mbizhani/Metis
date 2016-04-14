@@ -1,7 +1,9 @@
 package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import org.devocative.metis.IgnoreFalseConverter;
 import org.devocative.metis.entity.data.DataSource;
 
 import java.io.Serializable;
@@ -14,6 +16,7 @@ public abstract class XDSAbstractField implements Serializable {
 	protected String title;
 
 	@XStreamAsAttribute
+	@XStreamConverter(IgnoreFalseConverter.class)
 	protected Boolean required;
 
 	@XStreamAsAttribute
@@ -35,7 +38,7 @@ public abstract class XDSAbstractField implements Serializable {
 	protected DataSource target;
 
 	public String getName() {
-		return name != null ? name.toLowerCase() : null;
+		return name;
 	}
 
 	public XDSAbstractField setName(String name) {
@@ -56,9 +59,8 @@ public abstract class XDSAbstractField implements Serializable {
 		return title != null ? title : getName();
 	}
 
-	// Has Default
 	public Boolean getRequired() {
-		return required != null ? required : false;
+		return required;
 	}
 
 	public XDSAbstractField setRequired(Boolean required) {
@@ -75,9 +77,8 @@ public abstract class XDSAbstractField implements Serializable {
 		return this;
 	}
 
-	// Has Default
 	public XDSFieldFilterType getFilterType() {
-		return filterType != null ? filterType : XDSFieldFilterType.Equal;
+		return filterType;
 	}
 
 	public XDSAbstractField setFilterType(XDSFieldFilterType filterType) {

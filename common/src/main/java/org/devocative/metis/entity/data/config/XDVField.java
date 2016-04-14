@@ -2,6 +2,8 @@ package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
+import org.devocative.metis.IgnoreFalseConverter;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,6 +17,7 @@ public class XDVField implements Serializable {
 	private String format;
 
 	@XStreamAsAttribute
+	@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean inFilterPanel;
 
 	@XStreamAsAttribute

@@ -2,7 +2,9 @@ package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import org.devocative.metis.IgnoreFalseConverter;
 
 @XStreamAlias("field")
 public class XDSField extends XDSAbstractField {
@@ -19,12 +21,15 @@ public class XDSField extends XDSAbstractField {
 	private XDSFieldResultType resultType;
 
 	@XStreamAsAttribute
+	@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean isKeyField;
 
 	@XStreamAsAttribute
+	@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean isTitleField;
 
 	@XStreamAsAttribute
+	@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean isSelfRelPointerField;
 
 	// -- Volatile Fields

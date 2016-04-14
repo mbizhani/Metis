@@ -6,7 +6,6 @@ import org.devocative.adroit.ObjectUtil;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.metis.iservice.IDataService;
-import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.dPage.DataSourceExecutor;
 import org.devocative.wickomp.form.wizard.OWizard;
@@ -26,9 +25,6 @@ public class DataViewFormDPage extends DPage {
 
 	@Inject
 	private IDataService dataService;
-
-	@Inject
-	private IDataSourceService dataSourceService;
 
 	public DataViewFormDPage(String id, List<String> params) {
 		super(id, params);

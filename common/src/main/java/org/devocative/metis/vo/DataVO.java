@@ -1,14 +1,13 @@
 package org.devocative.metis.vo;
 
 import org.devocative.metis.entity.connection.DBConnection;
-import org.devocative.metis.entity.data.config.XDSQuery;
-import org.devocative.metis.entity.data.config.XDVDetail;
-import org.devocative.metis.entity.data.config.XDataSource;
-import org.devocative.metis.entity.data.config.XDataView;
+import org.devocative.metis.entity.data.config.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DataVO implements Serializable {
 	/**
@@ -212,5 +211,30 @@ public class DataVO implements Serializable {
 		xDataView.setDetails(getDetails());
 
 		return xDataView;
+	}
+
+	public void fromXDataSource(XDataSource xDataSource) {
+		setDataSourceName(xDataSource.getName());
+		setQuery(xDataSource.getQuery());
+
+		for (XDSField xdsField : xDataSource.getFields()) {
+			getFields().add(new DataFieldVO().fromXDSField(xdsField));
+		}
+
+		for (XDSParameter xdsParameter : xDataSource.getParams()) {
+			getParams().add(new DataParameterVO().fromXDSParameter(xdsParameter));
+		}
+	}
+
+	public void fromXDataView(XDataView xDataView) {
+		setName(xDataView.getName());
+
+		Map<String, DataFieldVO> fieldsMap = new HashMap<>();
+		for (DataFieldVO fieldVO : getFields()) {
+			fieldsMap.put(fieldVO.getName(), fieldVO);
+		}
+		for (XDVField xdvField : xDataView.getFields()) {
+			fieldsMap.get(xdvField.getName()).fromXDVField(xdvField);
+		}
 	}
 }
