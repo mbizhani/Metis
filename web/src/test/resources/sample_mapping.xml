@@ -26,7 +26,7 @@
 			<properties>
 				<property name="id" column="id" isId="true"/>
 				<property name="name" column="c_name"/>
-				<one2many name="cities" manySideColumn="f_state"/>
+				<one2many name="cities" manySideColumn="f_state" manySideEntity="City"/>
 			</properties>
 		</entity>
 
@@ -44,6 +44,7 @@
 				<property name="id" column="id" isId="true"/>
 				<property name="value" column="n_value"/>
 				<property name="date" column="d_date"/>
+				<property name="test" column="r_test"/>
 				<many2one name="place" column="f_place"/>
 				<many2one name="person" column="f_person"/>
 			</properties>
