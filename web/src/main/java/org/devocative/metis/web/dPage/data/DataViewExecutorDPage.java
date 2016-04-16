@@ -20,6 +20,7 @@ public class DataViewExecutorDPage extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewExecutorDPage.class);
 
 	private Map<String, Object> filter = new HashMap<>();
+	private DataViewGridPanel mainGrid;
 
 	@Inject
 	private IDataService dataService;
@@ -35,8 +36,11 @@ public class DataViewExecutorDPage extends DPage {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				logger.debug("filter = {}", filter);
+				mainGrid.loadData(target);
 			}
 		});
 		add(form);
+
+		add(mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter));
 	}
 }

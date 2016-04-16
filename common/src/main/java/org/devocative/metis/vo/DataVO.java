@@ -189,6 +189,33 @@ public class DataVO implements Serializable {
 		return result;
 	}
 
+	public DataFieldVO findSelfRelPointerField() {
+		for (DataFieldVO fieldVO : getFields()) {
+			if (fieldVO.getIsSelfRelPointerFieldSafely()) {
+				return fieldVO;
+			}
+		}
+		return null;
+	}
+
+	public DataFieldVO findTitleField() {
+		for (DataFieldVO fieldVO : getFields()) {
+			if (fieldVO.getIsTitleFieldSafely()) {
+				return fieldVO;
+			}
+		}
+		return null;
+	}
+
+	public DataFieldVO findKeyField() {
+		for (DataFieldVO fieldVO : getFields()) {
+			if (fieldVO.getIsKeyFieldSafely()) {
+				return fieldVO;
+			}
+		}
+		return null;
+	}
+
 	public XDataSource toXDataSource() {
 		XDataSource xDataSource = new XDataSource();
 		xDataSource.setName(getDataSourceName());
