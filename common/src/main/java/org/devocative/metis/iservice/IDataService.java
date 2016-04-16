@@ -11,7 +11,7 @@ public interface IDataService {
 
 	void updateDataVOByDataSource(DataVO dataVO, String dsName);
 
-	List<DataAbstractFieldVO> findFilteringFields(DataVO dataVO);
+	List<DataAbstractFieldVO> findFilteringFields(List<DataAbstractFieldVO> allFields);
 
 	List<DataAbstractFieldVO> findLookUpFields(DataVO dataVO);
 

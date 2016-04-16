@@ -17,8 +17,6 @@ import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
-import org.devocative.metis.vo.DataFieldVO;
-import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.opt.OSize;
@@ -39,13 +37,13 @@ public class DataViewFilterPanel extends DPanel {
 	private IDataService dataService;
 
 	// Main Constructor
-	public DataViewFilterPanel(String id, final Map<String, Object> filter, DataVO dataVO) {
+	public DataViewFilterPanel(String id, final Map<String, Object> filter, List<DataAbstractFieldVO> allFields) {
 		super(id);
 		setDefaultModel(new CompoundPropertyModel<>(filter));
 
 		this.filter = filter;
 
-		fillFilterMapByRequestParams(dataVO);
+		fillFilterMapByRequestParams(allFields);
 
 		disableFilledFilter = getWebRequest()
 			.getQueryParameters()
@@ -56,7 +54,7 @@ public class DataViewFilterPanel extends DPanel {
 		floatTable.setEqualWidth(true);
 		add(floatTable);
 
-		floatTable.add(new ListView<DataAbstractFieldVO>("fields", dataService.findFilteringFields(dataVO)) {
+		floatTable.add(new ListView<DataAbstractFieldVO>("fields", dataService.findFilteringFields(allFields)) {
 			@Override
 			protected void populateItem(ListItem<DataAbstractFieldVO> item) {
 				DataAbstractFieldVO fieldVO = item.getModelObject();
@@ -165,11 +163,11 @@ public class DataViewFilterPanel extends DPanel {
 		return fieldFormItem;
 	}
 
-	private void fillFilterMapByRequestParams(DataVO dataVO) {
+	private void fillFilterMapByRequestParams(List<DataAbstractFieldVO> allFields) {
 		IRequestParameters queryParameters = getWebRequest().getQueryParameters();
 		Set<String> parameterNames = queryParameters.getParameterNames();
 
-		for (DataFieldVO fieldVO : dataVO.getFields()) {
+		for (DataAbstractFieldVO fieldVO : allFields) {
 			String fieldName = fieldVO.getName();
 			if (parameterNames.contains(fieldName)) {
 				switch (fieldVO.getFilterType()) {

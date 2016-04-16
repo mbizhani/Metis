@@ -157,6 +157,10 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		return getTitle() != null ? getTitle() : getName();
 	}
 
+	public boolean getInFilterPanelSafely() {
+		return true;
+	}
+
 	// ----------------------------- OBJECT METHODS
 
 	@Override

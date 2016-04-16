@@ -30,7 +30,7 @@ public class DataViewExecutorDPage extends DPage {
 		DataVO dataVO = dataService.loadDataVO(params.get(0));
 
 		Form<Map<String, Object>> form = new Form<>("form");
-		form.add(new DataViewFilterPanel("filterPanel", filter, dataVO));
+		form.add(new DataViewFilterPanel("filterPanel", filter, dataVO.getAllFields()));
 		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {

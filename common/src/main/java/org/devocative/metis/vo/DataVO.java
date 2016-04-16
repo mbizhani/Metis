@@ -182,6 +182,13 @@ public class DataVO implements Serializable {
 		return getDataSourceId() == null || getName().equals(getDataSourceName());
 	}
 
+	public List<DataAbstractFieldVO> getAllFields() {
+		List<DataAbstractFieldVO> result = new ArrayList<>();
+		result.addAll(getParams());
+		result.addAll(getFields());
+		return result;
+	}
+
 	public XDataSource toXDataSource() {
 		XDataSource xDataSource = new XDataSource();
 		xDataSource.setName(getDataSourceName());

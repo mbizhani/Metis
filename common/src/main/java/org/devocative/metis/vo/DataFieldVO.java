@@ -118,6 +118,7 @@ public class DataFieldVO extends DataAbstractFieldVO {
 		return ObjectUtil.isTrue(getIsKeyField());
 	}
 
+	@Override
 	public boolean getInFilterPanelSafely() {
 		return ObjectUtil.isTrue(getInFilterPanel());
 	}
