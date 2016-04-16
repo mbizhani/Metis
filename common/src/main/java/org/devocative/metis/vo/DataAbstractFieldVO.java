@@ -153,6 +153,10 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		return ObjectUtil.isTrue(getRequired());
 	}
 
+	public String getTitleOrName() {
+		return getTitle() != null ? getTitle() : getName();
+	}
+
 	// ----------------------------- OBJECT METHODS
 
 	@Override

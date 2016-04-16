@@ -1,16 +1,25 @@
 package org.devocative.metis.web.dPage.data;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
+import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.web.MetisIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DataViewExecutorDPage extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewExecutorDPage.class);
+
+	private Map<String, Object> filter = new HashMap<>();
 
 	@Inject
 	private IDataService dataService;
@@ -20,6 +29,14 @@ public class DataViewExecutorDPage extends DPage {
 
 		DataVO dataVO = dataService.loadDataVO(params.get(0));
 
-
+		Form<Map<String, Object>> form = new Form<>("form");
+		form.add(new DataViewFilterPanel("filterPanel", filter, dataVO));
+		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+			@Override
+			protected void onSubmit(AjaxRequestTarget target) {
+				logger.debug("filter = {}", filter);
+			}
+		});
+		add(form);
 	}
 }

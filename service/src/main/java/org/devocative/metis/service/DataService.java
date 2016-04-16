@@ -90,7 +90,7 @@ public class DataService implements IDataService {
 		result.addAll(dataVO.getParams());
 
 		for (DataFieldVO dataFieldVO : dataVO.getFields()) {
-			if (dataFieldVO.getInFilterPanel()) {
+			if (dataFieldVO.getInFilterPanelSafely()) {
 				result.add(dataFieldVO);
 			}
 		}

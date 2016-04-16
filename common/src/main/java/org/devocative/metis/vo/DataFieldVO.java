@@ -118,6 +118,10 @@ public class DataFieldVO extends DataAbstractFieldVO {
 		return ObjectUtil.isTrue(getIsKeyField());
 	}
 
+	public boolean getInFilterPanelSafely() {
+		return ObjectUtil.isTrue(getInFilterPanel());
+	}
+
 	public boolean getIsSelfRelPointerFieldSafely() {
 		return ObjectUtil.isTrue(getIsSelfRelPointerField());
 	}
