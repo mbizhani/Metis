@@ -5,9 +5,9 @@ import com.thoughtworks.xstream.core.util.QuickWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
-import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -46,9 +46,6 @@ public class DataSourceService implements IDataSourceService {
 
 	@Autowired
 	private IPersistorService persistorService;
-
-	@Autowired
-	private ISecurityService securityService;
 
 	public DataSourceService() {
 		xstream = new XStream();
@@ -106,15 +103,15 @@ public class DataSourceService implements IDataSourceService {
 
 		// ---- Processing Fields
 		for (XDSField xdsField : xDataSource.getFields()) {
-			if (xdsField.getIsKeyField()) {
+			if (ObjectUtil.isTrue(xdsField.getIsKeyField())) {
 				dataSource.setKeyField(xdsField.getName());
 			}
 
-			if (xdsField.getIsTitleField()) {
+			if (ObjectUtil.isTrue(xdsField.getIsTitleField())) {
 				dataSource.setTitleField(xdsField.getName());
 			}
 
-			if (xdsField.getIsSelfRelPointerField()) {
+			if (ObjectUtil.isTrue(xdsField.getIsSelfRelPointerField())) {
 				dataSource.setSelfRelPointerField(xdsField.getName());
 			}
 
@@ -167,130 +164,6 @@ public class DataSourceService implements IDataSourceService {
 		return dataSource;
 	}
 
-	@Deprecated
-	@Override
-	public void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters) {
-		logger.info("Saving DataSource(user={}): name={}, fields#={}, params#={}",
-			securityService.getCurrentUser(), fields.size(), parameters.size());
-
-		Map<String, DataSourceRelation> oldRelationsMap = new HashMap<>();
-		List<DataSourceRelation> newRelations = new ArrayList<>();
-
-		if (dataSource.getId() != null) {
-			persistorService
-				.createQueryBuilder()
-				.addSelect("update DataSourceRelation ent set ent.deleted = true where ent.source.id = :srcId")
-				.addParam("srcId", dataSource.getId())
-				.update();
-
-			List<DataSourceRelation> relations = persistorService
-				.createQueryBuilder()
-				.addFrom(DataSourceRelation.class, "ent")
-				.addWhere("and ent.source.id = :srcId")
-				.addParam("srcId", dataSource.getId())
-				.list();
-
-			for (DataSourceRelation relation : relations) {
-				oldRelationsMap.put(relation.getSourcePointerField(), relation);
-			}
-		} else {
-			long count = persistorService
-				.createQueryBuilder()
-				.addSelect("select count(1)")
-				.addFrom(DataSource.class, "ent")
-				.addWhere("and ent.name = :name")
-				.addParam("name", dataSource.getName())
-				.object();
-
-			if (count > 0) {
-				throw new MetisException(MetisErrorCode.DuplicateDataSourceName, dataSource.getName());
-			}
-		}
-
-		// ---- Processing Fields
-		for (XDSField xdsField : fields) {
-			if (xdsField.getIsKeyField()) {
-				dataSource.setKeyField(xdsField.getName());
-			} else {
-				xdsField.setIsKeyField(null);
-			}
-
-			if (xdsField.getIsTitleField()) {
-				dataSource.setTitleField(xdsField.getName());
-			} else {
-				xdsField.setIsTitleField(null);
-			}
-
-			if (xdsField.getIsSelfRelPointerField()) {
-				dataSource.setSelfRelPointerField(xdsField.getName());
-			} else {
-				xdsField.setIsSelfRelPointerField(null);
-			}
-
-			if (XDSFieldType.LookUp == xdsField.getType()) {
-				xdsField.setTargetDSId(xdsField.getTarget().getId());
-
-				DataSourceRelation rel = oldRelationsMap.get(xdsField.getName());
-				if (rel == null) {
-					rel = new DataSourceRelation();
-				}
-				rel.setSourcePointerField(xdsField.getName());
-				rel.setDeleted(false);
-				rel.setSource(dataSource);
-				rel.setTarget(xdsField.getTarget());
-				newRelations.add(rel);
-			}
-		}
-
-		// ---- Processing Parameters
-		for (XDSParameter xdsParameter : parameters) {
-			if (XDSFieldType.LookUp == xdsParameter.getType()) {
-				xdsParameter.setTargetDSId(xdsParameter.getTarget().getId());
-
-				DataSourceRelation rel = oldRelationsMap.get(xdsParameter.getName());
-				if (rel == null) {
-					rel = new DataSourceRelation();
-				}
-				rel.setSourcePointerField(xdsParameter.getName());
-				rel.setDeleted(false);
-				rel.setSource(dataSource);
-				rel.setTarget(xdsParameter.getTarget());
-				newRelations.add(rel);
-			}
-		}
-
-		XDSQuery newXdsQuery = new XDSQuery();
-		newXdsQuery.setMode(xdsQuery.getMode());
-		newXdsQuery.setDynamic(xdsQuery.getDynamic());
-		newXdsQuery.setText(String.format("\n<![CDATA[\n%s\n]]>\n", xdsQuery.getText().trim()));
-
-		XDataSource xDataSource = new XDataSource();
-		xDataSource.setName(dataSource.getName());
-		xDataSource.setQuery(newXdsQuery);
-		xDataSource.setFields(fields);
-		xDataSource.setParams(parameters);
-
-		ConfigLob config = dataSource.getConfig();
-		if (config == null) {
-			config = new ConfigLob();
-		}
-		StringWriter writer = new StringWriter();
-		xstream.marshal(xDataSource, new MyWriter(writer));
-		config.setValue(writer.toString());
-
-		dataSource.setConfig(config);
-
-		persistorService.saveOrUpdate(config);
-		persistorService.saveOrUpdate(dataSource);
-		for (DataSourceRelation relation : newRelations) {
-			persistorService.saveOrUpdate(relation);
-		}
-		persistorService.commitOrRollback();
-
-		logger.info("Saved DataSource(user={}): name={}, fields#={}, relations#={}, params#={}",
-			securityService.getCurrentUser(), fields.size(), newRelations.size(), parameters.size());
-	}
-
 	@Override
 	public List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize) {
 		return persistorService
@@ -321,41 +194,18 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public DataSource getDataSource(String name) {
-		return persistorService
-			.createQueryBuilder()
-			.addFrom(DataSource.class, "ent")
-			.addWhere("and ent.name = :name")
-			.addParam("name", name)
-			.object();
-	}
-
-	@Override
 	public XDataSource getXDataSource(DataSource dataSource) {
-		List<DataSourceRelation> relations = persistorService
-			.createQueryBuilder()
-			.addFrom(DataSourceRelation.class, "ent")
-			.addWhere("and ent.source.id = :srcId and ent.deleted = false")
-			.addParam("srcId", dataSource.getId())
-			.list();
-
-		XDataSource xDataSource = (XDataSource) xstream.fromXML(dataSource.getConfig().getValue());
-		for (DataSourceRelation relation : relations) {
-			XDSField field = xDataSource.getField(relation.getSourcePointerField());
-			field.setTarget(relation.getTarget());
-		}
-		xDataSource.setConnectionInfoId(dataSource.getConnectionId());
-		return xDataSource;
+		return (XDataSource) xstream.fromXML(dataSource.getConfig().getValue());
 	}
 
 	@Override
 	public XDataSource getXDataSource(String name) {
-		DataSource dataSource = getDataSource(name);
+		DataSource dataSource = loadByName(name);
 		return getXDataSource(dataSource);
 	}
 
 	@Override
-	public long getCountForDataSource(String name, Map<String, Object> filters) {
+	public long executeCountForDataSource(String name, Map<String, Object> filters) {
 		XDataSource xDataSource = getXDataSource(name);
 
 		StringBuilder builder = new StringBuilder();
@@ -370,8 +220,8 @@ public class DataSourceService implements IDataSourceService {
 
 		try {
 			String comment = String.format("COUNT[%s]", name);
-			Long dbConnId = xDataSource.getConnectionInfoId();
-			List<Map<String, Object>> list = dbConnectionService.executeQuery(
+			Long dbConnId = findProperDBConnection(name);
+			List<Map<String, Object>> list = dbConnectionService.executeDSQuery(
 				dbConnId,
 				processQuery(
 					dbConnId,
@@ -386,6 +236,16 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
+	public Long findProperDBConnection(String dataSourceName) {
+		return persistorService.createQueryBuilder()
+			.addSelect("select ent.connectionId")
+			.addFrom(DataSource.class, "ent")
+			.addWhere("and ent.name = :name")
+			.addParam("name", dataSourceName)
+			.object();
+	}
+
+	@Override
 	public List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId,
 									   List<XDSParameter> xdsParameters) {
 		throw new RuntimeException("Not Implemeted!");
@@ -397,7 +257,7 @@ public class DataSourceService implements IDataSourceService {
 			for (XDSParameter xdsParameter : xdsParameters) {
 				params.put(xdsParameter.getName(), xdsParameter.getSampleData());
 			}
-			fieldsFromDB = dbConnectionService.getFields(
+			fieldsFromDB = dbConnectionService.findFields(
 				connectionId,
 				processQuery(
 					connectionId,
@@ -475,7 +335,7 @@ public class DataSourceService implements IDataSourceService {
 		String mainQuery = mainQueryBuilder.toString();
 		logger.debug("executeDataSource: MAIN SQL: {}", mainQuery);
 
-		Long dbConnId = xDataSource.getConnectionInfoId();
+		Long dbConnId = findProperDBConnection(name);
 		if (pageIndex != null && pageSize != null) {
 			if (dbConnectionService.isOracle(dbConnId)) {
 				mainQuery = String.format("select * from (select rownum rnum_pg, a.* from ( %s ) a) where rnum_pg between :pg_first and :pg_last", mainQuery);
@@ -496,7 +356,7 @@ public class DataSourceService implements IDataSourceService {
 
 		try {
 			String comment = String.format("EXEC[%s]", name);
-			return dbConnectionService.executeQuery(
+			return dbConnectionService.executeDSQuery(
 				dbConnId,
 				processQuery(
 					dbConnId,
@@ -511,7 +371,7 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public List<KeyValueVO<Serializable, String>> getLookUpList(XDSAbstractField field) {
-		Long dataSrcId = field.getTarget().getId();
+		Long dataSrcId = field.getTargetDSId();
 		DataSource dataSource = persistorService.get(DataSource.class, dataSrcId);
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -541,7 +401,7 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public List<Map<String, Object>> getChildrenOfParent(String name, Serializable parentId, Map<String, String> sortFields) {
-		DataSource dataSource = getDataSource(name);
+		DataSource dataSource = loadByName(name);
 
 		XDataSource xDataSource = getXDataSource(dataSource);
 		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource, null);
@@ -554,8 +414,8 @@ public class DataSourceService implements IDataSourceService {
 		params.put("parentId", parentId);
 		try {
 			String comment = String.format("CHILD[%s, %s]", name, parentId);
-			Long dbConnId = xDataSource.getConnectionInfoId();
-			return dbConnectionService.executeQuery(
+			Long dbConnId = findProperDBConnection(name);
+			return dbConnectionService.executeDSQuery(
 				dbConnId,
 				processQuery(
 					dbConnId,
@@ -827,7 +687,7 @@ public class DataSourceService implements IDataSourceService {
 			}
 
 			for (XDSParameter xdsParameter : dataSource.getParams()) {
-				if (filters.containsKey(xdsParameter.getName()) || xdsParameter.getRequired()) {
+				if (filters.containsKey(xdsParameter.getName()) || ObjectUtil.isTrue(xdsParameter.getRequired())) {
 					queryParams.put(xdsParameter.getName(), filters.get(xdsParameter.getName()));
 				}
 			}
@@ -863,7 +723,7 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	private String processDynamicQuery(String name, XDSQuery xdsQuery, Map<String, Object> params) {
-		if (xdsQuery.getDynamic()) {
+		if (ObjectUtil.isTrue(xdsQuery.getDynamic())) {
 			StringWriter out = new StringWriter();
 			try {
 				Template template = new Template(name, xdsQuery.getText(), freeMarkerCfg); //TODO cache template

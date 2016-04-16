@@ -12,6 +12,8 @@ import java.util.Map;
 
 @XStreamAlias("dataSource")
 public class XDataSource implements Serializable {
+	// ---------------------- XML FIELDS
+
 	@XStreamAsAttribute
 	private String name;
 
@@ -21,12 +23,7 @@ public class XDataSource implements Serializable {
 
 	private List<XDSParameter> params;
 
-	@XStreamOmitField
-	private Map<String, XDSField> fieldMap;
-
-	@Deprecated
-	@XStreamOmitField
-	private Long connectionInfoId;
+	// ---------------------- ACCESSORS
 
 	public String getName() {
 		return name;
@@ -36,7 +33,6 @@ public class XDataSource implements Serializable {
 		this.name = name;
 	}
 
-	// Has Default
 	public XDSQuery getQuery() {
 		if (query == null) {
 			query = new XDSQuery();
@@ -48,7 +44,6 @@ public class XDataSource implements Serializable {
 		this.query = query;
 	}
 
-	// Has Default
 	public List<XDSField> getFields() {
 		if (fields == null) {
 			fields = new ArrayList<>();
@@ -60,7 +55,6 @@ public class XDataSource implements Serializable {
 		this.fields = fields;
 	}
 
-	// Has Default
 	public List<XDSParameter> getParams() {
 		if (params == null) {
 			params = new ArrayList<>();
@@ -72,15 +66,10 @@ public class XDataSource implements Serializable {
 		this.params = params;
 	}
 
-	@Deprecated
-	public Long getConnectionInfoId() {
-		return connectionInfoId;
-	}
+	// ---------------------- OTHERS
 
-	@Deprecated
-	public void setConnectionInfoId(Long connectionInfoId) {
-		this.connectionInfoId = connectionInfoId;
-	}
+	@XStreamOmitField
+	private Map<String, XDSField> fieldMap;
 
 	public XDSField getField(String name) {
 		if (fieldMap == null) {
@@ -91,5 +80,4 @@ public class XDataSource implements Serializable {
 		}
 		return fieldMap.get(name);
 	}
-
 }

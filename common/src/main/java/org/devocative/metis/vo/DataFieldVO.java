@@ -114,6 +114,14 @@ public class DataFieldVO extends DataAbstractFieldVO {
 
 	// --------------------- PUBLIC METHODS
 
+	public boolean getIsKeyFieldSafely() {
+		return ObjectUtil.isTrue(getIsKeyField());
+	}
+
+	public boolean getIsSelfRelPointerFieldSafely() {
+		return ObjectUtil.isTrue(getIsSelfRelPointerField());
+	}
+
 	public XDSField toXDSField() {
 		XDSField xdsField = new XDSField();
 		ObjectUtil.merge(xdsField, this, true);

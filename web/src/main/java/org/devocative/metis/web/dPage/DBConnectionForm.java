@@ -58,7 +58,7 @@ public class DBConnectionForm extends DPage {
 
 		DBConnection dbConnection = params.size() == 0 ?
 			new DBConnection() :
-			connectionService.getByName(params.get(0));
+			connectionService.loadByName(params.get(0));
 
 		FormComponent password, password2;
 

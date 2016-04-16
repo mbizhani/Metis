@@ -23,7 +23,7 @@ public class ExecuteDataSourceDTask extends DTask {
 	@Override
 	public void init() {
 		data = (Map<String, Object>) inputData;
-		dataSource = dataSourceService.getDataSource((String) data.get("name"));
+		dataSource = dataSourceService.loadByName((String) data.get("name"));
 	}
 
 	@Override
@@ -39,7 +39,7 @@ public class ExecuteDataSourceDTask extends DTask {
 			(Long) data.get("pageIndex"),
 			(Long) data.get("pageSize"));
 
-		long count = dataSourceService.getCountForDataSource(
+		long count = dataSourceService.executeCountForDataSource(
 			dataSource.getName(),
 			(Map<String, Object>) data.get("filter"));
 

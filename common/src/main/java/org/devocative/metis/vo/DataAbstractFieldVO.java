@@ -1,5 +1,6 @@
 package org.devocative.metis.vo;
 
+import org.devocative.adroit.ObjectUtil;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
@@ -145,6 +146,14 @@ public abstract class DataAbstractFieldVO implements Serializable {
 	public void setTargetDVName(String targetDVName) {
 		this.targetDVName = targetDVName;
 	}
+
+	// ----------------------------- HELPER METHODS
+
+	public boolean getRequiredSafely() {
+		return ObjectUtil.isTrue(getRequired());
+	}
+
+	// ----------------------------- OBJECT METHODS
 
 	@Override
 	public boolean equals(Object o) {

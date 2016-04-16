@@ -23,9 +23,8 @@ public class XDSQuery implements Serializable {
 		this.mode = mode;
 	}
 
-	// Has Default
 	public Boolean getDynamic() {
-		return dynamic != null ? dynamic : false;
+		return dynamic;
 	}
 
 	public void setDynamic(Boolean dynamic) {

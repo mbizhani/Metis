@@ -56,7 +56,7 @@ public class DataViewFilterPanel extends DFormInputPanel<Map<String, Object>> {
 				if (fieldFormItem != null) {
 					fieldFormItem
 						.setLabel(new Model<>(fieldVO.getTitle()))
-						.setRequired(fieldVO.getRequired());
+						.setRequired(fieldVO.getRequiredSafely());
 					view.add(fieldFormItem);
 				}
 				item.add(view);

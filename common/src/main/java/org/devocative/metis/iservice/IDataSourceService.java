@@ -18,22 +18,19 @@ public interface IDataSourceService {
 
 	DataSource saveOrUpdate(Long dataSourceId, Long dbConnId, String title, XDataSource xDataSource);
 
-	@Deprecated
-	void saveOrUpdate(DataSource dataSource, XDSQuery xdsQuery, List<XDSField> fields, List<XDSParameter> parameters);
-
 	List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize);
 
 	long count(DataSourceFVO filter);
 
 	List<DataSource> getListForLookup();
 
-	DataSource getDataSource(String name);
-
 	XDataSource getXDataSource(DataSource dataSource);
 
 	XDataSource getXDataSource(String name);
 
-	long getCountForDataSource(String name, Map<String, Object> filters);
+	long executeCountForDataSource(String name, Map<String, Object> filters);
+
+	Long findProperDBConnection(String dataSourceName);
 
 	List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId,
 								List<XDSParameter> xdsParameters);

@@ -2,9 +2,7 @@ package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.devocative.metis.IgnoreFalseConverter;
-import org.devocative.metis.entity.data.DataSource;
 
 import java.io.Serializable;
 
@@ -25,17 +23,15 @@ public abstract class XDSAbstractField implements Serializable {
 	@XStreamAsAttribute
 	protected XDSFieldFilterType filterType;
 
+	@Deprecated
+	@XStreamAsAttribute
+	protected Long targetId;
+
 	@XStreamAsAttribute
 	protected Long targetDSId;
 
 	@XStreamAsAttribute
 	protected String targetDSName;
-
-	// -- Volatile Fields
-
-	@Deprecated
-	@XStreamOmitField
-	protected DataSource target;
 
 	public String getName() {
 		return name;
@@ -86,6 +82,17 @@ public abstract class XDSAbstractField implements Serializable {
 		return this;
 	}
 
+	@Deprecated
+	public Long getTargetId() {
+		return targetId;
+	}
+
+	@Deprecated
+	public XDSAbstractField setTargetId(Long targetId) {
+		this.targetId = targetId;
+		return this;
+	}
+
 	public Long getTargetDSId() {
 		return targetDSId;
 	}
@@ -102,17 +109,6 @@ public abstract class XDSAbstractField implements Serializable {
 	public XDSAbstractField setTargetDSName(String targetDSName) {
 		this.targetDSName = targetDSName;
 		return this;
-	}
-
-	// ---------------------- VOLATILE PROPERTIES
-	@Deprecated
-	public DataSource getTarget() {
-		return target;
-	}
-
-	@Deprecated
-	public void setTarget(DataSource target) {
-		this.target = target;
 	}
 
 	// ---------------------- Object METHODS

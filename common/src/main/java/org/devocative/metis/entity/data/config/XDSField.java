@@ -3,17 +3,13 @@ package org.devocative.metis.entity.data.config;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.devocative.metis.IgnoreFalseConverter;
 
 @XStreamAlias("field")
 public class XDSField extends XDSAbstractField {
 	@Deprecated
 	@XStreamAsAttribute
-	private String format;
-
-	@Deprecated
-	@XStreamAsAttribute
+	@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean inFilterPanel;
 
 	@Deprecated
@@ -32,27 +28,6 @@ public class XDSField extends XDSAbstractField {
 	@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean isSelfRelPointerField;
 
-	// -- Volatile Fields
-
-	@Deprecated
-	@XStreamOmitField
-	private String dbType;
-
-	@Deprecated
-	@XStreamOmitField
-	private Integer dbSize;
-
-	@Deprecated
-	public String getFormat() {
-		return format;
-	}
-
-	@Deprecated
-	public XDSField setFormat(String format) {
-		this.format = format;
-		return this;
-	}
-
 	@Deprecated
 	public Boolean getInFilterPanel() {
 		return inFilterPanel;
@@ -65,10 +40,12 @@ public class XDSField extends XDSAbstractField {
 	}
 
 	// Has Default
+	@Deprecated
 	public XDSFieldResultType getResultType() {
-		return resultType != null ? resultType : XDSFieldResultType.Shown;
+		return resultType;
 	}
 
+	@Deprecated
 	public XDSField setResultType(XDSFieldResultType resultType) {
 		this.resultType = resultType;
 		return this;
@@ -98,30 +75,6 @@ public class XDSField extends XDSAbstractField {
 
 	public XDSField setIsSelfRelPointerField(Boolean isSelfRelPointerField) {
 		this.isSelfRelPointerField = isSelfRelPointerField;
-		return this;
-	}
-
-	// ---------------------- VOLATILE PROPERTIES
-
-	@Deprecated
-	public String getDbType() {
-		return dbType;
-	}
-
-	@Deprecated
-	public XDSField setDbType(String dbType) {
-		this.dbType = dbType;
-		return this;
-	}
-
-	@Deprecated
-	public Integer getDbSize() {
-		return dbSize;
-	}
-
-	@Deprecated
-	public XDSField setDbSize(Integer dbSize) {
-		this.dbSize = dbSize;
 		return this;
 	}
 }

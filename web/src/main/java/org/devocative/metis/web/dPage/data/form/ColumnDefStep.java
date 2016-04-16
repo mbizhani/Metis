@@ -34,22 +34,28 @@ class ColumnDefStep extends WWizardStepPanel {
 			@Override
 			protected void populateItem(ListItem<DataFieldVO> item) {
 				DataFieldVO fieldVO = item.getModelObject();
+				boolean enb = !XDSFieldType.Unknown.equals(fieldVO.getType());
 
 				final WSelectionInput type, filterType;
 
 				item.add(new Label("name", fieldVO.getName()));
 				item.add(new Label("dbType", fieldVO.getDbType()));
-				item.add(new WTextInput("title", new PropertyModel<String>(fieldVO, "title")).setLabelVisible(false));
+				item.add(new WTextInput("title", new PropertyModel<String>(fieldVO, "title"))
+					.setLabelVisible(false));
 				item.add(type = new WSelectionInput("type", new PropertyModel<String>(fieldVO, "type"),
 					Arrays.asList(XDSFieldType.values()), false));
-				item.add(new CheckBox("required", new PropertyModel<Boolean>(fieldVO, "required")));
+				item.add(new CheckBox("required", new PropertyModel<Boolean>(fieldVO, "required"))
+					.setEnabled(enb));
 				item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(fieldVO, "filterType"),
 					Arrays.asList(fieldVO.getType().getProperFilterTypes()), false));
 				item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(fieldVO, "isKeyField"))
+					.setEnabled(enb)
 					.add(new AttributeModifier("group", "isKeyField")));
 				item.add(new CheckBox("isTitleField", new PropertyModel<Boolean>(fieldVO, "isTitleField"))
+					.setEnabled(enb)
 					.add(new AttributeModifier("group", "isTitleField")));
 				item.add(new CheckBox("isSelfRelPointerField", new PropertyModel<Boolean>(fieldVO, "isSelfRelPointerField"))
+					.setEnabled(enb)
 					.add(new AttributeModifier("group", "isSelfRelField")));
 
 				type.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
@@ -63,12 +69,14 @@ class ColumnDefStep extends WWizardStepPanel {
 				type
 					.setLabelVisible(false)
 					.setRequired(true)
-					.setLabel(new Model<>(getString("XDSField.type") + " " + fieldVO.getName()));
+					.setLabel(new Model<>(getString("XDSField.type") + " " + fieldVO.getName()))
+					.setEnabled(enb);
 				filterType
 					.setLabelVisible(false)
 					.setLabel(new Model<>(getString("XDSField.filterType") + " " + fieldVO.getName()))
 					.setRequired(true)
-					.setOutputMarkupId(true);
+					.setOutputMarkupId(true)
+					.setEnabled(enb);
 			}
 		});
 	}

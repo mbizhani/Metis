@@ -14,6 +14,8 @@ import org.devocative.metis.entity.connection.mapping.XMany2One;
 import org.devocative.metis.entity.connection.mapping.XOne2Many;
 import org.devocative.metis.entity.connection.mapping.XProperty;
 import org.devocative.metis.entity.connection.mapping.XSchema;
+import org.devocative.metis.entity.data.config.XDSFieldFilterType;
+import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.vo.DataFieldVO;
@@ -100,7 +102,7 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public DBConnection getByName(String name) {
+	public DBConnection loadByName(String name) {
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DBConnection.class, "ent")
@@ -110,7 +112,7 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public List<DataFieldVO> getFields(Long dbConnId, String sql, Map<String, Object> params) throws SQLException {
+	public List<DataFieldVO> findFields(Long dbConnId, String sql, Map<String, Object> params) throws SQLException {
 		List<DataFieldVO> result = new ArrayList<>();
 
 		try (Connection connection = getConnection(dbConnId)) {
@@ -137,6 +139,8 @@ public class DBConnectionService implements IDBConnectionService {
 					fieldVO.setType(XDSFieldType.Real);
 				} else {
 					fieldVO.setType(XDSFieldType.Unknown);
+					fieldVO.setFilterType(XDSFieldFilterType.Unknown);
+					fieldVO.setResultType(XDSFieldResultType.None);
 				}
 				result.add(fieldVO);
 			}
@@ -178,7 +182,7 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public List<Map<String, Object>> executeQuery(Long dbConnId, String query, Map<String, Object> params, String comment) throws SQLException {
+	public List<Map<String, Object>> executeDSQuery(Long dbConnId, String query, Map<String, Object> params, String comment) throws SQLException {
 
 		try (Connection connection = getConnection(dbConnId)) {
 			if (comment != null) {

@@ -21,13 +21,13 @@ public interface IDBConnectionService {
 
 	List<DBConnection> list();
 
-	DBConnection getByName(String name);
+	DBConnection loadByName(String name);
 
-	List<DataFieldVO> getFields(Long id, String sql, Map<String, Object> params) throws SQLException;
+	List<DataFieldVO> findFields(Long id, String sql, Map<String, Object> params) throws SQLException;
 
 	Connection getConnection(Long id);
 
-	List<Map<String, Object>> executeQuery(Long id, String query, Map<String, Object> params, String comment) throws SQLException;
+	List<Map<String, Object>> executeDSQuery(Long id, String query, Map<String, Object> params, String comment) throws SQLException;
 
 	List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long id, String query) throws SQLException;
 

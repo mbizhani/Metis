@@ -159,7 +159,7 @@ public class DataService implements IDataService {
 				dataVO.getQuery().getText()
 			);
 
-			fieldsFromDB = dbConnectionService.getFields(
+			fieldsFromDB = dbConnectionService.findFields(
 				dataVO.getConnectionId(),
 				sql,
 				params);
