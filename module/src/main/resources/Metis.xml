@@ -29,6 +29,11 @@
 			   uri="dvForm"
 			   inMenu="true"/>
 
+		<dPage type="org.devocative.metis.web.dPage.data.DataViewExecutorDPage"
+			   title="DataViewExecutor"
+			   uri="dvExec"
+			   inMenu="true"/>
+
 		<dPage type="org.devocative.metis.web.dPage.DataViewListDPage"
 			   title="DataViewList"
 			   uri="dvList"

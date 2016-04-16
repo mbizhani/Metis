@@ -16,6 +16,7 @@ import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.iservice.IDataViewService;
 import org.devocative.metis.vo.filter.DataViewFVO;
 import org.devocative.metis.web.MetisIcon;
+import org.devocative.metis.web.dPage.data.DataViewExecutorDPage;
 import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.form.WDateRangeInput;
@@ -88,7 +89,7 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("entity.modifierUser"), "modifierUser"));
 
 		columnList.add(new ORESTLinkColumn<DataView>(new Model<String>(), DataViewFormDPage.class, "name", MetisIcon.EDIT));
-		//columnList.add(new ORESTLinkColumn<DataView>(new Model<String>(), DataSourceExecutor.class, "name", MetisIcon.EXECUTE));
+		columnList.add(new ORESTLinkColumn<DataView>(new Model<String>(), DataViewExecutorDPage.class, "name", MetisIcon.EXECUTE));
 
 		OGrid<DataView> oGrid = new OGrid<>();
 		oGrid
