@@ -15,11 +15,11 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
+import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.obuilder.ObjectBuilder;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.web.DPage;
-import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.config.*;
@@ -37,7 +37,6 @@ import org.devocative.wickomp.formatter.ONumberFormatter;
 import org.devocative.wickomp.grid.*;
 import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
-import org.devocative.wickomp.grid.column.OHiddenColumn;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
@@ -94,7 +93,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 		dataSource = ds;
 		if (params.size() > 0) {
-			dataSource = dataSourceService.getDataSource(params.get(0));
+			dataSource = dataSourceService.loadByName(params.get(0));
 		}
 
 		String title;
@@ -107,8 +106,8 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 			filters = new HashMap<>();
 
-			String editUri = String.format("%s/%s", UrlUtil.createUri(DataSourceForm.class, true), dataSource.getName());
-			edit = new ExternalLink("edit", editUri);
+			//TODO String editUri = String.format("%s/%s", UrlUtil.createUri(DataSourceForm.class, true), dataSource.getName());
+			edit = new ExternalLink("edit", "");
 		} else {
 			mainTable.setVisible(false);
 			title = "No DataSource defined!"; // TODO use ResourceModel
@@ -215,7 +214,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 				if (fieldFormItem != null) {
 					fieldFormItem
 						.setLabel(new Model<>(dsField.getTitle()))
-						.setRequired(dsField.getRequired());
+						.setRequired(ObjectUtil.isTrue(dsField.getRequired()));
 					view.add(fieldFormItem);
 				}
 				item.add(view);
@@ -234,39 +233,28 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 		for (XDSField dsField : xdsFieldList) {
-			switch (dsField.getResultType()) {
-				case None:
-					break;
-				case Hidden:
-				case Shown:
-					OColumn<Map<String, Object>> column;
-					if (dsField.getResultType() == XDSFieldResultType.Shown)
-						column = new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getSafeTitle()), dsField.getName())
-							.setSortable(true);
-					else {
-						column = new OHiddenColumn<>(dsField.getName());
-					}
+			OColumn<Map<String, Object>> column =
+				new OPropertyColumn<Map<String, Object>>(new Model<>(dsField.getSafeTitle()), dsField.getName())
+					.setSortable(true);
 
-					switch (dsField.getType()) {
-						case Integer:
-							column.setFormatter(ONumberFormatter.integer());
-							break;
-						case Real:
-							column.setFormatter(ONumberFormatter.real());
-							break;
-						case Date:
-							column.setFormatter(ODateFormatter.prDate());
-							break;
-						case DateTime:
-							column.setFormatter(ODateFormatter.prDateTime());
-							break;
-						case Boolean:
-							column.setFormatter(OBooleanFormatter.bool());
-							break;
-					}
-					columns.add(column);
+			switch (dsField.getType()) {
+				case Integer:
+					column.setFormatter(ONumberFormatter.integer());
+					break;
+				case Real:
+					column.setFormatter(ONumberFormatter.real());
+					break;
+				case Date:
+					column.setFormatter(ODateFormatter.prDate());
+					break;
+				case DateTime:
+					column.setFormatter(ODateFormatter.prDateTime());
+					break;
+				case Boolean:
+					column.setFormatter(OBooleanFormatter.bool());
 					break;
 			}
+			columns.add(column);
 		}
 
 		OBaseGrid<Map<String, Object>> oBaseGrid;
@@ -338,7 +326,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 		if (xdsFieldList != null) {
 			for (XDSField field : xdsFieldList) {
-				if (field.getInFilterPanel()) {
+				if (!XDSFieldType.Unknown.equals(field.getType())) {
 					result.add(field);
 				}
 			}
@@ -377,7 +365,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 		/*@Override
 		public long count() {
-			return dataSourceService.getCountForDataSource(dataSource.getName(), getFilterMap());
+			return dataSourceService.executeCountForDataSource(dataSource.getName(), getFilterMap());
 		}*/
 
 		@Override
