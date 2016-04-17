@@ -18,6 +18,12 @@ public class XDataView implements Serializable {
 	@XStreamAsAttribute
 	private String dataSourceName;
 
+	@XStreamAsAttribute
+	private XDVGridSelectionMode selectionMode;
+
+	@XStreamAsAttribute
+	private XDVGridHeight gridHeight;
+
 	private List<XDVField> fields;
 
 	private List<XDVDetail> details;
@@ -44,6 +50,22 @@ public class XDataView implements Serializable {
 
 	public void setDataSourceName(String dataSourceName) {
 		this.dataSourceName = dataSourceName;
+	}
+
+	public XDVGridSelectionMode getSelectionMode() {
+		return selectionMode;
+	}
+
+	public void setSelectionMode(XDVGridSelectionMode selectionMode) {
+		this.selectionMode = selectionMode;
+	}
+
+	public XDVGridHeight getGridHeight() {
+		return gridHeight;
+	}
+
+	public void setGridHeight(XDVGridHeight gridHeight) {
+		this.gridHeight = gridHeight;
 	}
 
 	public List<XDVField> getFields() {

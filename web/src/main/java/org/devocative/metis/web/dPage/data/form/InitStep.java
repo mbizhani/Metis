@@ -7,6 +7,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
+import org.devocative.metis.entity.data.config.XDVGridHeight;
+import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WSelectionInput;
@@ -69,6 +71,16 @@ class InitStep extends WWizardStepPanel {
 			.setRequired(true)
 			.setLabel(new ResourceModel("DataSource.query.mode"))
 			.setEnabled(dataVO.isDataSourceEditable());
+
+		add(new WSelectionInput("selectionMode", new PropertyModel(dataVO, "selectionMode"),
+			Arrays.asList(XDVGridSelectionMode.values()), false)
+			.setLabelVisible(false)
+			.setRequired(true).setLabel(new ResourceModel("DataView.selectionMode")));
+
+		add(new WSelectionInput("gridHeight", new PropertyModel(dataVO, "gridHeight"),
+			Arrays.asList(XDVGridHeight.values()), false)
+			.setLabelVisible(false)
+			.setRequired(true).setLabel(new ResourceModel("DataView.gridHeight")));
 
 		if (dataVO.isDataSourceEditable()) {
 			connection.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {

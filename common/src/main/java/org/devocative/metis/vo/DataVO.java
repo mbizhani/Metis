@@ -53,6 +53,16 @@ public class DataVO implements Serializable {
 	private XDSQuery query;
 
 	/**
+	 * XDataView.selectionMode
+	 */
+	private XDVGridSelectionMode selectionMode;
+
+	/**
+	 * XDataView.gridHeight
+	 */
+	private XDVGridHeight gridHeight;
+
+	/**
 	 * merge of XDataView.fields & XDataSource.fields
 	 */
 	private List<DataFieldVO> fields;
@@ -146,6 +156,22 @@ public class DataVO implements Serializable {
 		this.query = query;
 	}
 
+	public XDVGridSelectionMode getSelectionMode() {
+		return selectionMode;
+	}
+
+	public void setSelectionMode(XDVGridSelectionMode selectionMode) {
+		this.selectionMode = selectionMode;
+	}
+
+	public XDVGridHeight getGridHeight() {
+		return gridHeight;
+	}
+
+	public void setGridHeight(XDVGridHeight gridHeight) {
+		this.gridHeight = gridHeight;
+	}
+
 	public List<DataFieldVO> getFields() {
 		if (fields == null) {
 			fields = new ArrayList<>();
@@ -189,6 +215,14 @@ public class DataVO implements Serializable {
 		return result;
 	}
 
+	public XDVGridSelectionMode getSelectionModeSafely() {
+		return selectionMode != null ? selectionMode : XDVGridSelectionMode.Multiple;
+	}
+
+	public XDVGridHeight getGridHeightSafely() {
+		return gridHeight != null ? gridHeight : XDVGridHeight.Short;
+	}
+
 	public DataFieldVO findSelfRelPointerField() {
 		for (DataFieldVO fieldVO : getFields()) {
 			if (fieldVO.getIsSelfRelPointerFieldSafely()) {
@@ -216,6 +250,7 @@ public class DataVO implements Serializable {
 		return null;
 	}
 
+
 	public XDataSource toXDataSource() {
 		XDataSource xDataSource = new XDataSource();
 		xDataSource.setName(getDataSourceName());
@@ -237,6 +272,8 @@ public class DataVO implements Serializable {
 		xDataView.setName(getName());
 		xDataView.setDataSourceId(getDataSourceId());
 		xDataView.setDataSourceName(getDataSourceName());
+		xDataView.setSelectionMode(getSelectionMode());
+		xDataView.setGridHeight(getGridHeight());
 
 		for (DataFieldVO fieldVO : getFields()) {
 			xDataView.getFields().add(fieldVO.toXDVField());
@@ -262,6 +299,8 @@ public class DataVO implements Serializable {
 
 	public void fromXDataView(XDataView xDataView) {
 		setName(xDataView.getName());
+		setSelectionMode(xDataView.getSelectionMode());
+		setGridHeight(xDataView.getGridHeight());
 
 		Map<String, DataFieldVO> fieldsMap = new HashMap<>();
 		for (DataFieldVO fieldVO : getFields()) {

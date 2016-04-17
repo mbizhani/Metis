@@ -7,6 +7,7 @@ import org.apache.wicket.model.Model;
 import org.devocative.adroit.obuilder.ObjectBuilder;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
+import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataSourceRVO;
@@ -77,13 +78,14 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setColumns(columns)
 			.setMultiSort(true)
 			.setSelectionIndicator(true)
+			.setSingleSelect(dataVO.getSelectionModeSafely() == XDVGridSelectionMode.Single)
 			.setIdField(keyField != null ? keyField.getName() : null)
 			.setTitleField(titleField != null ? titleField.getName() : null)
 			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				MetisIcon.EXPORT_EXCEL,
 				String.format("%s-export.xlsx", dataVO.getName()),
 				10000))
-			.setHeight(OSize.fixed(350))
+			.setHeight(OSize.fixed(dataVO.getGridHeightSafely().getHeight()))
 			.setWidth(OSize.percent(100))
 		;
 
