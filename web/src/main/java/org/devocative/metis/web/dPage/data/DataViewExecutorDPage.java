@@ -43,4 +43,9 @@ public class DataViewExecutorDPage extends DPage {
 
 		add(mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter));
 	}
+
+	public DataViewExecutorDPage setSelectionJSCallback(String jsCallback) {
+		mainGrid.setSelectionJSCallback(jsCallback);
+		return this;
+	}
 }

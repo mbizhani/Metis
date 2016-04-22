@@ -95,6 +95,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 	}
 
+	public DataViewGridPanel setSelectionJSCallback(String jsCallback) {
+		grid.getOptions().setSelectionJSHandler(jsCallback);
+		return this;
+	}
+
 	public void loadData(AjaxRequestTarget target) {
 		grid.setEnabled(true);
 		grid.loadData(target);

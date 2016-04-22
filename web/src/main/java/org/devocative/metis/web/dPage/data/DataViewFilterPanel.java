@@ -25,10 +25,7 @@ import org.devocative.wickomp.opt.OSize;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class DataViewFilterPanel extends DPanel {
 	private Map<String, Object> filter;
@@ -153,7 +150,10 @@ public class DataViewFilterPanel extends DPanel {
 
 						@Override
 						protected Component createSelectionPanel(String selectionPanelId) {
-							return null; //TODO
+							return new DataViewExecutorDPage(
+								selectionPanelId,
+								Collections.singletonList(fieldVO.getTargetDSName()))
+								.setSelectionJSCallback(getJSCallback());
 						}
 
 						@Override
