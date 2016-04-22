@@ -16,6 +16,7 @@ import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
+import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.html.WFloatTable;
@@ -35,6 +36,9 @@ public class DataViewFilterPanel extends DPanel {
 
 	@Inject
 	private IDataService dataService;
+
+	@Inject
+	private IDataSourceService dataSourceService;
 
 	// Main Constructor
 	public DataViewFilterPanel(String id, final Map<String, Object> filter, List<DataAbstractFieldVO> allFields) {
@@ -128,7 +132,7 @@ public class DataViewFilterPanel extends DPanel {
 
 			case LookUp:
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
-					List<KeyValueVO<Serializable, String>> lookUpList = null; //TODO
+					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(fieldVO.getTargetDSId());
 					if (filter.containsKey(fieldVO.getName())) {
 						List<String> keys = (List<String>) filter.get(fieldVO.getName());
 						List<KeyValueVO<Serializable, String>> onlySentOnes = new ArrayList<>();

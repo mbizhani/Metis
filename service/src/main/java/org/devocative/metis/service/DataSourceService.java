@@ -370,9 +370,8 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> getLookUpList(XDSAbstractField field) {
-		Long dataSrcId = field.getTargetDSId();
-		DataSource dataSource = persistorService.get(DataSource.class, dataSrcId);
+	public List<KeyValueVO<Serializable, String>> getLookUpList(Long targetDataSourceId) {
+		DataSource dataSource = persistorService.get(DataSource.class, targetDataSourceId);
 		XDataSource xDataSource = getXDataSource(dataSource);
 
 		StringBuilder queryBuilder = new StringBuilder();

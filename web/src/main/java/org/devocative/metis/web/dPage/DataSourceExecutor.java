@@ -178,7 +178,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 					case LookUp:
 						if (dsField.getFilterType() == XDSFieldFilterType.List) {
-							List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dsField);
+							List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dsField.getTargetDSId());
 							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true)
 								.setLabelVisible(false);
 						} else {

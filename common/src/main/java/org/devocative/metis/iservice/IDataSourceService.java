@@ -43,7 +43,7 @@ public interface IDataSourceService {
 												Long pageIndex,
 												Long pageSize);
 
-	List<KeyValueVO<Serializable, String>> getLookUpList(XDSAbstractField field);
+	List<KeyValueVO<Serializable, String>> getLookUpList(Long targetDataSourceId);
 
 	List<Map<String, Object>> getChildrenOfParent(String name, Serializable parentId, Map<String, String> sortFields);
 
