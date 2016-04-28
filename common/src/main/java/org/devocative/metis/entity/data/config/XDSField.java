@@ -28,6 +28,8 @@ public class XDSField extends XDSAbstractField {
 	@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean isSelfRelPointerField;
 
+	// ---------------------------------- ACCESSORS
+
 	@Deprecated
 	public Boolean getInFilterPanel() {
 		return inFilterPanel;
@@ -39,7 +41,6 @@ public class XDSField extends XDSAbstractField {
 		return this;
 	}
 
-	// Has Default
 	@Deprecated
 	public XDSFieldResultType getResultType() {
 		return resultType;

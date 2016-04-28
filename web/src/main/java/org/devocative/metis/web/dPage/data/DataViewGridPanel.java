@@ -23,7 +23,6 @@ import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OHiddenColumn;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
-import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.opt.OSize;
@@ -81,10 +80,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setSingleSelect(dataVO.getSelectionModeSafely() == XDVGridSelectionMode.Single)
 			.setIdField(keyField != null ? keyField.getName() : null)
 			.setTitleField(titleField != null ? titleField.getName() : null)
-			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
+			/*.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				MetisIcon.EXPORT_EXCEL,
 				String.format("%s-export.xlsx", dataVO.getName()),
-				10000))
+				10000))*/
 			.setHeight(OSize.fixed(dataVO.getGridHeightSafely().getHeight()))
 			.setWidth(OSize.percent(100))
 		;

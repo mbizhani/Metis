@@ -33,6 +33,8 @@ public abstract class XDSAbstractField implements Serializable {
 	@XStreamAsAttribute
 	protected String targetDSName;
 
+	// ---------------------------------- ACCESSORS
+
 	public String getName() {
 		return name;
 	}
@@ -111,7 +113,7 @@ public abstract class XDSAbstractField implements Serializable {
 		return this;
 	}
 
-	// ---------------------- Object METHODS
+	// ---------------------------------- OBJECT METHODS
 
 	@Override
 	public boolean equals(Object o) {
