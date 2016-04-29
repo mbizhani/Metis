@@ -43,6 +43,11 @@ public class DataViewService implements IDataViewService {
 	}
 
 	@Override
+	public XDataView getXDataView(DataView dataView) {
+		return (XDataView) xStream.fromXML(dataView.getConfig().getValue());
+	}
+
+	@Override
 	public List<DataView> list() {
 		return persistorService.list(DataView.class);
 	}

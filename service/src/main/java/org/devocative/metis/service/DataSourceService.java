@@ -246,55 +246,6 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId,
-									   List<XDSParameter> xdsParameters) {
-		throw new RuntimeException("Not Implemeted!");
-		/*
-		List<XDSField> result = new ArrayList<>();
-		List<XDSField> fieldsFromDB;
-		try {
-			Map<String, Object> params = new HashMap<>();
-			for (XDSParameter xdsParameter : xdsParameters) {
-				params.put(xdsParameter.getName(), xdsParameter.getSampleData());
-			}
-			fieldsFromDB = dbConnectionService.findFields(
-				connectionId,
-				processQuery(
-					connectionId,
-					xdsQuery.getMode(),
-					xdsQuery.getText()
-				),
-				params);
-		} catch (SQLException e) {
-			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
-		}
-
-		List<String> nameClash = new ArrayList<>();
-		for (XDSParameter xdsParameter : xdsParameters) {
-			if (fieldsFromDB.contains(xdsParameter)) {
-				nameClash.add(xdsParameter.getName());
-			}
-		}
-		if (nameClash.size() > 0) {
-			throw new MetisException(MetisErrorCode.ParameterFieldNameClash, nameClash.toString());
-		}
-
-		for (XDSField fieldFromDB : fieldsFromDB) {
-			int i = currentFields.indexOf(fieldFromDB);
-			if (i > -1) {
-				XDSField currentField = currentFields.load(i);
-				currentField
-					.setDbType(fieldFromDB.getDbType())
-					.setDbSize(fieldFromDB.getDbSize());
-				result.add(currentField);
-			} else {
-				result.add(fieldFromDB);
-			}
-		}
-		return result;*/
-	}
-
-	@Override
 	public List<XDSParameter> createParams(String query, List<XDSParameter> currentParams) {
 		List<XDSParameter> result = new ArrayList<>();
 		Pattern p = Pattern.compile("(['].*?['])|[:]([\\w\\d_]+)");
@@ -319,14 +270,16 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<Map<String, Object>> executeDataSource(String name,
+	public List<Map<String, Object>> executeDataSource(String queryCode,
+													   String name,
+													   List<String> selectFields,
 													   Map<String, Object> filters,
 													   Map<String, String> sortFields,
 													   Long pageIndex,
 													   Long pageSize) {
 		XDataSource xDataSource = getXDataSource(name);
 
-		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource, filters);
+		StringBuilder mainQueryBuilder = createSelectAndFrom(queryCode, selectFields, xDataSource.getQuery(), filters);
 
 		Map<String, Object> queryParams = appendWhere(filters, xDataSource, mainQueryBuilder);
 
@@ -338,7 +291,9 @@ public class DataSourceService implements IDataSourceService {
 		Long dbConnId = findProperDBConnection(name);
 		if (pageIndex != null && pageSize != null) {
 			if (dbConnectionService.isOracle(dbConnId)) {
-				mainQuery = String.format("select * from (select rownum rnum_pg, a.* from ( %s ) a) where rnum_pg between :pg_first and :pg_last", mainQuery);
+				mainQuery = String.format(
+					"select * from (select rownum rnum_pg, a.* from ( %s ) a) where rnum_pg between :pg_first and :pg_last",
+					mainQuery);
 
 				queryParams.put("pg_first", (pageIndex - 1) * pageSize + 1);
 				queryParams.put("pg_last", pageIndex * pageSize);
@@ -355,7 +310,7 @@ public class DataSourceService implements IDataSourceService {
 		}
 
 		try {
-			String comment = String.format("EXEC[%s]", name);
+			String comment = String.format("DW[%s]", queryCode);
 			return dbConnectionService.executeDSQuery(
 				dbConnId,
 				processQuery(
@@ -403,7 +358,7 @@ public class DataSourceService implements IDataSourceService {
 		DataSource dataSource = loadByName(name);
 
 		XDataSource xDataSource = getXDataSource(dataSource);
-		StringBuilder mainQueryBuilder = createSelectAndFrom(xDataSource, null);
+		StringBuilder mainQueryBuilder = new StringBuilder() /*TODO createSelectAndFrom(xDataSource, null)*/;
 
 		mainQueryBuilder.append(" where ").append(dataSource.getSelfRelPointerField()).append(" = :parentId");
 
@@ -606,27 +561,17 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
-	private StringBuilder createSelectAndFrom(XDataSource xDataSource, Map<String, Object> params) {
-		List<XDSField> selectFields = new ArrayList<>();
-		for (XDSField field : xDataSource.getFields()) {
-			switch (field.getResultType()) {
-				case Shown:
-				case Hidden:
-					selectFields.add(field);
-			}
-		}
-
+	private StringBuilder createSelectAndFrom(String queryCode, List<String> selectFields, XDSQuery query, Map<String, Object> params) {
 		StringBuilder mainQueryBuilder = new StringBuilder();
-		mainQueryBuilder.append("select ").append(selectFields.get(0).getName());
+		mainQueryBuilder.append("select ").append(selectFields.get(0));
 
 		for (int i = 1; i < selectFields.size(); i++) {
-			XDSField field = selectFields.get(i);
-			mainQueryBuilder.append(",").append(field.getName());
+			mainQueryBuilder.append(",").append(selectFields.get(i));
 		}
 
 		mainQueryBuilder
 			.append(" from (")
-			.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), params))
+			.append(processDynamicQuery(queryCode, query, params))
 			.append("\n)");
 		return mainQueryBuilder;
 	}
@@ -721,11 +666,11 @@ public class DataSourceService implements IDataSourceService {
 		return map.get(alias);
 	}
 
-	private String processDynamicQuery(String name, XDSQuery xdsQuery, Map<String, Object> params) {
+	private String processDynamicQuery(String queryCode, XDSQuery xdsQuery, Map<String, Object> params) {
 		if (ObjectUtil.isTrue(xdsQuery.getDynamic())) {
 			StringWriter out = new StringWriter();
 			try {
-				Template template = new Template(name, xdsQuery.getText(), freeMarkerCfg); //TODO cache template
+				Template template = new Template(queryCode, xdsQuery.getText(), freeMarkerCfg); //TODO cache template
 				template.process(params, out);
 				return out.toString();
 			} catch (Exception e) {

@@ -4,13 +4,13 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.devocative.adroit.obuilder.ObjectBuilder;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
-import org.devocative.metis.vo.async.DataSourceRVO;
+import org.devocative.metis.vo.async.DataViewQVO;
+import org.devocative.metis.vo.async.DataViewRVO;
 import org.devocative.metis.web.MetisDModule;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.async.AsyncBehavior;
@@ -107,23 +107,22 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// IAsyncResponseHandler
 	@Override
 	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Serializable result) {
-		DataSourceRVO dataSourceRVO = (DataSourceRVO) result;
-		grid.pushData(handler, dataSourceRVO.getList(), dataSourceRVO.getCount());
+		DataViewRVO dataViewRVO = (DataViewRVO) result;
+		grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount());
 	}
 
 	// IGridAsyncDataSource
 	@Override
 	public void list(long pageIndex, long pageSize, List<WSortField> sortFields) {
-		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_SOURCE,
-			ObjectBuilder
-				.createDefaultMap()
-				.put("name", dataVO.getName())
-				.put("pageIndex", pageIndex)
-				.put("pageSize", pageSize)
-				.put("sortFieldList", getSortFieldsMap(sortFields))
-				.put("filter", getFilterMap())
-				.get()
-		);
+		DataViewQVO dataViewQVO = new DataViewQVO();
+		dataViewQVO
+			.setName(dataVO.getName())
+			.setPageIndex(pageIndex)
+			.setPageSize(pageSize)
+			.setSortFieldList(getSortFieldsMap(sortFields))
+			.setFilter(getFilterMap());
+
+		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_SOURCE, dataViewQVO);
 	}
 
 	// ITreeGridAsyncDataSource

@@ -2,7 +2,9 @@ package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.data.DataSource;
-import org.devocative.metis.entity.data.config.*;
+import org.devocative.metis.entity.data.config.XDSParameter;
+import org.devocative.metis.entity.data.config.XDSQueryMode;
+import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.vo.filter.DataSourceFVO;
 
 import java.io.Serializable;
@@ -32,12 +34,11 @@ public interface IDataSourceService {
 
 	Long findProperDBConnection(String dataSourceName);
 
-	List<XDSField> createFields(List<XDSField> currentFields, XDSQuery xdsQuery, Long connectionId,
-								List<XDSParameter> xdsParameters);
-
 	List<XDSParameter> createParams(String query, List<XDSParameter> currentParams);
 
-	List<Map<String, Object>> executeDataSource(String name,
+	List<Map<String, Object>> executeDataSource(String queryCode,
+												String name,
+												List<String> selectFields,
 												Map<String, Object> filters,
 												Map<String, String> sortFields,
 												Long pageIndex,

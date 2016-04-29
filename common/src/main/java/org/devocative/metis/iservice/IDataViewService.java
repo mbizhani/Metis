@@ -11,6 +11,8 @@ public interface IDataViewService {
 
 	DataView loadByName(String name);
 
+	XDataView getXDataView(DataView dataView);
+
 	List<DataView> list();
 
 	List<DataView> search(DataViewFVO filter, long pageIndex, long pageSize);

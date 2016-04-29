@@ -24,7 +24,7 @@ import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.config.*;
 import org.devocative.metis.iservice.IDataSourceService;
-import org.devocative.metis.vo.async.DataSourceRVO;
+import org.devocative.metis.vo.async.DataViewRVO;
 import org.devocative.metis.web.MetisDModule;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
@@ -313,8 +313,8 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 	@Override
 	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Serializable result) {
-		DataSourceRVO dataSourceRVO = (DataSourceRVO) result;
-		grid.pushData(handler, dataSourceRVO.getList(), dataSourceRVO.getCount());
+		DataViewRVO dataViewRVO = (DataViewRVO) result;
+		grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount());
 	}
 
 	private List<XDSAbstractField> getFieldForFilter() {

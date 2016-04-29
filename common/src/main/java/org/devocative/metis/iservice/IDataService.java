@@ -3,6 +3,8 @@ package org.devocative.metis.iservice;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.async.DataViewQVO;
+import org.devocative.metis.vo.async.DataViewRVO;
 
 import java.util.List;
 
@@ -20,4 +22,6 @@ public interface IDataService {
 	void updateFieldsByQuery(DataVO dataVO);
 
 	void saveOrUpdate(DataVO dataVO);
+
+	DataViewRVO executeDataView(DataViewQVO request);
 }

@@ -31,6 +31,8 @@ public class XDVField implements Serializable {
 
 	private List<XDVAggregatorFunction> footer;
 
+	// ------------------------------ ACCESSORS
+
 	public String getName() {
 		return name;
 	}
@@ -86,6 +88,8 @@ public class XDVField implements Serializable {
 	public void setFooter(List<XDVAggregatorFunction> footer) {
 		this.footer = footer;
 	}
+
+	// ------------------------------ OBJECT METHODS
 
 	@Override
 	public boolean equals(Object o) {

@@ -1,12 +1,12 @@
 package org.devocative.metis.service;
 
-import com.thoughtworks.xstream.XStream;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldType;
+import org.devocative.metis.entity.data.config.XDVField;
 import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.entity.data.config.XDataView;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -17,6 +17,8 @@ import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.async.DataViewQVO;
+import org.devocative.metis.vo.async.DataViewRVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +33,6 @@ import java.util.regex.Pattern;
 @Service("mtsDataService")
 public class DataService implements IDataService {
 
-	private XStream dsXStream, dvXStream;
-
 	@Autowired
 	private IPersistorService persistorService;
 
@@ -45,13 +45,7 @@ public class DataService implements IDataService {
 	@Autowired
 	private IDataViewService dataViewService;
 
-	{
-		dsXStream = new XStream();
-		dsXStream.processAnnotations(XDataSource.class);
-
-		dvXStream = new XStream();
-		dvXStream.processAnnotations(XDataView.class);
-	}
+	// ------------------------------ PUBLIC METHODS
 
 	@Override
 	public DataVO loadDataVO(String dataViewName) {
@@ -61,7 +55,7 @@ public class DataService implements IDataService {
 		if (dataView != null) {
 			result = new DataVO();
 
-			XDataView xDataView = (XDataView) dvXStream.fromXML(dataView.getConfig().getValue());
+			XDataView xDataView = dataViewService.getXDataView(dataView);
 			result.setTitle(dataView.getTitle());
 
 			updateDataVOByDataSource(result, xDataView.getDataSourceName());
@@ -75,7 +69,7 @@ public class DataService implements IDataService {
 	@Override
 	public void updateDataVOByDataSource(DataVO dataVO, String dsName) {
 		DataSource dataSource = dataSourceService.loadByName(dsName);
-		XDataSource xDataSource = (XDataSource) dsXStream.fromXML(dataSource.getConfig().getValue());
+		XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
 
 		dataVO.setDataSourceId(dataSource.getId());
 		dataVO.setConnectionId(dataSource.getConnection().getId());
@@ -212,5 +206,43 @@ public class DataService implements IDataService {
 		dataViewService.saveOrUpdate(dataVO.getDataViewId(), dataVO.getTitle(), xDataView);
 
 		persistorService.commitOrRollback();
+	}
+
+	@Override
+	public DataViewRVO executeDataView(DataViewQVO request) {
+		DataViewRVO result = new DataViewRVO();
+
+		DataView dataView = dataViewService.loadByName(request.getName());
+		XDataView xDataView = dataViewService.getXDataView(dataView);
+
+		List<String> selectFields = new ArrayList<>();
+		for (XDVField xdvField : xDataView.getFields()) {
+			if (xdvField.getResultType() != null) {
+				switch (xdvField.getResultType()) {
+					case Shown:
+					case Hidden:
+						selectFields.add(xdvField.getName());
+						break;
+				}
+			}
+		}
+
+		String queryCode = String.format("%s.%s", xDataView.getName(), xDataView.getDataSourceName());
+
+		List<Map<String, Object>> list = dataSourceService.executeDataSource(
+			queryCode,
+			xDataView.getDataSourceName(),
+			selectFields,
+			request.getFilter(),
+			request.getSortFieldList(),
+			request.getPageIndex(),
+			request.getPageSize());
+
+		result.setList(list);
+
+		long cnt = dataSourceService.executeCountForDataSource(xDataView.getDataSourceName(), request.getFilter());
+		result.setCount(cnt);
+
+		return result;
 	}
 }
