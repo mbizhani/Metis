@@ -1,6 +1,7 @@
 package org.devocative.metis;
 
 import com.thoughtworks.xstream.XStream;
+import org.devocative.adroit.ObjectUtil;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
@@ -88,15 +89,59 @@ public class Migrate {
 	private static XDVField createField(XDSField xdsField) {
 		XDVField xdvField = new XDVField();
 
-		xdvField.setName(xdsField.getName());
+		xdvField.setName(xdsField.getName().toLowerCase());
 		xdvField.setInFilterPanel(xdsField.getInFilterPanel());
 		xdvField.setResultType(xdsField.getResultType());
+
+		if (xdvField.getInFilterPanel() == null) {
+			xdvField.setInFilterPanel(true);
+		}
+
+		if (xdvField.getResultType() == null) {
+			xdvField.setResultType(XDSFieldResultType.Shown);
+		}
 
 		if (xdsField.getTargetId() != null) {
 			xdsField.setTargetDSId(xdsField.getTargetId());
 			xdsField.setTargetDSName(persistorService.get(DataSource.class, xdsField.getTargetId()).getName());
 		}
 
+		if (ObjectUtil.isTrue(xdsField.getIsKeyField()) || ObjectUtil.isTrue(xdsField.getIsSelfRelPointerField())) {
+			xdsField.setFilterType(XDSFieldFilterType.Equal);
+		}
+
+		if (xdsField.getFilterType() == null && xdsField.getType() != null) {
+			XDSFieldFilterType filterType = null;
+			switch (xdsField.getType()) {
+				case String:
+					filterType = XDSFieldFilterType.Contain;
+					break;
+				case Integer:
+					filterType = XDSFieldFilterType.Range;
+					break;
+				case Real:
+					filterType = XDSFieldFilterType.Range;
+					break;
+				case Date:
+					filterType = XDSFieldFilterType.Range;
+					break;
+				case DateTime:
+					filterType = XDSFieldFilterType.Range;
+					break;
+				case Boolean:
+					filterType = XDSFieldFilterType.Equal;
+					break;
+				case LookUp:
+					filterType = XDSFieldFilterType.Search;
+					break;
+				case Unknown:
+					filterType = XDSFieldFilterType.Unknown;
+					break;
+			}
+			xdsField.setFilterType(filterType);
+		}
+
+		xdsField.setName(xdsField.getName().toLowerCase());
 		xdsField.setTargetId(null);
 		xdsField.setResultType(null);
 		xdsField.setInFilterPanel(null);
