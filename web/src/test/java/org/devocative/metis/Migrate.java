@@ -1,6 +1,7 @@
 package org.devocative.metis;
 
 import com.thoughtworks.xstream.XStream;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
@@ -22,6 +23,7 @@ public class Migrate {
 		XStream dvXStream = new XStream();
 		dvXStream.processAnnotations(XDataView.class);
 
+		ConfigUtil.addProperty("dmt.db.interceptor", "none", false);
 
 		ModuleLoader.init();
 
@@ -50,6 +52,10 @@ public class Migrate {
 
 			ConfigLob configLob = new ConfigLob();
 			configLob.setValue(dvXStream.toXML(xDataView));
+			configLob.setCreationDate(dataSource.getCreationDate());
+			configLob.setCreatorUserId(dataSource.getCreatorUserId());
+			configLob.setModificationDate(dataSource.getModificationDate());
+			configLob.setModifierUserId(dataSource.getModifierUserId());
 			persistorService.saveOrUpdate(configLob);
 
 			DataView dataView = new DataView();
