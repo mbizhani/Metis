@@ -205,7 +205,7 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public long executeCountForDataSource(String name, Map<String, Object> filters) {
+	public long executeCountForDataSource(String queryCode, String name, Map<String, Object> filters) {
 		XDataSource xDataSource = getXDataSource(name);
 
 		StringBuilder builder = new StringBuilder();
@@ -219,7 +219,7 @@ public class DataSourceService implements IDataSourceService {
 		logger.debug("executeDataSource: FINAL SQL: {}", builder.toString());
 
 		try {
-			String comment = String.format("COUNT[%s]", name);
+			String comment = String.format("COUNT[%s]", queryCode);
 			Long dbConnId = findProperDBConnection(name);
 			List<Map<String, Object>> list = dbConnectionService.executeDSQuery(
 				dbConnId,
@@ -277,7 +277,8 @@ public class DataSourceService implements IDataSourceService {
 													   Map<String, String> sortFields,
 													   Long pageIndex,
 													   Long pageSize) {
-		XDataSource xDataSource = getXDataSource(name);
+		DataSource dataSource = loadByName(name);
+		XDataSource xDataSource = getXDataSource(dataSource);
 
 		StringBuilder mainQueryBuilder = createSelectAndFrom(queryCode, selectFields, xDataSource.getQuery(), filters);
 
@@ -310,8 +311,8 @@ public class DataSourceService implements IDataSourceService {
 		}
 
 		try {
-			String comment = String.format("DW[%s]", queryCode);
-			return dbConnectionService.executeDSQuery(
+			String comment = String.format("LIST[%s]", queryCode);
+			List<Map<String, Object>> list = dbConnectionService.executeDSQuery(
 				dbConnId,
 				processQuery(
 					dbConnId,
@@ -319,6 +320,13 @@ public class DataSourceService implements IDataSourceService {
 					mainQuery),
 				queryParams,
 				comment);
+
+			if (dataSource.getSelfRelPointerField() != null) {
+				List<Object> parentIds = findParentIds(dataSource, list);
+				list.addAll(findParentsToRoot(queryCode, dataSource, selectFields, sortFields, parentIds));
+			}
+
+			return list;
 		} catch (SQLException e) {
 			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
 		}
@@ -354,11 +362,15 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<Map<String, Object>> getChildrenOfParent(String name, Serializable parentId, Map<String, String> sortFields) {
+	public List<Map<String, Object>> executeDataSourceForParent(String queryCode,
+																String name,
+																List<String> selectFields,
+																Serializable parentId,
+																Map<String, String> sortFields) {
 		DataSource dataSource = loadByName(name);
 
 		XDataSource xDataSource = getXDataSource(dataSource);
-		StringBuilder mainQueryBuilder = new StringBuilder() /*TODO createSelectAndFrom(xDataSource, null)*/;
+		StringBuilder mainQueryBuilder = createSelectAndFrom(queryCode, selectFields, xDataSource.getQuery(), null);
 
 		mainQueryBuilder.append(" where ").append(dataSource.getSelfRelPointerField()).append(" = :parentId");
 
@@ -367,7 +379,7 @@ public class DataSourceService implements IDataSourceService {
 		Map<String, Object> params = new HashMap<>();
 		params.put("parentId", parentId);
 		try {
-			String comment = String.format("CHILD[%s, %s]", name, parentId);
+			String comment = String.format("CHILDREN[%s, %s]", queryCode, parentId);
 			Long dbConnId = findProperDBConnection(name);
 			return dbConnectionService.executeDSQuery(
 				dbConnId,
@@ -681,6 +693,57 @@ public class DataSourceService implements IDataSourceService {
 		return xdsQuery.getText();
 	}
 
+	private List<Object> findParentIds(DataSource dataSource, List<Map<String, Object>> list) {
+		List<Object> parentIds = new ArrayList<>();
+		for (Map<String, Object> map : list) {
+			if (map.get(dataSource.getSelfRelPointerField()) != null) {
+				parentIds.add(map.get(dataSource.getSelfRelPointerField()));
+			}
+		}
+		return parentIds;
+	}
+
+	private List<Map<String, Object>> findParentsToRoot(String queryCode,
+														DataSource dataSource,
+														List<String> selectFields,
+														Map<String, String> sortFields,
+														List<Object> parentIds) {
+		List<Map<String, Object>> result = new ArrayList<>();
+
+		XDataSource xDataSource = getXDataSource(dataSource);
+		StringBuilder mainQueryBuilder = createSelectAndFrom(queryCode, selectFields, xDataSource.getQuery(), null);
+
+		mainQueryBuilder.append(" where ").append(dataSource.getKeyField()).append(" = :ids");
+
+		applySortFields(sortFields, mainQueryBuilder);
+
+		String comment = String.format("PARENTS[%s]", queryCode);
+
+		while (parentIds.size() > 0) {
+			Map<String, Object> queryParams = new HashMap<>();
+			queryParams.put("ids", parentIds);
+
+			try {
+				List<Map<String, Object>> list = dbConnectionService.executeDSQuery(
+					dataSource.getConnectionId(),
+					processQuery(
+						dataSource.getConnectionId(),
+						xDataSource.getQuery().getMode(),
+						mainQueryBuilder.toString()),
+					queryParams,
+					comment);
+				result.addAll(list);
+
+				parentIds = findParentIds(dataSource, list);
+			} catch (Exception e) {
+				throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
+			}
+		}
+
+		return result;
+	}
+
+	// ------------------------------ PRIVATE INNER CLASS
 
 	private class MyWriter extends PrettyPrintWriter {
 		public MyWriter(Writer writer) {

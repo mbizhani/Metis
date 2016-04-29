@@ -10,6 +10,8 @@ public class DataViewQVO implements Serializable {
 	private Map<String, String> sortFieldList;
 	private Map<String, Object> filter;
 
+	private Serializable parentId;
+
 	public String getName() {
 		return name;
 	}
@@ -52,6 +54,15 @@ public class DataViewQVO implements Serializable {
 
 	public DataViewQVO setFilter(Map<String, Object> filter) {
 		this.filter = filter;
+		return this;
+	}
+
+	public Serializable getParentId() {
+		return parentId;
+	}
+
+	public DataViewQVO setParentId(Serializable parentId) {
+		this.parentId = parentId;
 		return this;
 	}
 }

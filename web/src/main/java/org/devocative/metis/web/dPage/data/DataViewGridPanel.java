@@ -13,6 +13,7 @@ import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
 import org.devocative.metis.web.MetisDModule;
 import org.devocative.metis.web.MetisIcon;
+import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.async.AsyncBehavior;
 import org.devocative.wickomp.async.IAsyncResponseHandler;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
@@ -108,7 +109,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	@Override
 	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Serializable result) {
 		DataViewRVO dataViewRVO = (DataViewRVO) result;
-		grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount());
+
+		if (MetisDModule.EXEC_DATA_VIEW.equals(handlerId)) {
+			grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount());
+		} else if (MetisDModule.EXEC_DATA_VIEW_CHILDREN.equals(handlerId)) {
+			((WTreeGrid<Map<String, Object>>) grid).pushChildren(handler, dataViewRVO.getParentId(), dataViewRVO.getList());
+		}
 	}
 
 	// IGridAsyncDataSource
@@ -122,13 +128,19 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setSortFieldList(getSortFieldsMap(sortFields))
 			.setFilter(getFilterMap());
 
-		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_SOURCE, dataViewQVO);
+		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW, dataViewQVO);
 	}
 
 	// ITreeGridAsyncDataSource
 	@Override
 	public void listByParent(Serializable parentId, List<WSortField> sortFields) {
+		DataViewQVO dataViewQVO = new DataViewQVO();
+		dataViewQVO
+			.setName(dataVO.getName())
+			.setParentId(parentId)
+			.setSortFieldList(getSortFieldsMap(sortFields));
 
+		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW_CHILDREN, dataViewQVO);
 	}
 
 	// ITreeGridAsyncDataSource
@@ -140,7 +152,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// IDataSource
 	@Override
 	public IModel<Map<String, Object>> model(Map<String, Object> object) {
-		return null;
+		return new WModel<>(object);
 	}
 
 	private OColumnList<Map<String, Object>> createColumns(DataVO dataVO) {

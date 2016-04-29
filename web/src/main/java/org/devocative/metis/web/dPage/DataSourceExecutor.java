@@ -351,7 +351,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 		public void list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
 			/*return dataSourceService.executeDataSource(dataSource.getName(), getFilterMap(), getSortFieldsMap(sortFieldList),
 				pageIndex, pageSize);*/
-			asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_SOURCE,
+			asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW,
 				ObjectBuilder
 					.createDefaultMap()
 					.put("name", dataSource.getName())
@@ -386,7 +386,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 		@Override
 		public List<Map<String, Object>> listByParent(Serializable parentId, List<WSortField> sortFieldList) {
-			return dataSourceService.getChildrenOfParent(dataSource.getName(), parentId, getSortFieldsMap(sortFieldList));
+			return dataSourceService.executeDataSourceForParent(dataSource.getName(), parentId, getSortFieldsMap(sortFieldList));
 		}
 
 		@Override

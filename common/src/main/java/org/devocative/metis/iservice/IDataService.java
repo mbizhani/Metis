@@ -24,4 +24,6 @@ public interface IDataService {
 	void saveOrUpdate(DataVO dataVO);
 
 	DataViewRVO executeDataView(DataViewQVO request);
+
+	DataViewRVO executeDataViewForParent(DataViewQVO request);
 }

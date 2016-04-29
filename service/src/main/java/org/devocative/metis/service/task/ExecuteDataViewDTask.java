@@ -28,7 +28,12 @@ public class ExecuteDataViewDTask extends DTask {
 
 	@Override
 	public void execute() {
-		DataViewRVO dataViewRVO = dataService.executeDataView(data);
+		DataViewRVO dataViewRVO;
+		if (data.getParentId() == null) {
+			dataViewRVO = dataService.executeDataView(data);
+		} else {
+			dataViewRVO = dataService.executeDataViewForParent(data);
+		}
 
 		setResult(dataViewRVO);
 	}

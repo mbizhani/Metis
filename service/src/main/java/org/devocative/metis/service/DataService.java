@@ -215,17 +215,7 @@ public class DataService implements IDataService {
 		DataView dataView = dataViewService.loadByName(request.getName());
 		XDataView xDataView = dataViewService.getXDataView(dataView);
 
-		List<String> selectFields = new ArrayList<>();
-		for (XDVField xdvField : xDataView.getFields()) {
-			if (xdvField.getResultType() != null) {
-				switch (xdvField.getResultType()) {
-					case Shown:
-					case Hidden:
-						selectFields.add(xdvField.getName());
-						break;
-				}
-			}
-		}
+		List<String> selectFields = getSelectedFields(xDataView);
 
 		String queryCode = String.format("%s.%s", xDataView.getName(), xDataView.getDataSourceName());
 
@@ -240,9 +230,55 @@ public class DataService implements IDataService {
 
 		result.setList(list);
 
-		long cnt = dataSourceService.executeCountForDataSource(xDataView.getDataSourceName(), request.getFilter());
+		long cnt = dataSourceService.executeCountForDataSource(
+			queryCode,
+			xDataView.getDataSourceName(),
+			request.getFilter());
+
 		result.setCount(cnt);
 
 		return result;
 	}
+
+	@Override
+	public DataViewRVO executeDataViewForParent(DataViewQVO request) {
+		DataViewRVO result = new DataViewRVO();
+
+		DataView dataView = dataViewService.loadByName(request.getName());
+		XDataView xDataView = dataViewService.getXDataView(dataView);
+
+		List<String> selectFields = getSelectedFields(xDataView);
+
+		String queryCode = String.format("%s.%s", xDataView.getName(), xDataView.getDataSourceName());
+
+		List<Map<String, Object>> list = dataSourceService.executeDataSourceForParent(
+			queryCode,
+			xDataView.getDataSourceName(),
+			selectFields,
+			request.getParentId(),
+			request.getSortFieldList());
+
+		result.setList(list);
+		result.setParentId(request.getParentId().toString());
+
+		return result;
+	}
+
+	// ------------------------------ PRIVATE METHODS
+
+	private List<String> getSelectedFields(XDataView xDataView) {
+		List<String> selectFields = new ArrayList<>();
+		for (XDVField xdvField : xDataView.getFields()) {
+			if (xdvField.getResultType() != null) {
+				switch (xdvField.getResultType()) {
+					case Shown:
+					case Hidden:
+						selectFields.add(xdvField.getName());
+						break;
+				}
+			}
+		}
+		return selectFields;
+	}
+
 }

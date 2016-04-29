@@ -7,6 +7,7 @@ import java.util.Map;
 public class DataViewRVO implements Serializable {
 	private List<Map<String, Object>> list;
 	private Long count;
+	private String parentId;
 
 	public List<Map<String, Object>> getList() {
 		return list;
@@ -23,6 +24,15 @@ public class DataViewRVO implements Serializable {
 
 	public DataViewRVO setCount(Long count) {
 		this.count = count;
+		return this;
+	}
+
+	public String getParentId() {
+		return parentId;
+	}
+
+	public DataViewRVO setParentId(String parentId) {
+		this.parentId = parentId;
 		return this;
 	}
 }

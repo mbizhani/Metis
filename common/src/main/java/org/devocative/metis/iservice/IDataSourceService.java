@@ -30,7 +30,7 @@ public interface IDataSourceService {
 
 	XDataSource getXDataSource(String name);
 
-	long executeCountForDataSource(String name, Map<String, Object> filters);
+	long executeCountForDataSource(String queryCode, String name, Map<String, Object> filters);
 
 	Long findProperDBConnection(String dataSourceName);
 
@@ -46,7 +46,11 @@ public interface IDataSourceService {
 
 	List<KeyValueVO<Serializable, String>> getLookUpList(Long targetDataSourceId);
 
-	List<Map<String, Object>> getChildrenOfParent(String name, Serializable parentId, Map<String, String> sortFields);
+	List<Map<String, Object>> executeDataSourceForParent(String queryCode,
+														 String name,
+														 List<String> selectFields,
+														 Serializable parentId,
+														 Map<String, String> sortFields);
 
 	String processQuery(Long dbConnId, XDSQueryMode mode, String query);
 }

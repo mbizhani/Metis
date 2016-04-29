@@ -9,14 +9,22 @@ import javax.inject.Inject;
 import java.io.Serializable;
 
 public class MetisDModule extends WebDModule {
-	public static final String EXEC_DATA_SOURCE = "EXEC_DATA_SOURCE";
+	public static final String EXEC_DATA_VIEW = "EXEC_DATA_VIEW";
+	public static final String EXEC_DATA_VIEW_CHILDREN = "EXEC_DATA_VIEW_CHILDREN";
 
 	@Inject
 	private ITaskService taskService;
 
 	@Override
 	public void init() {
-		registerAsyncHandler(EXEC_DATA_SOURCE, new IAsyncRequestHandler() {
+		registerAsyncHandler(EXEC_DATA_VIEW, new IAsyncRequestHandler() {
+			@Override
+			public void onRequest(AsyncToken asyncToken, Object requestPayLoad) {
+				storeAsyncToken(asyncToken);
+				taskService.start("mtsExecuteDataSourceDTask", asyncToken.getId(), requestPayLoad, MetisDModule.this);
+			}
+		});
+		registerAsyncHandler(EXEC_DATA_VIEW_CHILDREN, new IAsyncRequestHandler() {
 			@Override
 			public void onRequest(AsyncToken asyncToken, Object requestPayLoad) {
 				storeAsyncToken(asyncToken);
