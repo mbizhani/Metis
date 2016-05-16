@@ -96,6 +96,14 @@ public class DataViewService implements IDataViewService {
 		persistorService.saveOrUpdate(dataView);
 	}
 
+	@Override
+	public List<String> listForOData() {
+		return persistorService
+			.createQueryBuilder().addSelect("select ent.name")
+			.addFrom(DataView.class, "ent")
+			.list();
+	}
+
 	// ---------------------- PRIVATE METHODS
 
 	private Long loadConfigId(Long dataViewId) {

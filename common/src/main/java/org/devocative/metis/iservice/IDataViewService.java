@@ -20,4 +20,6 @@ public interface IDataViewService {
 	long count(DataViewFVO filter);
 
 	void saveOrUpdate(Long dataViewId, String title, XDataView xDataView);
+
+	List<String> listForOData();
 }
