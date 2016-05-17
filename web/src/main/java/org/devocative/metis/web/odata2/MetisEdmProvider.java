@@ -5,20 +5,40 @@ import org.apache.olingo.odata2.api.edm.FullQualifiedName;
 import org.apache.olingo.odata2.api.edm.provider.*;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.devocative.demeter.core.ModuleLoader;
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataViewService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class MetisEdmProvider extends EdmProvider {
+	private static final Logger logger = LoggerFactory.getLogger(MetisEdmProvider.class);
+
 	private static final String NAMESPACE = "Metis";
 	private static final String ENTITY_CONTAINER = "MetisEntityContainer";
 
 	private static MetisEdmProvider INSTANCE;
+
+	private IDataService dataService;
+	private IDataViewService dataViewService;
+	private ISecurityService securityService;
+
+	// ------------------------------
+
+	private MetisEdmProvider() {
+		dataService = ModuleLoader.getApplicationContext().getBean(IDataService.class);
+		dataViewService = ModuleLoader.getApplicationContext().getBean(IDataViewService.class);
+
+		securityService = ModuleLoader.getApplicationContext().getBean(ISecurityService.class);
+	}
+
+	// ------------------------------
 
 	public static MetisEdmProvider get() {
 		if (INSTANCE == null) {
@@ -27,18 +47,12 @@ public class MetisEdmProvider extends EdmProvider {
 		return INSTANCE;
 	}
 
-	private IDataService dataService;
-	private IDataViewService dataViewService;
-
-	public MetisEdmProvider() {
-		dataService = ModuleLoader.getApplicationContext().getBean(IDataService.class);
-		dataViewService = ModuleLoader.getApplicationContext().getBean(IDataViewService.class);
-	}
-
 	// ------------------------------
 
 	@Override
 	public List<Schema> getSchemas() throws ODataException {
+		logger.info("OData: GetSchema: User=[{}]", securityService.getCurrentUser());
+
 		EntityContainer entityContainer = new EntityContainer()
 			.setName(ENTITY_CONTAINER)
 			.setDefaultEntityContainer(true);
@@ -72,7 +86,7 @@ public class MetisEdmProvider extends EdmProvider {
 			if (dataVO != null) {
 				List<Property> properties = new ArrayList<>();
 
-				PropertyRef key = new PropertyRef();
+				PropertyRef key = new PropertyRef().setName(dataVO.getFields().get(0).getName());
 
 				for (DataFieldVO fieldVO : dataVO.getFields()) {
 					EdmSimpleTypeKind type = EdmSimpleTypeKind.String;
@@ -105,15 +119,10 @@ public class MetisEdmProvider extends EdmProvider {
 					}
 				}
 
-				if (key.getName() == null) {
-					key.setName(properties.get(0).getName());
-				}
-
 				return new EntityType()
 					.setName(dataVO.getName())
 					.setProperties(properties)
-					.setKey(new Key().setKeys(Collections.singletonList(key)))
-					;
+					.setKey(new Key().setKeys(Collections.singletonList(key)));
 			}
 		}
 		return null;
@@ -135,6 +144,4 @@ public class MetisEdmProvider extends EdmProvider {
 			.setName(ENTITY_CONTAINER)
 			.setDefaultEntityContainer(true);
 	}
-
-	// ------------------------------
 }
