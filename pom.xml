@@ -52,6 +52,8 @@
 
 		<spring.version>4.2.5.RELEASE</spring.version>
 
+		<servlet.version>3.0.1</servlet.version>
+
 		<jetty.version>9.2.15.v20160210</jetty.version>
 		<jetty.context>/ctx</jetty.context>
 		<jetty.port>8080</jetty.port>
