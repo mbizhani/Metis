@@ -101,6 +101,10 @@ public class DataSourceService implements IDataSourceService {
 			checkDuplicateDataSource(dataSource.getName());
 		}
 
+		dataSource.setKeyField(null);
+		dataSource.setTitleField(null);
+		dataSource.setSelfRelPointerField(null);
+
 		// ---- Processing Fields
 		for (XDSField xdsField : xDataSource.getFields()) {
 			if (ObjectUtil.isTrue(xdsField.getIsKeyField())) {
