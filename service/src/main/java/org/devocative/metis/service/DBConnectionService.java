@@ -52,6 +52,8 @@ public class DBConnectionService implements IDBConnectionService {
 	@Autowired
 	private IPersistorService persistorService;
 
+	// ------------------------------
+
 	public DBConnectionService() {
 		xstream = new XStream();
 		xstream.processAnnotations(XSchema.class);
@@ -59,6 +61,8 @@ public class DBConnectionService implements IDBConnectionService {
 		xstream.processAnnotations(XMany2One.class);
 		xstream.processAnnotations(XOne2Many.class);
 	}
+
+	// ------------------------------
 
 	@Override
 	public List<DBConnection> search(long pageIndex, long pageSize) {
@@ -145,30 +149,6 @@ public class DBConnectionService implements IDBConnectionService {
 				result.add(fieldVO);
 			}
 			nps.close();
-		}
-
-		return result;
-	}
-
-	@Override
-	public Connection getConnection(Long dbConnId) {
-		int retry = 0;
-		Connection result = null;
-		Exception last = null;
-		do {
-			try {
-				result = getUnsureConnection(dbConnId);
-				break;
-			} catch (Exception e) {
-				logger.error("getUnsureConnection: " + dbConnId, e);
-				last = e;
-				retry++;
-				closePoolSafely(dbConnId);
-			}
-		} while (retry < 3);
-
-		if (result == null) {
-			throw new MetisException(MetisErrorCode.DBConnection, String.format("%s (%s)", dbConnId, last), last);
 		}
 
 		return result;
@@ -360,6 +340,31 @@ public class DBConnectionService implements IDBConnectionService {
 			connectionChanged(id);
 		}
 		logger.info(" DBConnectionGroup changed = {} => DBConnection(s) updated = {} ", groupId, ids.size());
+	}
+
+	// ------------------------------
+
+	private Connection getConnection(Long dbConnId) {
+		int retry = 0;
+		Connection result = null;
+		Exception last = null;
+		while (retry < 3) {
+			try {
+				result = getUnsureConnection(dbConnId);
+				break;
+			} catch (Exception e) {
+				logger.error("getUnsureConnection: " + dbConnId, e);
+				last = e;
+				retry++;
+				closePoolSafely(dbConnId);
+			}
+		}
+
+		if (result == null) {
+			throw new MetisException(MetisErrorCode.DBConnection, String.format("%s (%s)", dbConnId, last), last);
+		}
+
+		return result;
 	}
 
 	private Connection getUnsureConnection(Long dbConnId) throws Exception {

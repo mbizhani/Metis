@@ -7,7 +7,6 @@ import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.QueryResultVO;
 
 import java.io.Serializable;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +23,6 @@ public interface IDBConnectionService {
 	DBConnection loadByName(String name);
 
 	List<DataFieldVO> findFields(Long id, String sql, Map<String, Object> params) throws SQLException;
-
-	Connection getConnection(Long id);
 
 	List<Map<String, Object>> executeDSQuery(Long id, String query, Map<String, Object> params, String comment) throws SQLException;
 
