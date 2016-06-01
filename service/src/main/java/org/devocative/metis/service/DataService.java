@@ -13,16 +13,12 @@ import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.iservice.IDataViewService;
-import org.devocative.metis.vo.DataAbstractFieldVO;
-import org.devocative.metis.vo.DataFieldVO;
-import org.devocative.metis.vo.DataParameterVO;
-import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.*;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -140,25 +136,21 @@ public class DataService implements IDataService {
 	public void updateFieldsByQuery(DataVO dataVO) {
 		List<DataFieldVO> temp = new ArrayList<>();
 		List<DataFieldVO> fieldsFromDB;
-		try {
-			Map<String, Object> params = new HashMap<>();
-			for (DataParameterVO paramVO : dataVO.getParams()) {
-				params.put(paramVO.getName(), paramVO.getSampleData());
-			}
-
-			String sql = dataSourceService.processQuery(
-				dataVO.getConnectionId(),
-				dataVO.getQuery().getMode(),
-				dataVO.getQuery().getText()
-			);
-
-			fieldsFromDB = dbConnectionService.findFields(
-				dataVO.getConnectionId(),
-				sql,
-				params);
-		} catch (SQLException e) {
-			throw new MetisException(MetisErrorCode.SQLExecution, e.getMessage(), e);
+		Map<String, Object> params = new HashMap<>();
+		for (DataParameterVO paramVO : dataVO.getParams()) {
+			params.put(paramVO.getName(), paramVO.getSampleData());
 		}
+
+		String sql = dataSourceService.processQuery(
+			dataVO.getConnectionId(),
+			dataVO.getQuery().getMode(),
+			dataVO.getQuery().getText()
+		);
+
+		fieldsFromDB = dbConnectionService.findFields(
+			dataVO.getConnectionId(),
+			sql,
+			params);
 
 		List<String> nameClash = new ArrayList<>();
 		for (DataParameterVO paramVO : dataVO.getParams()) {
@@ -262,6 +254,17 @@ public class DataService implements IDataService {
 		result.setParentId(request.getParentId().toString());
 
 		return result;
+	}
+
+	@Override
+	public List<Map<String, Object>> executeOData(ODataQVO request) {
+		DataView dataView = dataViewService.loadByName(request.getName());
+		XDataView xDataView = dataViewService.getXDataView(dataView);
+
+		List<String> selectFields = getSelectedFields(xDataView);
+
+		String queryCode = String.format("OData.%s.%s", xDataView.getName(), xDataView.getDataSourceName());
+		return null;
 	}
 
 	// ------------------------------ PRIVATE METHODS

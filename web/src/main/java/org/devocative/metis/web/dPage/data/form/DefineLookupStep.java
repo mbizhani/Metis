@@ -72,7 +72,7 @@ class DefineLookupStep extends WWizardStepPanel {
 		messageWhenNoLookUp.setVisible(lookupFields.size() == 0);
 
 		dataSourceList.clear();
-		dataSourceList.addAll(dataSourceService.getListForLookup());
+		dataSourceList.addAll(dataSourceService.getAllDataSourcesAsLookup());
 
 		super.onBeforeRender();
 	}
