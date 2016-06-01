@@ -11,6 +11,10 @@ public class MetisException extends DModuleException {
 		this(errorCode, errorParameter, null);
 	}
 
+	public MetisException(MetisErrorCode errorCode, Throwable cause) {
+		this(errorCode, null, cause);
+	}
+
 	// Main Constructor
 	public MetisException(MetisErrorCode errorCode, String errorParameter, Throwable cause) {
 		super("mts", errorCode, errorParameter, cause);

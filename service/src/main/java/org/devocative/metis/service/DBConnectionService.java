@@ -3,8 +3,6 @@ package org.devocative.metis.service;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.sql.NamedParameterStatement;
-import org.devocative.adroit.vo.KeyValueVO;
-import org.devocative.demeter.DSystemException;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -19,13 +17,12 @@ import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.vo.DataFieldVO;
-import org.devocative.metis.vo.QueryResultVO;
+import org.devocative.metis.vo.query.QueryRVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.Serializable;
 import java.sql.*;
 import java.util.*;
 
@@ -115,8 +112,10 @@ public class DBConnectionService implements IDBConnectionService {
 			.object();
 	}
 
+	// ---------------
+
 	@Override
-	public List<DataFieldVO> findFields(Long dbConnId, String sql, Map<String, Object> params) throws SQLException {
+	public List<DataFieldVO> findFields(Long dbConnId, String sql, Map<String, Object> params) {
 		List<DataFieldVO> result = new ArrayList<>();
 
 		try (Connection connection = getConnection(dbConnId)) {
@@ -149,6 +148,9 @@ public class DBConnectionService implements IDBConnectionService {
 				result.add(fieldVO);
 			}
 			nps.close();
+		} catch (SQLException e) {
+			logger.error("findFields", e);
+			throw new MetisException(MetisErrorCode.SQLExecution, e);
 		}
 
 		return result;
@@ -161,15 +163,45 @@ public class DBConnectionService implements IDBConnectionService {
 		}
 	}
 
+	// ---------------
+
 	@Override
-	public List<Map<String, Object>> executeDSQuery(Long dbConnId, String query, Map<String, Object> params, String comment) throws SQLException {
+	public QueryRVO executeQuery(
+		Long dbConnId,
+		String query,
+		String comment) {
+
+		return executeQuery(dbConnId, query, null, comment, null, null);
+	}
+
+	@Override
+	public QueryRVO executeQuery(
+		Long dbConnId,
+		String query,
+		Map<String, Object> params,
+		String comment) {
+
+		return executeQuery(dbConnId, query, params, comment, null, null);
+	}
+
+	@Override
+	public QueryRVO executeQuery(
+		Long dbConnId,
+		String query,
+		Map<String, Object> params,
+		String comment,
+		Long pageIndex,
+		Long pageSize) {
 
 		try (Connection connection = getConnection(dbConnId)) {
-			if (comment != null) {
-				query = String.format("/*%s*/ %s", comment, query);
-			}
+			query = String.format("/*%s*/ %s", comment, query);
+
 			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
-			nps.setDateClassReplacement(Timestamp.class);
+			nps
+				.setDateClassReplacement(Timestamp.class)
+				.setPageIndex(pageIndex)
+				.setPageSize(pageSize);
+
 			if (params != null) {
 				nps.setParameters(params);
 			}
@@ -177,16 +209,15 @@ public class DBConnectionService implements IDBConnectionService {
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
 
-			List<String> columns = new ArrayList<>();
+			QueryRVO result = new QueryRVO();
 			for (int i = 1; i <= metaData.getColumnCount(); i++) {
-				columns.add(metaData.getColumnName(i).toLowerCase());
+				result.addHeader(metaData.getColumnName(i).toLowerCase());
 			}
 
-			List<Map<String, Object>> result = new ArrayList<>();
 			while (rs.next()) {
-				Map<String, Object> row = new HashMap<>();
-				for (int i = 0; i < columns.size(); i++) {
-					String column = columns.get(i);
+				List<Object> row = new ArrayList<>();
+				for (int i = 0; i < result.getHeader().size(); i++) {
+					String column = result.getHeader().get(i);
 					Object value;
 					switch (metaData.getColumnType(i + 1)) {
 						case Types.DATE:
@@ -201,94 +232,18 @@ public class DBConnectionService implements IDBConnectionService {
 						default:
 							value = rs.getObject(column);
 					}
-					row.put(column, value);
+					row.add(value);
 				}
-				result.add(row);
+				result.addRow(row);
 			}
 			return result;
+		} catch (SQLException e) {
+			logger.error("executeQuery: " + comment, e);
+			throw new MetisException(MetisErrorCode.SQLExecution, e);
 		}
 	}
 
-	@Override
-	public List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long dbConnId, String query) throws SQLException {
-		List<KeyValueVO<Serializable, String>> result = new ArrayList<>();
-
-		try (Connection connection = getConnection(dbConnId)) {
-			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
-			nps.setDateClassReplacement(Timestamp.class);
-
-			ResultSet rs = nps.executeQuery();
-			ResultSetMetaData metaData = rs.getMetaData();
-			while (rs.next()) {
-				Serializable key = (Serializable) rs.getObject(1);
-				String value = metaData.getColumnCount() > 1 ?
-					rs.getString(2) :
-					rs.getString(1);
-				result.add(new KeyValueVO<>(key, value));
-			}
-		}
-		return result;
-	}
-
-	@Override
-	public QueryResultVO executeQuery(Long dbConnId, String query, Map<String, Object> params) {
-		QueryResultVO resultVO = new QueryResultVO();
-
-		try (Connection connection = getConnection(dbConnId)) {
-			query = String.format("/* SIMPLE */ %s", query);
-			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
-			nps.setDateClassReplacement(Timestamp.class);
-			if (params != null) {
-				nps.setParameters(params);
-			}
-
-			ResultSet rs = nps.executeQuery();
-			ResultSetMetaData metaData = rs.getMetaData();
-
-			for (int i = 1; i <= metaData.getColumnCount(); i++) {
-				resultVO.addHeader(metaData.getColumnName(i).toLowerCase());
-			}
-
-			int count = 0;
-			while (rs.next() && (count++) < 10) {
-				List<String> row = new ArrayList<>();
-				for (int i = 0; i < resultVO.getHeader().size(); i++) {
-					String column = resultVO.getHeader().get(i);
-					Object value;
-					switch (metaData.getColumnType(i + 1)) {
-						case Types.DATE:
-							value = rs.getDate(column);
-							break;
-						case Types.TIME:
-							value = rs.getTime(column);
-							break;
-						case Types.TIMESTAMP:
-							value = rs.getTimestamp(column);
-							break;
-						default:
-							value = rs.getObject(column);
-					}
-					row.add(value != null ? value.toString() : "");
-				}
-				resultVO.addRow(row);
-			}
-			return resultVO;
-		} catch (Exception e) {
-			throw new DSystemException(e.getMessage(), e);
-		}
-	}
-
-	@Override
-	public boolean isOracle(Long dbConnId) {
-		DBConnection connection = getDBConnection(dbConnId);
-		return connection.getSafeDriver().contains("OracleDriver") || connection.getSafeUrl().startsWith("jdbc:oracle");
-	}
-
-	@Override
-	public boolean isMySQL(Long dbConnId) {
-		DBConnection connection = getDBConnection(dbConnId);
-		return connection.getSafeDriver().contains("OracleDriver") || connection.getSafeUrl().startsWith("jdbc:mysql");
-	}
+	// ---------------
 
 	@Override
 	public XSchema getSchemaOfMapping(Long dbConnId) {

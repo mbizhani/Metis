@@ -1,13 +1,10 @@
 package org.devocative.metis.iservice;
 
-import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.vo.DataFieldVO;
-import org.devocative.metis.vo.QueryResultVO;
+import org.devocative.metis.vo.query.QueryRVO;
 
-import java.io.Serializable;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -22,19 +19,15 @@ public interface IDBConnectionService {
 
 	DBConnection loadByName(String name);
 
-	List<DataFieldVO> findFields(Long id, String sql, Map<String, Object> params) throws SQLException;
+	List<DataFieldVO> findFields(Long id, String sql, Map<String, Object> params);
 
-	List<Map<String, Object>> executeDSQuery(Long id, String query, Map<String, Object> params, String comment) throws SQLException;
+	QueryRVO executeQuery(Long id, String query, String comment);
 
-	List<KeyValueVO<Serializable, String>> executeQueryAsKeyValues(Long id, String query) throws SQLException;
+	QueryRVO executeQuery(Long id, String query, Map<String, Object> params, String comment);
 
-	QueryResultVO executeQuery(Long id, String query, Map<String, Object> params);
+	QueryRVO executeQuery(Long id, String query, Map<String, Object> params, String comment, Long pageIndex, Long pageSize);
 
 	void closeAllPools();
-
-	boolean isOracle(Long id);
-
-	boolean isMySQL(Long id);
 
 	XSchema getSchemaOfMapping(Long id);
 
