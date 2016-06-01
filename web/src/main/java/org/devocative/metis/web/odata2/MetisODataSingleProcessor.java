@@ -10,12 +10,12 @@ import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
-import org.devocative.metis.vo.async.DataViewQVO;
-import org.devocative.metis.vo.async.DataViewRVO;
+import org.devocative.metis.vo.ODataQVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MetisODataSingleProcessor extends ODataSingleProcessor {
 	private static final Logger logger = LoggerFactory.getLogger(MetisODataSingleProcessor.class);
@@ -51,19 +51,29 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		logger.info("OData: DataList: DataView=[{}] User=[{}]",
 			entitySet.getEntityType().getName(), securityService.getCurrentUser());
 
-		DataViewQVO request = new DataViewQVO();
-		request
-			.setName(entitySet.getEntityType().getName())
-			.setFilter(new HashMap<String, Object>())
+		ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName())
 			.setPageIndex(1)
 			.setPageSize(10);
 
-		DataViewRVO dataViewRVO = dataService.executeDataView(request);
+		if (uriInfo.getFilter() != null) {
+			SQLExpressionVisitor visitor = new SQLExpressionVisitor();
+			Object accept = uriInfo.getFilter().accept(visitor);
+
+			logger.info("###>> getFilter = {}", accept);
+			logger.info("###>> getFilter Params = {}", visitor.getParamsValue());
+
+			dataQVO
+				.setFilterExpression(accept.toString())
+				.setFilterExpressionParams(visitor.getParamsValue());
+		}
+
+
+		List<Map<String, Object>> list = dataService.executeOData(dataQVO);
 
 		return EntityProvider.writeFeed(
 			contentType,
 			entitySet,
-			dataViewRVO.getList(),
+			list,
 			EntityProviderWriteProperties
 				.serviceRoot(getContext().getPathInfo().getServiceRoot())
 				.build()
