@@ -10,7 +10,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.iservice.IDBConnectionService;
-import org.devocative.metis.vo.QueryResultVO;
+import org.devocative.metis.vo.query.QueryRVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WPanel;
 import org.devocative.wickomp.form.code.OCode;
@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class QueryEditorPanel extends WPanel {
 	private List<String> header = new ArrayList<>();
-	private List<List<String>> rows = new ArrayList<>();
+	private List<List<Object>> rows = new ArrayList<>();
 
 	private OCode options = new OCode(OCodeMode.SQL);
 	private WebMarkupContainer resultTable;
@@ -41,7 +41,7 @@ public class QueryEditorPanel extends WPanel {
 		form.add(new DAjaxButton("execute", new ResourceModel("label.execute"), MetisIcon.EXECUTE) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
-				QueryResultVO resultVO = dbConnectionService.executeQuery(dbConnId, editor.getModelObject(), params);
+				QueryRVO resultVO = dbConnectionService.executeQuery(dbConnId, editor.getModelObject(), params, "");
 				header.addAll(resultVO.getHeader());
 				rows.addAll(resultVO.getRows());
 				target.add(resultTable);
@@ -61,16 +61,16 @@ public class QueryEditorPanel extends WPanel {
 			}
 		});
 
-		resultTable.add(new ListView<List<String>>("rows", rows) {
+		resultTable.add(new ListView<List<Object>>("rows", rows) {
 			@Override
-			protected void populateItem(ListItem<List<String>> item) {
-				List<String> row = item.getModelObject();
+			protected void populateItem(ListItem<List<Object>> item) {
+				List<Object> row = item.getModelObject();
 
-				item.add(new ListView<String>("row", row) {
+				item.add(new ListView<Object>("row", row) {
 					@Override
-					protected void populateItem(ListItem<String> item) {
-						String cell = item.getModelObject();
-						item.add(new Label("cell", cell));
+					protected void populateItem(ListItem<Object> item) {
+						Object cell = item.getModelObject();
+						item.add(new Label("cell", cell != null ? cell.toString() : ""));
 					}
 				});
 			}

@@ -3,10 +3,12 @@ package org.devocative.metis.iservice;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.ODataQVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IDataService {
 	DataVO loadDataVO(String dataViewName);
@@ -26,4 +28,6 @@ public interface IDataService {
 	DataViewRVO executeDataView(DataViewQVO request);
 
 	DataViewRVO executeDataViewForParent(DataViewQVO request);
+
+	List<Map<String, Object>> executeOData(ODataQVO request);
 }

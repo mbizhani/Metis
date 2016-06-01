@@ -2,7 +2,6 @@ package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.data.DataSource;
-import org.devocative.metis.entity.data.config.XDSParameter;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.vo.filter.DataSourceFVO;
@@ -24,25 +23,13 @@ public interface IDataSourceService {
 
 	long count(DataSourceFVO filter);
 
-	List<DataSource> getListForLookup();
+	List<DataSource> getAllDataSourcesAsLookup();
 
 	XDataSource getXDataSource(DataSource dataSource);
 
 	XDataSource getXDataSource(String name);
 
-	long executeCountForDataSource(String queryCode, String name, Map<String, Object> filters);
-
 	Long findProperDBConnection(String dataSourceName);
-
-	List<XDSParameter> createParams(String query, List<XDSParameter> currentParams);
-
-	List<Map<String, Object>> executeDataSource(String queryCode,
-												String name,
-												List<String> selectFields,
-												Map<String, Object> filters,
-												Map<String, String> sortFields,
-												Long pageIndex,
-												Long pageSize);
 
 	List<KeyValueVO<Serializable, String>> getLookUpList(Long targetDataSourceId);
 
