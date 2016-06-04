@@ -171,25 +171,25 @@ public class DBConnectionService implements IDBConnectionService {
 		String query,
 		String comment) {
 
-		return executeQuery(dbConnId, query, null, comment, null, null);
+		return executeQuery(dbConnId, query, comment, null, null, null);
 	}
 
 	@Override
 	public QueryRVO executeQuery(
 		Long dbConnId,
 		String query,
-		Map<String, Object> params,
-		String comment) {
-
-		return executeQuery(dbConnId, query, params, comment, null, null);
-	}
-
-	@Override
-	public QueryRVO executeQuery(
-		Long dbConnId,
-		String query,
-		Map<String, Object> params,
 		String comment,
+		Map<String, Object> params) {
+
+		return executeQuery(dbConnId, query, comment, params, null, null);
+	}
+
+	@Override
+	public QueryRVO executeQuery(
+		Long dbConnId,
+		String query,
+		String comment,
+		Map<String, Object> params,
 		Long pageIndex,
 		Long pageSize) {
 

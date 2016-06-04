@@ -23,9 +23,9 @@ public interface IDBConnectionService {
 
 	QueryRVO executeQuery(Long id, String query, String comment);
 
-	QueryRVO executeQuery(Long id, String query, Map<String, Object> params, String comment);
+	QueryRVO executeQuery(Long id, String query, String comment, Map<String, Object> params);
 
-	QueryRVO executeQuery(Long id, String query, Map<String, Object> params, String comment, Long pageIndex, Long pageSize);
+	QueryRVO executeQuery(Long id, String query, String comment, Map<String, Object> params, Long pageIndex, Long pageSize);
 
 	void closeAllPools();
 
