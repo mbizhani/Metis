@@ -5,6 +5,8 @@ import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.vo.filter.DataSourceFVO;
+import org.devocative.metis.vo.query.CountQueryQVO;
+import org.devocative.metis.vo.query.SelectQueryQVO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,15 +31,14 @@ public interface IDataSourceService {
 
 	XDataSource getXDataSource(String name);
 
-	Long findProperDBConnection(String dataSourceName);
+	// ---------------
+	String processQuery(Long dbConnId, String query, XDSQueryMode mode);
 
-	List<KeyValueVO<Serializable, String>> getLookUpList(Long targetDataSourceId);
+	List<Map<String, Object>> execute(SelectQueryQVO queryQVO);
 
-	List<Map<String, Object>> executeDataSourceForParent(String queryCode,
-														 String name,
-														 List<String> selectFields,
-														 Serializable parentId,
-														 Map<String, String> sortFields);
+	List<KeyValueVO<Serializable, String>> executeLookUp(Long dataSourceId, Long targetDataSourceId);
 
-	String processQuery(Long dbConnId, XDSQueryMode mode, String query);
+	List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId);
+
+	long execute(CountQueryQVO queryQVO);
 }

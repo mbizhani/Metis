@@ -216,74 +216,10 @@ public class DataSourceService implements IDataSourceService {
 		return getXDataSource(dataSource);
 	}
 
-	@Override
-	public Long findProperDBConnection(String dataSourceName) {
-		return persistorService.createQueryBuilder()
-			.addSelect("select ent.connectionId")
-			.addFrom(DataSource.class, "ent")
-			.addWhere("and ent.name = :name")
-			.addParam("name", dataSourceName)
-			.object();
-	}
+	// ---------------
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> getLookUpList(Long targetDataSourceId) {
-		DataSource dataSource = persistorService.get(DataSource.class, targetDataSourceId);
-		XDataSource xDataSource = getXDataSource(dataSource);
-
-		StringBuilder queryBuilder = new StringBuilder();
-		queryBuilder.append("select ").append(dataSource.getKeyField()).append(",");
-		if (dataSource.getTitleField() != null) {
-			queryBuilder.append(dataSource.getTitleField());
-		} else {
-			queryBuilder.append(dataSource.getKeyField());
-		}
-		queryBuilder.append(" from (")
-			.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), null))
-			.append("\n)");
-
-		Long dbConnId = dataSource.getConnectionId();
-		return dbConnectionService.executeQuery(
-			dbConnId,
-			processQuery(
-				dbConnId,
-				xDataSource.getQuery().getMode(),
-				queryBuilder.toString()),
-			"").toListOfKeyValues();
-	}
-
-	@Override
-	public List<Map<String, Object>> executeDataSourceForParent(String queryCode,
-																String name,
-																List<String> selectFields,
-																Serializable parentId,
-																Map<String, String> sortFields) {
-		DataSource dataSource = loadByName(name);
-
-		XDataSource xDataSource = getXDataSource(dataSource);
-		StringBuilder mainQueryBuilder = appendSelect(queryCode, selectFields, xDataSource.getQuery(), null);
-
-		mainQueryBuilder.append(" where ").append(dataSource.getSelfRelPointerField()).append(" = :parentId");
-
-		appendSortFields(sortFields, mainQueryBuilder);
-
-		Map<String, Object> params = new HashMap<>();
-		params.put("parentId", parentId);
-
-		String comment = String.format("CHILDREN[%s, %s]", queryCode, parentId);
-		Long dbConnId = findProperDBConnection(name);
-		return dbConnectionService.executeQuery(
-			dbConnId,
-			processQuery(
-				dbConnId,
-				xDataSource.getQuery().getMode(),
-				mainQueryBuilder.toString()),
-			params,
-			comment).toListOfMap();
-	}
-
-	@Override
-	public String processQuery(Long dbConnId, XDSQueryMode mode, String query) {
+	public String processQuery(Long dbConnId, String query, XDSQueryMode mode) {
 		String finalQuery = null;
 
 		switch (mode) {
@@ -301,104 +237,170 @@ public class DataSourceService implements IDataSourceService {
 		return finalQuery;
 	}
 
-	public List<Map<String, Object>> execute(SelectQueryQVO queryQVO, boolean findParentsIfDefined) {
+	@Override
+	public List<Map<String, Object>> execute(SelectQueryQVO queryQVO) {
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
-		QueryBuilderVO builderVO = buildUpBase(queryQVO, xDataSource);
+		DSQueryBuilder queryBuilder = new DSQueryBuilder(xDataSource, queryQVO)
+			.appendSelect(queryQVO.getSelectFields())
+			.appendFrom()
+			.appendWhere()
+			.appendSort(queryQVO.getSortFields());
 
-		appendSelect(queryQVO.getSelectFields(), builderVO.select);
+		Long dbConnId = findProperDBConnection(dataSource);
 
-		StringBuilder main = builderVO.getQuery();
-
-		appendSortFields(queryQVO.getSortFields(), main);
-
-		Long dbConnId = findProperDBConnection(queryQVO.getDataSourceName());
-
-		String comment = String.format("LIST[%s]", queryQVO.getQueryCode());
+		String comment = String.format("DsEXC[%s]", dataSource.getName());
 
 		List<Map<String, Object>> list = dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
 				dbConnId,
-				xDataSource.getQuery().getMode(),
-				main.toString()),
-			builderVO.queryParams,
+				queryBuilder.getQuery().toString(),
+				xDataSource.getQuery().getMode()),
 			comment,
+			queryBuilder.getQueryParams(),
 			queryQVO.getPageIndex(),
 			queryQVO.getPageSize()
 		).toListOfMap();
 
-		if (findParentsIfDefined && dataSource.getSelfRelPointerField() != null) {
+		if (dataSource.getSelfRelPointerField() != null) {
 			List<Object> parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list);
+
 			if (parentIds.size() > 0) {
 				SelectQueryQVO selectQueryQVO = new SelectQueryQVO(
-					queryQVO.getQueryCode(),
 					queryQVO.getDataSourceName(),
 					queryQVO.getSelectFields());
 				selectQueryQVO
-					.setSortFields(queryQVO.getSortFields())
-					.setFilterExpression(dataSource.getKeyField() + " in (:ids)");
-				list.addAll(findParentsToRoot(xDataSource, selectQueryQVO, parentIds, dataSource.getSelfRelPointerField()));
+					.setSortFields(queryQVO.getSortFields());
+				list.addAll(findParentsToRoot(dataSource, selectQueryQVO, parentIds));
 			}
 		}
 
 		return list;
 	}
 
+	@Override
+	public List<KeyValueVO<Serializable, String>> executeLookUp(Long dataSourceId, Long targetDataSourceId) {
+		DataSource dataSource = load(dataSourceId);
+
+		DataSource targetDataSource = load(targetDataSourceId);
+		XDataSource targetXDataSource = getXDataSource(targetDataSource);
+
+		List<String> select = new ArrayList<>();
+		select.add(targetDataSource.getKeyField());
+		select.add(targetDataSource.getTitleField() != null ? targetDataSource.getTitleField() : targetDataSource.getKeyField());
+
+		Map<String, String> sort = new HashMap<>();
+		sort.put(select.get(1), "asc");
+
+		DSQueryBuilder builder = new DSQueryBuilder(targetXDataSource)
+			.appendSelect(select)
+			.appendFrom()
+			.appendSort(sort);
+
+		Long dbConnId = findProperDBConnection(dataSource);
+		String comment = String.format("LKUP[%s > %s]", dataSource.getName(), targetDataSource.getName());
+		List<KeyValueVO<Serializable, String>> result;
+		try {
+			result = dbConnectionService.executeQuery(
+				dbConnId,
+				processQuery(
+					dbConnId,
+					builder.getQuery().toString(),
+					targetXDataSource.getQuery().getMode()),
+				comment,
+				1L,
+				100L
+			).toListOfKeyValues();
+		} catch (Exception e) {
+			logger.error(String.format("LookUp 1st exec error: source=%s, target=%s",
+				dataSource.getName(), targetDataSource.getName()), e);
+
+			try {
+				dbConnId = findProperDBConnection(targetDataSource);
+				result = dbConnectionService.executeQuery(
+					dbConnId,
+					processQuery(
+						dbConnId,
+						builder.getQuery().toString(),
+						targetXDataSource.getQuery().getMode()),
+					comment,
+					1L,
+					100L
+				).toListOfKeyValues();
+			} catch (Exception e1) {
+				logger.error(String.format("LookUp 2st exec error: target=%s", targetDataSource.getName()), e);
+
+				result = new ArrayList<>();
+				result.add(new KeyValueVO<Serializable, String>("--Error--", "--Error--"));
+			}
+		}
+
+		return result;
+	}
+
+	@Override
+	public List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId) {
+		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
+		XDataSource xDataSource = getXDataSource(dataSource);
+
+		Map<String, Object> params = new HashMap<>();
+		params.put("parentId", parentId);
+
+		queryQVO
+			.setFilterExpression(dataSource.getSelfRelPointerField() + " = :parentId")
+			.setInputParams(params);
+
+		DSQueryBuilder builder = new DSQueryBuilder(xDataSource, queryQVO)
+			.appendSelect(queryQVO.getSelectFields())
+			.appendFrom()
+			.appendWhere()
+			.appendSort(queryQVO.getSortFields());
+
+		String comment = String.format("DsCHLD[%s]", dataSource.getName());
+		Long dbConnId = findProperDBConnection(dataSource);
+		return dbConnectionService.executeQuery(
+			dbConnId,
+			processQuery(
+				dbConnId,
+				builder.getQuery().toString(),
+				xDataSource.getQuery().getMode()),
+			comment,
+			params
+		).toListOfMap();
+	}
+
+	@Override
 	public long execute(CountQueryQVO queryQVO) {
-		XDataSource xDataSource = getXDataSource(queryQVO.getDataSourceName());
+		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
+		XDataSource xDataSource = getXDataSource(dataSource);
 
-		QueryBuilderVO builderVO = buildUpBase(queryQVO, xDataSource);
-
-		appendSelect(Collections.singletonList("count(1)"), builderVO.select);
+		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO)
+			.appendSelect(Collections.singletonList("count(1) as cnt"))
+			.appendFrom()
+			.appendWhere();
 
 		StringBuilder main = builderVO.getQuery();
 
-		Long dbConnId = findProperDBConnection(queryQVO.getDataSourceName());
+		Long dbConnId = findProperDBConnection(dataSource);
 
-		String comment = String.format("COUNT[%s]", queryQVO.getQueryCode());
+		String comment = String.format("DsCNT[%s]", dataSource.getName());
 
 		List<Map<String, Object>> list = dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
 				dbConnId,
-				xDataSource.getQuery().getMode(),
-				main.toString()),
-			builderVO.queryParams,
-			comment
+				main.toString(),
+				xDataSource.getQuery().getMode()),
+			comment,
+			builderVO.queryParams
 		).toListOfMap();
 
 		return ((BigDecimal) list.get(0).get("cnt")).longValue();
 	}
 
 	// -------------------------- PRIVATE METHODS
-
-
-	private QueryBuilderVO buildUpBase(AbstractQueryQVO queryQVO, XDataSource xDataSource) {
-		QueryBuilderVO builderVO = new QueryBuilderVO();
-
-		builderVO.select
-			.append("select\n");
-
-		builderVO.from_where
-			.append("from (\n")
-			.append(processDynamicQuery(queryQVO.getQueryCode(), xDataSource.getQuery(), queryQVO.getInputParams()))
-			.append("\n)\n");
-
-		if (queryQVO.getFilterExpression() != null) {
-			builderVO.from_where
-				.append("where\n\t")
-				.append(queryQVO.getFilterExpression())
-				.append("\n");
-			// TODO check query embedded params with XDataSource
-			builderVO.queryParams = queryQVO.getInputParams();
-		} else {
-			builderVO.queryParams = appendWhere(queryQVO.getInputParams(), xDataSource, builderVO.from_where);
-		}
-
-		return builderVO;
-	}
 
 	private void checkDuplicateDataSource(String name) {
 		long count = persistorService
@@ -558,108 +560,8 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
-	private void appendSelect(List<String> selectFields, StringBuilder select) {
-		select
-			.append("\t")
-			.append(selectFields.get(0))
-			.append("\n");
-
-		for (int i = 1; i < selectFields.size(); i++) {
-			select
-				.append("\t,")
-				.append(selectFields.get(i))
-				.append("\n");
-		}
-	}
-
-	private Map<String, Object> appendWhere(Map<String, Object> filters, XDataSource dataSource, StringBuilder builder) {
-		Map<String, Object> queryParams = new HashMap<>();
-
-		if (filters != null && filters.size() > 0) {
-			builder.append("where 1=1\n");
-			for (Map.Entry<String, Object> filter : filters.entrySet()) {
-				XDSField xdsField = dataSource.getField(filter.getKey());
-				if (xdsField != null) {
-					switch (xdsField.getFilterType()) {
-
-						case Equal: // All types
-							Object value = filter.getValue();
-							if (value instanceof KeyValueVO) {
-								value = ((KeyValueVO) value).getKey();
-							}
-							if (value instanceof Collection) { //TODO?
-								builder.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
-							} else {
-								builder.append(String.format("\tand %1$s  = :%1$s\n", xdsField.getName()));
-							}
-							queryParams.put(xdsField.getName(), value);
-							break;
-
-						case Contain: // Only String
-							builder.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
-							queryParams.put(xdsField.getName(), filter.getValue());
-							break;
-
-						case Range: // Date & Number
-							RangeVO rangeVO = (RangeVO) filter.getValue();
-							if (rangeVO.getLower() != null) {
-								builder.append(String.format("\tand %1$s >= :%1$s_l\n", xdsField.getName()));
-								queryParams.put(xdsField.getName() + "_l", rangeVO.getLower());
-							}
-							if (rangeVO.getUpper() != null) {
-								builder.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
-								queryParams.put(xdsField.getName() + "_u", rangeVO.getUpper());
-							}
-							break;
-
-						case List: // All types (except boolean)
-						case Search:
-							builder.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
-							List<Serializable> items = new ArrayList<>();
-							List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
-							for (KeyValueVO<Serializable, String> keyValue : list) {
-								items.add(keyValue.getKey());
-							}
-							queryParams.put(xdsField.getName(), items);
-							break;
-					}
-				}
-			}
-
-			for (XDSParameter xdsParameter : dataSource.getParams()) {
-				if (filters.containsKey(xdsParameter.getName()) || ObjectUtil.isTrue(xdsParameter.getRequired())) {
-					queryParams.put(xdsParameter.getName(), filters.get(xdsParameter.getName()));
-				}
-			}
-		}
-
-		return queryParams;
-	}
-
-	private void appendSortFields(Map<String, String> sortFields, StringBuilder mainQueryBuilder) {
-		if (sortFields != null && sortFields.size() > 0) {
-			mainQueryBuilder.append(" order by ");
-			boolean firstAdded = false;
-			for (Map.Entry<String, String> sortField : sortFields.entrySet()) {
-				//TODO check field
-				if (firstAdded) {
-					mainQueryBuilder.append(",");
-				} else {
-					firstAdded = true;
-				}
-				mainQueryBuilder
-					.append(sortField.getKey())
-					.append(" ")
-					.append(sortField.getValue());
-			}
-		}
-	}
-
-	private XEntity findXEntity(Map<String, XEntity> map, String alias) {
-		if (!map.containsKey(alias)) {
-			throw new MetisException(MetisErrorCode.UnknownAlias, alias);
-		}
-		return map.get(alias);
+	private Long findProperDBConnection(DataSource dataSource) {
+		return dataSource.getConnectionId();
 	}
 
 	private String processDynamicQuery(String queryCode, XDSQuery xdsQuery, Map<String, Object> params) {
@@ -677,6 +579,13 @@ public class DataSourceService implements IDataSourceService {
 		return xdsQuery.getText();
 	}
 
+	private XEntity findXEntity(Map<String, XEntity> map, String alias) {
+		if (!map.containsKey(alias)) {
+			throw new MetisException(MetisErrorCode.UnknownAlias, alias);
+		}
+		return map.get(alias);
+	}
+
 	private List<Object> extractParentIds(String selfRelPointerField, List<Map<String, Object>> list) {
 		List<Object> parentIds = new ArrayList<>();
 		for (Map<String, Object> map : list) {
@@ -687,22 +596,25 @@ public class DataSourceService implements IDataSourceService {
 		return parentIds;
 	}
 
-	private List<Map<String, Object>> findParentsToRoot(XDataSource xDataSource, SelectQueryQVO queryQVO,
-														List<Object> parentIds, String selfRelPointerField) {
+	private List<Map<String, Object>> findParentsToRoot(DataSource dataSource,
+														SelectQueryQVO queryQVO,
+														List<Object> parentIds) {
+
+		XDataSource xDataSource = getXDataSource(dataSource);
+
+		queryQVO.setFilterExpression(dataSource.getKeyField() + " in (:ids)");
+
+		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO)
+			.appendSelect(queryQVO.getSelectFields())
+			.appendFrom()
+			.appendWhere()
+			.appendSort(queryQVO.getSortFields());
+
+		Long dbConnId = findProperDBConnection(dataSource);
+
+		String comment = String.format("DSPAR[%s]", dataSource.getName());
+
 		List<Map<String, Object>> result = new ArrayList<>();
-
-		QueryBuilderVO builderVO = buildUpBase(queryQVO, xDataSource);
-
-		appendSelect(queryQVO.getSelectFields(), builderVO.select);
-
-		StringBuilder main = builderVO.getQuery();
-
-		appendSortFields(queryQVO.getSortFields(), main);
-
-		Long dbConnId = findProperDBConnection(queryQVO.getDataSourceName());
-
-		String comment = String.format("LIST[%s]", queryQVO.getQueryCode());
-
 		while (parentIds.size() > 0) {
 			Map<String, Object> queryParams = new HashMap<>();
 			queryParams.put("ids", parentIds);
@@ -711,15 +623,15 @@ public class DataSourceService implements IDataSourceService {
 				dbConnId,
 				processQuery(
 					dbConnId,
-					xDataSource.getQuery().getMode(),
-					main.toString()),
-				queryParams,
-				comment
+					builderVO.getQuery().toString(),
+					xDataSource.getQuery().getMode()),
+				comment,
+				queryParams
 			).toListOfMap();
 
 			result.addAll(list);
 
-			parentIds = extractParentIds(selfRelPointerField, list);
+			parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list);
 		}
 
 		return result;
@@ -738,15 +650,177 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
-	private class QueryBuilderVO {
-		public StringBuilder select = new StringBuilder();
-		public StringBuilder from_where = new StringBuilder();
-		public Map<String, Object> queryParams;
+	private class DSQueryBuilder {
+		private StringBuilder query = new StringBuilder();
+		private Map<String, Object> queryParams = new HashMap<>();
+
+		private XDataSource xDataSource;
+		private AbstractQueryQVO queryQVO;
+
+		// ---------------
+
+		public DSQueryBuilder(XDataSource xDataSource) {
+			this(xDataSource, null);
+		}
+
+		public DSQueryBuilder(XDataSource xDataSource, AbstractQueryQVO queryQVO) {
+			this.xDataSource = xDataSource;
+			this.queryQVO = queryQVO;
+		}
+
+		// ---------------
 
 		public StringBuilder getQuery() {
-			return new StringBuilder()
-				.append(select.toString())
-				.append(from_where.toString());
+			return query;
+		}
+
+		public Map<String, Object> getQueryParams() {
+			return queryParams;
+		}
+
+		// ---------------
+
+		public DSQueryBuilder appendSelect(List<String> selectFields) {
+			query
+				.append("select\n")
+				.append("\t")
+				.append(selectFields.get(0))
+				.append("\n");
+
+			for (int i = 1; i < selectFields.size(); i++) {
+				query
+					.append("\t,")
+					.append(selectFields.get(i))
+					.append("\n");
+			}
+
+			return this;
+		}
+
+		public DSQueryBuilder appendFrom() {
+			Map<String, Object> params;
+			if (queryQVO != null && queryQVO.getInputParams() != null) {
+				params = queryQVO.getInputParams();
+			} else {
+				params = new HashMap<>();
+			}
+
+			query
+				.append("from (\n")
+				.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), params))
+				.append("\n)\n");
+			return this;
+		}
+
+		public DSQueryBuilder appendWhere() {
+			if (queryQVO == null) {
+				throw new RuntimeException("No AbstractQueryQVO!");
+			}
+
+			if (queryQVO.getFilterExpression() != null) {
+				query
+					.append("where\n\t")
+					.append(queryQVO.getFilterExpression())
+					.append("\n");
+				// TODO check query embedded params with XDataSource
+				if (queryQVO.getInputParams() != null) {
+					queryParams.putAll(queryQVO.getInputParams());
+				}
+			} else {
+				query.append("where 1=1\n");
+				appendFilters(xDataSource, queryQVO.getInputParams());
+			}
+			return this;
+		}
+
+		public DSQueryBuilder appendSort(Map<String, String> sortFields) {
+			if (sortFields != null && sortFields.size() > 0) {
+				query.append("order by\n");
+				boolean firstAdded = false;
+				for (Map.Entry<String, String> sortField : sortFields.entrySet()) {
+					//TODO check field
+					if (firstAdded) {
+						query.append(",\n");
+					} else {
+						firstAdded = true;
+					}
+					query
+						.append("\t")
+						.append(sortField.getKey())
+						.append(" ")
+						.append(sortField.getValue());
+				}
+				query.append("\n");
+			}
+
+			return this;
+		}
+
+		// ---------------
+
+		private void appendFilters(XDataSource dataSource, Map<String, Object> filters) {
+			if (filters != null && filters.size() > 0) {
+				for (Map.Entry<String, Object> filter : filters.entrySet()) {
+					XDSField xdsField = dataSource.getField(filter.getKey());
+					if (xdsField != null) {
+						switch (xdsField.getFilterType()) {
+
+							case Equal: // All types
+								Object value = filter.getValue();
+								if (value instanceof KeyValueVO) {
+									value = ((KeyValueVO) value).getKey();
+								}
+								if (value instanceof Collection) { //TODO?
+									query
+										.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
+								} else {
+									query
+										.append(String.format("\tand %1$s  = :%1$s\n", xdsField.getName()));
+								}
+								queryParams.put(xdsField.getName(), value);
+								break;
+
+							case Contain: // Only String
+								query
+									.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
+								queryParams.put(xdsField.getName(), filter.getValue());
+								break;
+
+							case Range: // Date & Number
+								RangeVO rangeVO = (RangeVO) filter.getValue();
+								if (rangeVO.getLower() != null) {
+									query
+										.append(String.format("\tand %1$s >= :%1$s_l\n", xdsField.getName()));
+									queryParams.put(xdsField.getName() + "_l", rangeVO.getLower());
+								}
+								if (rangeVO.getUpper() != null) {
+									query
+										.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
+									queryParams.put(xdsField.getName() + "_u", rangeVO.getUpper());
+								}
+								break;
+
+							case List: // All types (except boolean)
+							case Search:
+								query
+									.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
+								List<Serializable> items = new ArrayList<>();
+								List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
+								for (KeyValueVO<Serializable, String> keyValue : list) {
+									items.add(keyValue.getKey());
+								}
+								queryParams.put(xdsField.getName(), items);
+								break;
+						}
+					}
+				}
+
+				for (XDSParameter xdsParameter : dataSource.getParams()) {
+					if (filters.containsKey(xdsParameter.getName()) || ObjectUtil.isTrue(xdsParameter.getRequired())) {
+						queryParams.put(xdsParameter.getName(), filters.get(xdsParameter.getName()));
+					}
+				}
+			}
 		}
 	}
 }
