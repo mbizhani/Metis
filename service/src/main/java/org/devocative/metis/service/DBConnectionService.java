@@ -169,15 +169,6 @@ public class DBConnectionService implements IDBConnectionService {
 	public QueryRVO executeQuery(
 		Long dbConnId,
 		String query,
-		String comment) {
-
-		return executeQuery(dbConnId, query, comment, null, null, null);
-	}
-
-	@Override
-	public QueryRVO executeQuery(
-		Long dbConnId,
-		String query,
 		String comment,
 		Map<String, Object> params) {
 
@@ -194,6 +185,7 @@ public class DBConnectionService implements IDBConnectionService {
 		return executeQuery(dbConnId, query, comment, null, pageIndex, pageSize);
 	}
 
+	// Main Method
 	@Override
 	public QueryRVO executeQuery(
 		Long dbConnId,

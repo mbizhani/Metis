@@ -21,9 +21,11 @@ public interface IDBConnectionService {
 
 	List<DataFieldVO> findFields(Long id, String sql, Map<String, Object> params);
 
-	QueryRVO executeQuery(Long id, String query, String comment);
-
-	QueryRVO executeQuery(Long id, String query, String comment, Map<String, Object> params);
+	QueryRVO executeQuery(
+		Long dbConnId,
+		String query,
+		String comment,
+		Map<String, Object> params);
 
 	QueryRVO executeQuery(
 		Long dbConnId,
@@ -32,7 +34,14 @@ public interface IDBConnectionService {
 		Long pageIndex,
 		Long pageSize);
 
-	QueryRVO executeQuery(Long id, String query, String comment, Map<String, Object> params, Long pageIndex, Long pageSize);
+	// Main Method
+	QueryRVO executeQuery(
+		Long dbConnId,
+		String query,
+		String comment,
+		Map<String, Object> params,
+		Long pageIndex,
+		Long pageSize);
 
 	void closeAllPools();
 
