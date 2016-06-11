@@ -54,8 +54,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
-	private static final Logger logger = LoggerFactory.getLogger(DataSourceExecutor.class);
+public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHandler {
+	private static final Logger logger = LoggerFactory.getLogger(DataSourceExecutorDPage.class);
 
 	@Inject
 	private IDataSourceService dataSourceService;
@@ -73,16 +73,16 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 	private WebMarkupContainer edit;
 
-	public DataSourceExecutor(String id, DataSource ds) {
+	public DataSourceExecutorDPage(String id, DataSource ds) {
 		this(id, new ArrayList<String>(), ds);
 	}
 
-	public DataSourceExecutor(String id, List<String> params) {
+	public DataSourceExecutorDPage(String id, List<String> params) {
 		this(id, params, null);
 	}
 
 	// Main Constructor
-	public DataSourceExecutor(String id, List<String> params, DataSource ds) {
+	public DataSourceExecutorDPage(String id, List<String> params, DataSource ds) {
 		super(id, params);
 
 		WebMarkupContainer searchPanel = new WebMarkupContainer("searchPanel");
@@ -178,7 +178,8 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 
 					case LookUp:
 						if (dsField.getFilterType() == XDSFieldFilterType.List) {
-							List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(dsField.getTargetDSId());
+							List<KeyValueVO<Serializable, String>> lookUpList =
+								dataSourceService.executeLookUp(dataSource.getName(), dsField.getTargetDSName());
 							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true)
 								.setLabelVisible(false);
 						} else {
@@ -195,7 +196,7 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 										dsField.getSafeTitle(), dataSource.getTitle(), dataSource.getName()));
 
 									return
-										new DataSourceExecutor(selectionPanelId, dataSource)
+										new DataSourceExecutorDPage(selectionPanelId, dataSource)
 											.setSelectionJSCallback(getJSCallback())
 											.setEditButtonVisible(false);
 								}
@@ -301,12 +302,12 @@ public class DataSourceExecutor extends DPage implements IAsyncResponseHandler {
 		add(asyncBehavior = new AsyncBehavior(this));
 	}
 
-	public DataSourceExecutor setSelectionJSCallback(String jsCallback) {
+	public DataSourceExecutorDPage setSelectionJSCallback(String jsCallback) {
 		grid.getOptions().setSelectionJSHandler(jsCallback);
 		return this;
 	}
 
-	public DataSourceExecutor setEditButtonVisible(boolean visible) {
+	public DataSourceExecutorDPage setEditButtonVisible(boolean visible) {
 		edit.setVisible(visible);
 		return this;
 	}

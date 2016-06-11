@@ -7,7 +7,7 @@ import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
-import org.devocative.metis.web.dPage.DataSourceExecutor;
+import org.devocative.metis.web.dPage.DataSourceExecutorDPage;
 import org.devocative.wickomp.form.wizard.OWizard;
 import org.devocative.wickomp.form.wizard.WWizardPanel;
 import org.devocative.wickomp.html.WMessager;
@@ -65,7 +65,7 @@ public class DataViewFormDPage extends DPage {
 				protected void onFinish(AjaxRequestTarget target, String stepId) {
 					//dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
 					dataService.saveOrUpdate(dataVO);
-					UrlUtil.redirectTo(DataSourceExecutor.class, dataVO.getDataSourceName());
+					UrlUtil.redirectTo(DataSourceExecutorDPage.class, dataVO.getDataSourceName());
 				}
 
 				@Override

@@ -89,7 +89,7 @@ public class DataSourceList extends DPage {
 		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.modifierUser"), "modifierUser"));
 
 		//TODO columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceForm.class, "name", MetisIcon.EDIT));
-		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceExecutor.class, "name", MetisIcon.EXECUTE));
+		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceExecutorDPage.class, "name", MetisIcon.EXECUTE));
 
 		OGrid<DataSource> oGrid = new OGrid<>();
 		oGrid
