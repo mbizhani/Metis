@@ -6,8 +6,11 @@ import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.devocative.adroit.ObjectUtil;
+import org.devocative.adroit.cache.IMissedHitHandler;
+import org.devocative.adroit.cache.LRUCache;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -37,17 +40,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service("mtsDataSourceService")
-public class DataSourceService implements IDataSourceService {
+public class DataSourceService implements IDataSourceService, IMissedHitHandler<String, DataSource> {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceService.class);
 
 	private XStream xstream;
 	private Configuration freeMarkerCfg;
+	private LRUCache<String, DataSource> dataSourceCache;
 
 	@Autowired
 	private IDBConnectionService dbConnectionService;
 
 	@Autowired
 	private IPersistorService persistorService;
+
+	@Autowired
+	private ISecurityService securityService;
 
 	// ------------------------------
 
@@ -56,6 +63,9 @@ public class DataSourceService implements IDataSourceService {
 		xstream.processAnnotations(XDataSource.class);
 
 		freeMarkerCfg = new Configuration(Configuration.VERSION_2_3_23);
+
+		dataSourceCache = new LRUCache<>(50);
+		dataSourceCache.setMissedHitHandler(this);
 	}
 
 	// ------------------------------
@@ -67,11 +77,17 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public DataSource loadByName(String name) {
+		return dataSourceCache.get(name);
+	}
+
+	// IMissedHitHandler
+	@Override
+	public DataSource loadForCache(String key) {
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DataSource.class, "ent")
 			.addWhere("and ent.name = :name")
-			.addParam("name", name)
+			.addParam("name", key)
 			.object();
 	}
 
@@ -171,6 +187,8 @@ public class DataSourceService implements IDataSourceService {
 			persistorService.saveOrUpdate(relation);
 		}
 
+		dataSourceCache.update(dataSource.getName(), dataSource);
+
 		return dataSource;
 	}
 
@@ -239,6 +257,10 @@ public class DataSourceService implements IDataSourceService {
 
 	@Override
 	public List<Map<String, Object>> execute(SelectQueryQVO queryQVO) {
+		logger.info("Executing DataSource: DS=[{}] Usr=[{}]",
+			queryQVO.getDataSourceName(), securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
+
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -250,7 +272,7 @@ public class DataSourceService implements IDataSourceService {
 
 		Long dbConnId = findProperDBConnection(dataSource);
 
-		String comment = String.format("DsEXC[%s]", dataSource.getName());
+		String comment = String.format("DsExc[%s]", dataSource.getName());
 
 		List<Map<String, Object>> list = dbConnectionService.executeQuery(
 			dbConnId,
@@ -277,14 +299,22 @@ public class DataSourceService implements IDataSourceService {
 			}
 		}
 
+		logger.info("Executed DataSource: DS=[{}] Usr=[{}] Dur=[{}] Rs#=[{}]",
+			queryQVO.getDataSourceName(), securityService.getCurrentUser(),
+			System.currentTimeMillis() - start, list.size());
+
 		return list;
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> executeLookUp(Long dataSourceId, Long targetDataSourceId) {
-		DataSource dataSource = load(dataSourceId);
+	public List<KeyValueVO<Serializable, String>> executeLookUp(String dataSourceName, String targetDataSourceName) {
+		DataSource dataSource = loadByName(dataSourceName);
+		DataSource targetDataSource = loadByName(targetDataSourceName);
 
-		DataSource targetDataSource = load(targetDataSourceId);
+		logger.info("Executing LookUp: Trgt=[{}] Src=[{}] Usr=[{}]",
+			targetDataSource.getName(), dataSource.getName(), securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
+
 		XDataSource targetXDataSource = getXDataSource(targetDataSource);
 
 		List<String> select = new ArrayList<>();
@@ -300,7 +330,7 @@ public class DataSourceService implements IDataSourceService {
 			.appendSort(sort);
 
 		Long dbConnId = findProperDBConnection(dataSource);
-		String comment = String.format("LKUP[%s > %s]", dataSource.getName(), targetDataSource.getName());
+		String comment = String.format("DsLkUp[%s > %s]", dataSource.getName(), targetDataSource.getName());
 		List<KeyValueVO<Serializable, String>> result;
 		try {
 			result = dbConnectionService.executeQuery(
@@ -311,7 +341,7 @@ public class DataSourceService implements IDataSourceService {
 					targetXDataSource.getQuery().getMode()),
 				comment,
 				1L,
-				100L
+				50L
 			).toListOfKeyValues();
 		} catch (Exception e) {
 			logger.error(String.format("LookUp 1st exec error: source=%s, target=%s",
@@ -337,11 +367,19 @@ public class DataSourceService implements IDataSourceService {
 			}
 		}
 
+		logger.info("Executed LookUp: target=[{}] source=[{}] Dur=[{}] Usr=[{}] Rs#=[{}]",
+			targetDataSource.getName(), dataSource.getName(), System.currentTimeMillis() - start,
+			securityService.getCurrentUser(), result.size());
+
 		return result;
 	}
 
 	@Override
 	public List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId) {
+		logger.info("Executing OfParent: DS=[{}] Prnt=[{}] Usr=[{}]",
+			queryQVO.getDataSourceName(), parentId, securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
+
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -358,9 +396,9 @@ public class DataSourceService implements IDataSourceService {
 			.appendWhere()
 			.appendSort(queryQVO.getSortFields());
 
-		String comment = String.format("DsCHLD[%s]", dataSource.getName());
+		String comment = String.format("DsChld[%s]", dataSource.getName());
 		Long dbConnId = findProperDBConnection(dataSource);
-		return dbConnectionService.executeQuery(
+		List<Map<String, Object>> result = dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
 				dbConnId,
@@ -369,10 +407,20 @@ public class DataSourceService implements IDataSourceService {
 			comment,
 			params
 		).toListOfMap();
+
+		logger.info("Executed OfParent: DS=[{}] Prnt=[{}] Usr=[{}] Dur=[{}] Rs#=[{}]",
+			queryQVO.getDataSourceName(), parentId, securityService.getCurrentUser(),
+			System.currentTimeMillis() - start, result.size());
+
+		return result;
 	}
 
 	@Override
 	public long execute(CountQueryQVO queryQVO) {
+		logger.info("Executing Count: DS=[{}] Usr=[{}]",
+			queryQVO.getDataSourceName(), securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
+
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -385,7 +433,7 @@ public class DataSourceService implements IDataSourceService {
 
 		Long dbConnId = findProperDBConnection(dataSource);
 
-		String comment = String.format("DsCNT[%s]", dataSource.getName());
+		String comment = String.format("DsCnt[%s]", dataSource.getName());
 
 		List<Map<String, Object>> list = dbConnectionService.executeQuery(
 			dbConnId,
@@ -397,7 +445,12 @@ public class DataSourceService implements IDataSourceService {
 			builderVO.queryParams
 		).toListOfMap();
 
-		return ((BigDecimal) list.get(0).get("cnt")).longValue();
+		long result = ((BigDecimal) list.get(0).get("cnt")).longValue();
+
+		logger.info("Executed Count: DS=[{}] Usr=[{}] Dur=[{}] #=[{}]",
+			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start, result);
+
+		return result;
 	}
 
 	// -------------------------- PRIVATE METHODS
@@ -612,8 +665,9 @@ public class DataSourceService implements IDataSourceService {
 
 		Long dbConnId = findProperDBConnection(dataSource);
 
-		String comment = String.format("DSPAR[%s]", dataSource.getName());
+		String comment = String.format("DsPar[%s]", dataSource.getName());
 
+		Set<Object> visitedParents = new HashSet<>();
 		List<Map<String, Object>> result = new ArrayList<>();
 		while (parentIds.size() > 0) {
 			Map<String, Object> queryParams = new HashMap<>();
@@ -631,7 +685,15 @@ public class DataSourceService implements IDataSourceService {
 
 			result.addAll(list);
 
+			visitedParents.addAll(parentIds);
+
 			parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list);
+
+			for (int i = parentIds.size() - 1; i >= 0; i--) {
+				if (visitedParents.contains(parentIds.get(i))) {
+					parentIds.remove(i);
+				}
+			}
 		}
 
 		return result;
