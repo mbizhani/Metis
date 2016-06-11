@@ -73,8 +73,8 @@ class QueryStep extends WWizardStepPanel {
 			protected void onSubmit(AjaxRequestTarget target) {
 				String sql = dataSourceService.processQuery(
 					dataVO.getConnectionId(),
-					dataVO.getQuery().getMode(),
-					dataVO.getQuery().getText());
+					dataVO.getQuery().getText(),
+					dataVO.getQuery().getMode());
 
 				Map<String, Object> params = new HashMap<>();
 				for (DataParameterVO parameterVO : dataVO.getParams()) {

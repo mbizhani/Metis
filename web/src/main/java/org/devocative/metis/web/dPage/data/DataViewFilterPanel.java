@@ -30,6 +30,7 @@ import java.util.*;
 public class DataViewFilterPanel extends DPanel {
 	private Map<String, Object> filter;
 	private boolean disableFilledFilter;
+	private String dataSourceName;
 
 	@Inject
 	private IDataService dataService;
@@ -38,8 +39,10 @@ public class DataViewFilterPanel extends DPanel {
 	private IDataSourceService dataSourceService;
 
 	// Main Constructor
-	public DataViewFilterPanel(String id, final Map<String, Object> filter, List<DataAbstractFieldVO> allFields) {
+	public DataViewFilterPanel(String id, final String dataSourceName, final Map<String, Object> filter, List<DataAbstractFieldVO> allFields) {
 		super(id);
+		this.dataSourceName = dataSourceName;
+
 		setDefaultModel(new CompoundPropertyModel<>(filter));
 
 		this.filter = filter;
@@ -129,7 +132,7 @@ public class DataViewFilterPanel extends DPanel {
 
 			case LookUp:
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
-					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.getLookUpList(fieldVO.getTargetDSId());
+					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.executeLookUp(dataSourceName, fieldVO.getTargetDSName());
 					if (filter.containsKey(fieldVO.getName())) {
 						List<String> keys = (List<String>) filter.get(fieldVO.getName());
 						List<KeyValueVO<Serializable, String>> onlySentOnes = new ArrayList<>();

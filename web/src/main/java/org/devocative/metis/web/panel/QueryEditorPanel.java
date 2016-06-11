@@ -41,7 +41,7 @@ public class QueryEditorPanel extends WPanel {
 		form.add(new DAjaxButton("execute", new ResourceModel("label.execute"), MetisIcon.EXECUTE) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
-				QueryRVO resultVO = dbConnectionService.executeQuery(dbConnId, editor.getModelObject(), params, "");
+				QueryRVO resultVO = dbConnectionService.executeQuery(dbConnId, editor.getModelObject(), "QryEdtr", params, 1L, 10L);
 				header.addAll(resultVO.getHeader());
 				rows.addAll(resultVO.getRows());
 				target.add(resultTable);

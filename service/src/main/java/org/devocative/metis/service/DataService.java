@@ -1,5 +1,6 @@
 package org.devocative.metis.service;
 
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -16,6 +17,10 @@ import org.devocative.metis.iservice.IDataViewService;
 import org.devocative.metis.vo.*;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
+import org.devocative.metis.vo.query.CountQueryQVO;
+import org.devocative.metis.vo.query.SelectQueryQVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +33,7 @@ import java.util.regex.Pattern;
 
 @Service("mtsDataService")
 public class DataService implements IDataService {
+	private static final Logger logger = LoggerFactory.getLogger(DataService.class);
 
 	@Autowired
 	private IPersistorService persistorService;
@@ -40,6 +46,9 @@ public class DataService implements IDataService {
 
 	@Autowired
 	private IDataViewService dataViewService;
+
+	@Autowired
+	private ISecurityService securityService;
 
 	// ------------------------------ PUBLIC METHODS
 
@@ -143,8 +152,8 @@ public class DataService implements IDataService {
 
 		String sql = dataSourceService.processQuery(
 			dataVO.getConnectionId(),
-			dataVO.getQuery().getMode(),
-			dataVO.getQuery().getText()
+			dataVO.getQuery().getText(),
+			dataVO.getQuery().getMode()
 		);
 
 		fieldsFromDB = dbConnectionService.findFields(
@@ -202,69 +211,86 @@ public class DataService implements IDataService {
 
 	@Override
 	public DataViewRVO executeDataView(DataViewQVO request) {
-		DataViewRVO result = new DataViewRVO();
+		logger.info("Executing DataView: DV=[{}] Usr=[{}]",
+			request.getName(), securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
 
 		DataView dataView = dataViewService.loadByName(request.getName());
 		XDataView xDataView = dataViewService.getXDataView(dataView);
 
 		List<String> selectFields = getSelectedFields(xDataView);
 
-		String queryCode = String.format("%s.%s", xDataView.getName(), xDataView.getDataSourceName());
+		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
+		selectQVO
+			.setPageIndex(request.getPageIndex())
+			.setPageSize(request.getPageSize())
+			.setSortFields(request.getSortFieldList())
+			.setInputParams(request.getFilter());
+		List<Map<String, Object>> list = dataSourceService.execute(selectQVO);
 
-		List<Map<String, Object>> list = dataSourceService.executeDataSource(
-			queryCode,
-			xDataView.getDataSourceName(),
-			selectFields,
-			request.getFilter(),
-			request.getSortFieldList(),
-			request.getPageIndex(),
-			request.getPageSize());
+		CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceName());
+		countQVO.setInputParams(request.getFilter());
+		long cnt = dataSourceService.execute(countQVO);
 
+		DataViewRVO result = new DataViewRVO();
 		result.setList(list);
-
-		long cnt = dataSourceService.executeCountForDataSource(
-			queryCode,
-			xDataView.getDataSourceName(),
-			request.getFilter());
-
 		result.setCount(cnt);
+
+		logger.info("Executed DataView: DV=[{}] Usr=[{}] Dur=[{}]",
+			xDataView.getName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
 
 		return result;
 	}
 
 	@Override
 	public DataViewRVO executeDataViewForParent(DataViewQVO request) {
-		DataViewRVO result = new DataViewRVO();
+		logger.info("Executing DataView of Parent: DV=[{}] Prnt=[{}] Usr=[{}]",
+			request.getName(), request.getParentId(), securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
 
 		DataView dataView = dataViewService.loadByName(request.getName());
 		XDataView xDataView = dataViewService.getXDataView(dataView);
 
 		List<String> selectFields = getSelectedFields(xDataView);
 
-		String queryCode = String.format("%s.%s", xDataView.getName(), xDataView.getDataSourceName());
+		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
+		selectQVO.setSortFields(request.getSortFieldList());
 
-		List<Map<String, Object>> list = dataSourceService.executeDataSourceForParent(
-			queryCode,
-			xDataView.getDataSourceName(),
-			selectFields,
-			request.getParentId(),
-			request.getSortFieldList());
+		List<Map<String, Object>> list = dataSourceService.executeOfParent(selectQVO, request.getParentId());
 
+		DataViewRVO result = new DataViewRVO();
 		result.setList(list);
 		result.setParentId(request.getParentId().toString());
+
+		logger.info("Executed DataView of Parent: DV=[{}] Prnt=[{}] Usr=[{}] Dur=[{}]",
+			request.getName(), request.getParentId(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
 
 		return result;
 	}
 
 	@Override
 	public List<Map<String, Object>> executeOData(ODataQVO request) {
+		logger.info("Executing OData: DV=[{}] Usr=[{}]", request.getName(), securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
+
 		DataView dataView = dataViewService.loadByName(request.getName());
 		XDataView xDataView = dataViewService.getXDataView(dataView);
 
 		List<String> selectFields = getSelectedFields(xDataView);
 
-		String queryCode = String.format("OData.%s.%s", xDataView.getName(), xDataView.getDataSourceName());
-		return null;
+		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
+		selectQVO
+			.setPageIndex(1L)
+			.setPageSize(100L)
+			.setFilterExpression(request.getFilterExpression())
+			.setInputParams(request.getFilterExpressionParams());
+
+		List<Map<String, Object>> list = dataSourceService.execute(selectQVO);
+
+		logger.info("Executed OData: DV=[{}] Usr=[{}] Dur=[{}]",
+			request.getName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
+
+		return list;
 	}
 
 	// ------------------------------ PRIVATE METHODS
