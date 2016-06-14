@@ -88,7 +88,11 @@ public class DataViewFilterPanel extends DPanel {
 		switch (fieldVO.getType()) {
 
 			case String:
-				fieldFormItem = new WTextInput(fieldVO.getName());
+				if (XDSFieldFilterType.Contain == fieldVO.getFilterType()) {
+					fieldFormItem = new WSqlStringInput(fieldVO.getName());
+				} else {
+					fieldFormItem = new WTextInput(fieldVO.getName());
+				}
 				break;
 
 			case Integer:
