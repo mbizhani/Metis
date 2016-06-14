@@ -6,7 +6,10 @@ import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
+import org.apache.olingo.odata2.api.uri.info.GetComplexPropertyUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
+import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
+import org.apache.olingo.odata2.api.uri.info.GetSimplePropertyUriInfo;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
@@ -78,5 +81,29 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 				.serviceRoot(getContext().getPathInfo().getServiceRoot())
 				.build()
 		);
+	}
+
+	@Override
+	public ODataResponse readEntity(final GetEntityUriInfo uriInfo, final String contentType) throws ODataException {
+		logger.debug("OData.readEntity: {}", uriInfo);
+		throw new RuntimeException("NI: readEntity!");
+	}
+
+	@Override
+	public ODataResponse readEntitySimpleProperty(GetSimplePropertyUriInfo uriInfo, String contentType) throws ODataException {
+		logger.debug("OData.readEntitySimpleProperty: {}", uriInfo);
+		throw new RuntimeException("NI: readEntitySimpleProperty!");
+	}
+
+	@Override
+	public ODataResponse readEntitySimplePropertyValue(GetSimplePropertyUriInfo uriInfo, String contentType) throws ODataException {
+		logger.debug("OData.readEntitySimplePropertyValue: {}", uriInfo);
+		throw new RuntimeException("NI: readEntitySimplePropertyValue!");
+	}
+
+	@Override
+	public ODataResponse readEntityComplexProperty(GetComplexPropertyUriInfo uriInfo, String contentType) throws ODataException {
+		logger.debug("OData.readEntityComplexProperty: {}", uriInfo);
+		throw new RuntimeException("NI: readEntityComplexProperty!");
 	}
 }
