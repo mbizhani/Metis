@@ -72,12 +72,21 @@ public class XDataSource implements Serializable {
 	private Map<String, XDSField> fieldMap;
 
 	public XDSField getField(String name) {
+		buildFieldMap();
+		return fieldMap.get(name);
+	}
+
+	public boolean hasField(String name) {
+		buildFieldMap();
+		return fieldMap.containsKey(name);
+	}
+
+	private void buildFieldMap() {
 		if (fieldMap == null) {
 			fieldMap = new HashMap<>();
 			for (XDSField field : fields) {
 				fieldMap.put(field.getName(), field);
 			}
 		}
-		return fieldMap.get(name);
 	}
 }
