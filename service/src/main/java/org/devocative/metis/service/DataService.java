@@ -1,5 +1,6 @@
 package org.devocative.metis.service;
 
+import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
@@ -14,10 +15,14 @@ import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.iservice.IDataViewService;
-import org.devocative.metis.vo.*;
+import org.devocative.metis.vo.DataAbstractFieldVO;
+import org.devocative.metis.vo.DataFieldVO;
+import org.devocative.metis.vo.DataParameterVO;
+import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
 import org.devocative.metis.vo.query.CountQueryQVO;
+import org.devocative.metis.vo.query.ODataQVO;
 import org.devocative.metis.vo.query.SelectQueryQVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service("mtsDataService")
 public class DataService implements IDataService {
@@ -118,22 +121,17 @@ public class DataService implements IDataService {
 	public void updateParamsByQuery(String query, List<DataParameterVO> currentParams) {
 		List<DataParameterVO> temp = new ArrayList<>();
 
-		Pattern p = Pattern.compile("(['].*?['])|[:]([\\w\\d_]+)");
-		Matcher matcher = p.matcher(query);
+		List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(query);
 
-		while (matcher.find()) {
-			if (matcher.group(1) == null) {
-				String param = matcher.group(2).toLowerCase();
+		for (String param : paramsInQuery) {
+			DataParameterVO parameterVO = new DataParameterVO();
+			parameterVO.setName(param);
 
-				DataParameterVO parameterVO = new DataParameterVO();
-				parameterVO.setName(param);
-
-				int idx = currentParams.indexOf(parameterVO);
-				if (idx < 0) {
-					temp.add(parameterVO);
-				} else {
-					temp.add(currentParams.get(idx));
-				}
+			int idx = currentParams.indexOf(parameterVO);
+			if (idx < 0) {
+				temp.add(parameterVO);
+			} else {
+				temp.add(currentParams.get(idx));
 			}
 		}
 
@@ -283,7 +281,7 @@ public class DataService implements IDataService {
 			.setPageIndex(1L)
 			.setPageSize(100L)
 			.setFilterExpression(request.getFilterExpression())
-			.setInputParams(request.getFilterExpressionParams());
+			.setInputParams(request.getInputParams());
 
 		List<Map<String, Object>> list = dataSourceService.execute(selectQVO);
 
