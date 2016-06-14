@@ -1,13 +1,12 @@
-package org.devocative.metis.vo;
+package org.devocative.metis.vo.query;
 
 import java.util.Map;
 
 public class ODataQVO {
 	private String name;
 
-	private Map<String, Object> customFilter;
 	private String filterExpression;
-	private Map<String, Object> filterExpressionParams;
+	private Map<String, Object> inputParams;
 
 	private long pageIndex;
 	private long pageSize;
@@ -24,15 +23,6 @@ public class ODataQVO {
 		return name;
 	}
 
-	public Map<String, Object> getCustomFilter() {
-		return customFilter;
-	}
-
-	public ODataQVO setCustomFilter(Map<String, Object> customFilter) {
-		this.customFilter = customFilter;
-		return this;
-	}
-
 	public String getFilterExpression() {
 		return filterExpression;
 	}
@@ -42,12 +32,12 @@ public class ODataQVO {
 		return this;
 	}
 
-	public Map<String, Object> getFilterExpressionParams() {
-		return filterExpressionParams;
+	public Map<String, Object> getInputParams() {
+		return inputParams;
 	}
 
-	public ODataQVO setFilterExpressionParams(Map<String, Object> filterExpressionParams) {
-		this.filterExpressionParams = filterExpressionParams;
+	public ODataQVO setInputParams(Map<String, Object> inputParams) {
+		this.inputParams = inputParams;
 		return this;
 	}
 
