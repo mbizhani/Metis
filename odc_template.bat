@@ -40,7 +40,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
   xmlns:odc="urn:schemas-microsoft-com:office:odc"
   xmlns="http://www.w3.org/TR/REC-html40">
   <odc:Connection odc:Type="DATAFEED">
-   <odc:ConnectionString>Data Source=http://localhost:8080/ctx/CarService.svc/;Namespaces to Include=*;Max Received Message Size=4398046511104;Integrated Security=SSPI;Keep Alive=true;Persist Security Info=false;Service Document Url=http://localhost:8080/ctx/CarService.svc/</odc:ConnectionString>
+   <odc:ConnectionString>Data Source=http://localhost:8080/ctx/CarService.svc/;Namespaces to Include=*;Max Received Message Size=4398046511104;Integrated Security=Basic;Keep Alive=true;Persist Security Info=false;Service Document Url=http://localhost:8080/ctx/CarService.svc/</odc:ConnectionString>
    <odc:CommandType>TableCollection</odc:CommandType>
    <odc:CommandText>&quot;Cars&quot;,&quot;Manufacturers&quot;</odc:CommandText>
   </odc:Connection>

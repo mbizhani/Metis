@@ -19,7 +19,7 @@
 	</entities>
 
 	<dPages>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceExecutor"
+		<dPage type="org.devocative.metis.web.dPage.DataSourceExecutorDPage"
 			   title="KEY:dPage.mts.DataSourceExecutor"
 			   uri="/dsExec"
 			   inMenu="false"/>
