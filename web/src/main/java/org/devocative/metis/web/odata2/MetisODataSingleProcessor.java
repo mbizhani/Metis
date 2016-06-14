@@ -13,10 +13,11 @@ import org.apache.olingo.odata2.api.uri.info.GetSimplePropertyUriInfo;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
-import org.devocative.metis.vo.ODataQVO;
+import org.devocative.metis.vo.query.ODataQVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,17 +59,22 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 			.setPageIndex(1)
 			.setPageSize(10);
 
+		Map<String, Object> inputParams = new HashMap<>();
+
 		if (uriInfo.getFilter() != null) {
-			SQLExpressionVisitor visitor = new SQLExpressionVisitor();
+			SQLExpressionVisitor visitor = new SQLExpressionVisitor(inputParams);
 			Object accept = uriInfo.getFilter().accept(visitor);
 
-			logger.info("###>> getFilter = {}", accept);
-			logger.info("###>> getFilter Params = {}", visitor.getParamsValue());
+			logger.info("\tOData: Filter Expr=[{}] Params=[{}]", accept, visitor.getParamsValue());
 
-			dataQVO
-				.setFilterExpression(accept.toString())
-				.setFilterExpressionParams(visitor.getParamsValue());
+			dataQVO.setFilterExpression(accept.toString());
 		}
+
+		if (uriInfo.getCustomQueryOptions() != null) {
+			inputParams.putAll(uriInfo.getCustomQueryOptions());
+		}
+
+		dataQVO.setInputParams(inputParams);
 
 
 		List<Map<String, Object>> list = dataService.executeOData(dataQVO);

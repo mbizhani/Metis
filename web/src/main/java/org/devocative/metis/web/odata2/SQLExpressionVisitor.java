@@ -45,8 +45,19 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 
 	// ------------------------------
 
-	private Map<String, Object> paramsValue = new HashMap<>();
+	private Map<String, Object> paramsValue;
 	private int paramIndex = 0;
+
+	// ------------------------------
+
+	public SQLExpressionVisitor() {
+		this(new HashMap<String, Object>());
+	}
+
+	// Main Constructor
+	public SQLExpressionVisitor(Map<String, Object> paramsValue) {
+		this.paramsValue = paramsValue;
+	}
 
 	// ------------------------------
 

@@ -8,6 +8,7 @@ import freemarker.template.Template;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.cache.LRUCache;
+import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.ISecurityService;
@@ -779,19 +780,22 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				throw new RuntimeException("No AbstractQueryQVO!");
 			}
 
+			query.append("where\n\t");
+
 			if (queryQVO.getFilterExpression() != null) {
 				query
-					.append("where\n\t")
 					.append(queryQVO.getFilterExpression())
 					.append("\n");
-				// TODO check query embedded params with XDataSource
-				if (queryQVO.getInputParams() != null) {
-					queryParams.putAll(queryQVO.getInputParams());
+
+				List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(queryQVO.getFilterExpression());
+				for (String param : paramsInQuery) {
+					queryParams.put(param, queryQVO.getInputParams().get(param));
 				}
 			} else {
-				query.append("where 1=1\n");
-				appendFilters(xDataSource, queryQVO.getInputParams());
+				query.append("1=1\n");
 			}
+
+			appendFilters(xDataSource, queryQVO.getInputParams());
 			return this;
 		}
 
@@ -833,39 +837,33 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 									value = ((KeyValueVO) value).getKey();
 								}
 								if (value instanceof Collection) { //TODO?
-									query
-										.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
+									query.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
 								} else {
-									query
-										.append(String.format("\tand %1$s  = :%1$s\n", xdsField.getName()));
+									query.append(String.format("\tand %1$s  = :%1$s\n", xdsField.getName()));
 								}
 								queryParams.put(xdsField.getName(), value);
 								break;
 
 							case Contain: // Only String
-								query
-									.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
+								query.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
 								queryParams.put(xdsField.getName(), filter.getValue());
 								break;
 
 							case Range: // Date & Number
 								RangeVO rangeVO = (RangeVO) filter.getValue();
 								if (rangeVO.getLower() != null) {
-									query
-										.append(String.format("\tand %1$s >= :%1$s_l\n", xdsField.getName()));
+									query.append(String.format("\tand %1$s >= :%1$s_l\n", xdsField.getName()));
 									queryParams.put(xdsField.getName() + "_l", rangeVO.getLower());
 								}
 								if (rangeVO.getUpper() != null) {
-									query
-										.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
+									query.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
 									queryParams.put(xdsField.getName() + "_u", rangeVO.getUpper());
 								}
 								break;
 
 							case List: // All types (except boolean)
 							case Search:
-								query
-									.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
+								query.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
 								List<Serializable> items = new ArrayList<>();
 								List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
 								for (KeyValueVO<Serializable, String> keyValue : list) {
