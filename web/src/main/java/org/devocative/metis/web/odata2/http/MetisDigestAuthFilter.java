@@ -5,8 +5,8 @@ import org.devocative.demeter.web.http.DemeterHttpAuthFilter;
 import javax.servlet.annotation.WebFilter;
 
 @WebFilter(
-	filterName = "MetisDigestAuthFilter",
-	urlPatterns = "/odata.svc/*",
-	servletNames = {"MetisODataServlet"}) //NOTE: "servletNames" is very important!
+	filterName = "MetisOData2AuthFilter",
+	urlPatterns = "/odata2.svc/*",
+	servletNames = {"MetisOData2Servlet"}) //NOTE: "servletNames" is very important!
 public class MetisDigestAuthFilter extends DemeterHttpAuthFilter {
 }

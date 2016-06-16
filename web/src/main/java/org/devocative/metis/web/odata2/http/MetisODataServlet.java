@@ -6,8 +6,8 @@ import javax.servlet.annotation.WebInitParam;
 import javax.servlet.annotation.WebServlet;
 
 @WebServlet(
-	name = "MetisODataServlet",
-	urlPatterns = "/odata.svc/*",
+	name = "MetisOData2Servlet",
+	urlPatterns = "/odata2.svc/*",
 	initParams = {
 		@WebInitParam(
 			name = "org.apache.olingo.odata2.service.factory",
