@@ -46,7 +46,7 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "f_config", insertable = false, updatable = false)
 	private Long configId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "f_connection", foreignKey = @ForeignKey(name = "datasrc2dbconn"))
 	private DBConnection connection;
 
