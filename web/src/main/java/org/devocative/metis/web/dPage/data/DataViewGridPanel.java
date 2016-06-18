@@ -161,6 +161,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			OColumn<Map<String, Object>> column = null;
 			if (XDSFieldResultType.Shown.equals(fieldVO.getResultType())) {
 				column = new OPropertyColumn<>(new Model<>(fieldVO.getTitleOrName()), fieldVO.getName());
+				column.setSortable(true);
 			} else if (XDSFieldResultType.Hidden.equals(fieldVO.getResultType())) {
 				column = new OHiddenColumn<>(fieldVO.getName());
 			}
