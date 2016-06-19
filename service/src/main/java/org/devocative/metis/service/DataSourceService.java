@@ -668,8 +668,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		String comment = String.format("DsPar[%s]", dataSource.getName());
 
+		String query = builderVO.getQuery().toString();
 		Set<Object> visitedParents = new HashSet<>();
 		List<Map<String, Object>> result = new ArrayList<>();
+
 		while (parentIds.size() > 0) {
 			Map<String, Object> queryParams = new HashMap<>();
 			queryParams.put("ids", parentIds);
@@ -678,7 +680,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				dbConnId,
 				processQuery(
 					dbConnId,
-					builderVO.getQuery().toString(),
+					query,
 					xDataSource.getQuery().getMode()),
 				comment,
 				queryParams
@@ -788,8 +790,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					.append("\n");
 
 				List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(queryQVO.getFilterExpression());
-				for (String param : paramsInQuery) {
-					queryParams.put(param, queryQVO.getInputParams().get(param));
+				if (queryQVO.getInputParams() != null) {
+					for (String param : paramsInQuery) {
+						queryParams.put(param, queryQVO.getInputParams().get(param));
+					}
 				}
 			} else {
 				query.append("1=1\n");
