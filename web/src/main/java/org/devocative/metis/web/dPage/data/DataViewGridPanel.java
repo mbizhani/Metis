@@ -117,6 +117,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 	}
 
+	@Override
+	public void onAsyncError(String handlerId, IPartialPageRequestHandler handler, Exception error) {
+		grid.pushError(handler, error);
+	}
+
 	// IGridAsyncDataSource
 	@Override
 	public void list(long pageIndex, long pageSize, List<WSortField> sortFields) {

@@ -39,6 +39,7 @@ public class MetisDModule extends WebDModule {
 	}
 
 	@Override
-	public void onTaskException(Exception e) {
+	public void onTaskError(String id, Exception e) {
+		pushErrorToPage(getAndRemove(id), e);
 	}
 }

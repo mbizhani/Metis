@@ -318,6 +318,11 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 		grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount());
 	}
 
+	@Override
+	public void onAsyncError(String handlerId, IPartialPageRequestHandler handler, Exception error) {
+		grid.pushError(handler, error);
+	}
+
 	private List<XDSAbstractField> getFieldForFilter() {
 		List<XDSAbstractField> result = new ArrayList<>();
 
