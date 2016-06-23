@@ -50,4 +50,10 @@ public interface IDBConnectionService {
 	boolean checkConnection(Long id);
 
 	void groupChanged(Long groupId);
+
+	void setDefaultConnectionForCurrentUser(Long id);
+
+	DBConnection getDefaultConnectionOfCurrentUser();
+
+	void removeDefaultConnectionOfCurrentUser();
 }

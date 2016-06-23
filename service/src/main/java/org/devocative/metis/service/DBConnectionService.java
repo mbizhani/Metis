@@ -3,10 +3,13 @@ package org.devocative.metis.service;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.demeter.vo.UserVO;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.MetisUserProfile;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.XMany2One;
 import org.devocative.metis.entity.connection.mapping.XOne2Many;
@@ -44,10 +47,15 @@ public class DBConnectionService implements IDBConnectionService {
 
 	private static final List<Integer> DATE_TYPES = Arrays.asList(Types.DATE, Types.TIME, Types.TIMESTAMP);
 
+	private static final String METIS_DEFAULT_CONNECTION = "METIS_DEFAULT_CONNECTION";
+
 	private XStream xstream;
 
 	@Autowired
 	private IPersistorService persistorService;
+
+	@Autowired
+	private ISecurityService securityService;
 
 	// ------------------------------
 
@@ -297,6 +305,53 @@ public class DBConnectionService implements IDBConnectionService {
 			connectionChanged(id);
 		}
 		logger.info(" DBConnectionGroup changed = {} => DBConnection(s) updated = {} ", groupId, ids.size());
+	}
+
+	@Override
+	public void setDefaultConnectionForCurrentUser(Long id) {
+		DBConnection dbConnection = getDBConnection(id);
+		if (dbConnection != null) {
+			UserVO currentUser = securityService.getCurrentUser();
+
+			MetisUserProfile metisUserProfile = persistorService.get(MetisUserProfile.class, currentUser.getUserId());
+			if (metisUserProfile != null) {
+				metisUserProfile.setDefaultConnection(dbConnection);
+				persistorService.update(metisUserProfile);
+			} else {
+				metisUserProfile = new MetisUserProfile(currentUser.getUserId());
+				metisUserProfile.setDefaultConnection(dbConnection);
+				persistorService.save(metisUserProfile);
+			}
+
+			currentUser.addOtherProfileInfo(METIS_DEFAULT_CONNECTION, dbConnection.getId());
+		}
+	}
+
+	@Override
+	public DBConnection getDefaultConnectionOfCurrentUser() {
+		UserVO currentUser = securityService.getCurrentUser();
+		Long defaultConn = (Long) currentUser.getOtherProfileInfo(METIS_DEFAULT_CONNECTION);
+		if (defaultConn == null) {
+			MetisUserProfile metisUserProfile = persistorService.get(MetisUserProfile.class, currentUser.getUserId());
+			if (metisUserProfile != null && metisUserProfile.getDefaultConnectionId() != null) {
+				defaultConn = metisUserProfile.getDefaultConnectionId();
+			} else {
+				defaultConn = -1L;
+			}
+			currentUser.addOtherProfileInfo(METIS_DEFAULT_CONNECTION, defaultConn);
+		}
+		return defaultConn != -1 ? getDBConnection(defaultConn) : null;
+	}
+
+	@Override
+	public void removeDefaultConnectionOfCurrentUser() {
+		UserVO currentUser = securityService.getCurrentUser();
+		MetisUserProfile metisUserProfile = persistorService.get(MetisUserProfile.class, currentUser.getUserId());
+		if (metisUserProfile != null && metisUserProfile.getDefaultConnectionId() != null) {
+			metisUserProfile.setDefaultConnection(null);
+			persistorService.update(metisUserProfile);
+			currentUser.removeOtherProfileInfo(METIS_DEFAULT_CONNECTION);
+		}
 	}
 
 	// ------------------------------

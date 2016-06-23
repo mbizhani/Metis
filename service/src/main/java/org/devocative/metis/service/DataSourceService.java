@@ -615,7 +615,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	private Long findProperDBConnection(DataSource dataSource) {
-		return dataSource.getConnectionId();
+		DBConnection defaultConnection = dbConnectionService.getDefaultConnectionOfCurrentUser();
+		return defaultConnection != null ? defaultConnection.getId() : dataSource.getConnectionId();
 	}
 
 	private String processDynamicQuery(String queryCode, XDSQuery xdsQuery, Map<String, Object> params) {
