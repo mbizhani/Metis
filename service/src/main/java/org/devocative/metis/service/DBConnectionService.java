@@ -70,6 +70,11 @@ public class DBConnectionService implements IDBConnectionService {
 	// ------------------------------
 
 	@Override
+	public DBConnection get(Long id) {
+		return getDBConnection(id);
+	}
+
+	@Override
 	public List<DBConnection> search(long pageIndex, long pageSize) {
 		return persistorService
 			.createQueryBuilder()
