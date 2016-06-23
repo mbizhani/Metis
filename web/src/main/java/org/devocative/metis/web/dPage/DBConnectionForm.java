@@ -2,6 +2,7 @@ package org.devocative.metis.web.dPage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
@@ -31,6 +32,7 @@ import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
+import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.WEasyLayout;
 import org.devocative.wickomp.opt.OHorizontalAlign;
 
@@ -47,6 +49,8 @@ public class DBConnectionForm extends DPage {
 	private IDBConnectionGroupService connectionGroupService;
 
 	private FileUploadField configFile;
+	private Label userDefaultConn;
+	private WAjaxLink removeDefaultConn;
 
 	public DBConnectionForm(String id, List<String> params) {
 		super(id, params);
@@ -55,6 +59,24 @@ public class DBConnectionForm extends DPage {
 		WEasyLayout layout = new WEasyLayout("layout");
 		layout.setWest(west);
 		add(layout);
+
+		final DBConnection defaultConn = connectionService.getDefaultConnectionOfCurrentUser();
+		userDefaultConn = new Label("userDefaultConn", defaultConn != null ? defaultConn.getName() : "-");
+		userDefaultConn.setOutputMarkupId(true);
+		add(userDefaultConn);
+
+		removeDefaultConn = new WAjaxLink("removeDefaultConn", new Model<>(""), MetisIcon.REMOVE) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				connectionService.removeDefaultConnectionOfCurrentUser();
+				removeDefaultConn.setEnabled(false);
+				target.add(removeDefaultConn);
+				userDefaultConn.setDefaultModelObject("-");
+				target.add(userDefaultConn);
+			}
+		};
+		removeDefaultConn.setEnabled(defaultConn != null);
+		add(removeDefaultConn);
 
 		DBConnection dbConnection = params.size() == 0 ?
 			new DBConnection() :
@@ -170,6 +192,19 @@ public class DBConnectionForm extends DPage {
 				boolean b = connectionService.checkConnection(rowData.getObject().getId());
 				String msg = b ? getString("label.true") : getString("label.false");
 				target.appendJavaScript(String.format("alert('%s');", msg));
+			}
+		});
+		columnList.add(new OAjaxLinkColumn<DBConnection>(new Model<String>(), MetisIcon.DEFAULT_CONNECTION) {
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<DBConnection> rowData) {
+				DBConnection dbConn = rowData.getObject();
+				connectionService.setDefaultConnectionForCurrentUser(dbConn.getId());
+
+				userDefaultConn.setDefaultModel(new Model<>(dbConn.getName()));
+				target.add(userDefaultConn);
+
+				removeDefaultConn.setEnabled(true);
+				target.add(removeDefaultConn);
 			}
 		});
 
