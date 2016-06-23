@@ -493,6 +493,11 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	private String processEntityQuery(Long dbConnId, String query) {
 		XSchema xSchema = dbConnectionService.getSchemaOfMapping(dbConnId);
+
+		if (xSchema == null) {
+			throw new MetisException(MetisErrorCode.NoMappingForConnection, dbConnectionService.get(dbConnId).getName());
+		}
+
 		Map<String, XEntity> aliasToXEntityMap = new HashMap<>();
 
 		StringBuffer tableReplacerBuffer = new StringBuffer();
