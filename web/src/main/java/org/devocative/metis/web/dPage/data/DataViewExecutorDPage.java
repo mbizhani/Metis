@@ -1,6 +1,7 @@
 package org.devocative.metis.web.dPage.data;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
@@ -29,6 +30,9 @@ public class DataViewExecutorDPage extends DPage {
 		super(id, params);
 
 		DataVO dataVO = dataService.loadDataVO(params.get(0));
+
+		add(new Label("dvTitle", dataVO.getTitle()));
+		add(new Label("dvName", dataVO.getName()));
 
 		Form<Map<String, Object>> form = new Form<>("form");
 		form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceName(), filter, dataVO.getAllFields()));

@@ -1,5 +1,22 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+	<table style="border: 1px solid black">
+		<tr>
+			<th>
+				<wicket:message key="DataView.title"/>
+			</th>
+			<th>:</th>
+			<td>
+				<div wicket:id="dvTitle"></div>
+			</td>
+			<td>(</td>
+			<td>
+				<div wicket:id="dvName"></div>
+			</td>
+			<td>)</td>
+		</tr>
+	</table>
+
 	<form wicket:id="form">
 		<div class="dmt-form">
 			<div wicket:id="filterPanel"></div>

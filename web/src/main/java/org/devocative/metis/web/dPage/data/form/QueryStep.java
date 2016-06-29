@@ -13,7 +13,6 @@ import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.panel.QueryEditorPanel;
-import org.devocative.wickomp.form.WAjaxButton;
 import org.devocative.wickomp.form.code.OCode;
 import org.devocative.wickomp.form.code.OCodeMode;
 import org.devocative.wickomp.form.code.WCodeInput;
@@ -28,7 +27,6 @@ import java.util.Map;
 class QueryStep extends WWizardStepPanel {
 	private DataVO dataVO;
 
-	private WAjaxButton showSQL;
 	private OCode oCode = new OCode(OCodeMode.SQL);
 	private WModalWindow modalWindow;
 
@@ -62,13 +60,16 @@ class QueryStep extends WWizardStepPanel {
 			.setHeight(OSize.fixed(800));
 
 		add(new CheckBox("dynamic", new PropertyModel<Boolean>(dataVO.getQuery(), "dynamic"))
-			.setEnabled(dataVO.isDataSourceEditable()));
+				.setEnabled(dataVO.isDataSourceEditable())
+		);
 
 		add(new WCodeInput("query", new PropertyModel<String>(dataVO.getQuery(), "text"), oCode)
-			.setRequired(true)
-			.setLabel(new ResourceModel("DataSource.query")));
+				.setRequired(true)
+				.setLabel(new ResourceModel("DataSource.query"))
+				.setEnabled(dataVO.isDataSourceEditable())
+		);
 
-		add(showSQL = new DAjaxButton("showSQL") {
+		add(new DAjaxButton("showSQL") {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				String sql = dataSourceService.processQuery(

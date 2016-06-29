@@ -49,7 +49,6 @@ public class DataViewFormDPage extends DPage {
 			.addStep("columnDef", new ColumnDefStep(dataVO))
 			.addStep("lookup", new DefineLookupStep(dataVO))
 			.addStep("columnUI", new ColumnUIStep(dataVO));
-		//TODO a review step
 
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
 				@Override
@@ -58,14 +57,14 @@ public class DataViewFormDPage extends DPage {
 						logger.debug("Step={}, DataVO = {}", stepId, ObjectUtil.toString(dataVO));
 					}
 
-					setTitle(dataVO.getTitle());
+					setTitle(dataVO.getName());
 				}
 
 				@Override
 				protected void onFinish(AjaxRequestTarget target, String stepId) {
 					//dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
 					dataService.saveOrUpdate(dataVO);
-					UrlUtil.redirectTo(DataViewExecutorDPage.class, dataVO.getDataSourceName());
+					UrlUtil.redirectTo(DataViewExecutorDPage.class, dataVO.getName());
 				}
 
 				@Override
