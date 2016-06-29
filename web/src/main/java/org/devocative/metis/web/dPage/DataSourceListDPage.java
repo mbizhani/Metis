@@ -9,6 +9,7 @@ import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.IUserService;
 import org.devocative.demeter.web.DPage;
+import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.data.DataSource;
@@ -16,6 +17,8 @@ import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.filter.DataSourceFVO;
 import org.devocative.metis.web.MetisIcon;
+import org.devocative.metis.web.dPage.data.DataViewExecutorDPage;
+import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.form.WDateRangeInput;
 import org.devocative.wickomp.form.WSelectionInput;
@@ -25,6 +28,7 @@ import org.devocative.wickomp.grid.IGridDataSource;
 import org.devocative.wickomp.grid.OGrid;
 import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.WSortField;
+import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.html.WFloatTable;
@@ -33,7 +37,7 @@ import org.devocative.wickomp.opt.OSize;
 import javax.inject.Inject;
 import java.util.List;
 
-public class DataSourceList extends DPage {
+public class DataSourceListDPage extends DPage {
 	private DataSourceFVO filter = new DataSourceFVO();
 
 	private WDataGrid<DataSource> grid;
@@ -47,7 +51,7 @@ public class DataSourceList extends DPage {
 	@Inject
 	private IUserService userService;
 
-	public DataSourceList(String id, List<String> params) {
+	public DataSourceListDPage(String id, List<String> params) {
 		super(id, params);
 
 		List<User> users = userService.list();
@@ -88,8 +92,20 @@ public class DataSourceList extends DPage {
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
 		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.modifierUser"), "modifierUser"));
 
-		//TODO columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceForm.class, "name", MetisIcon.EDIT));
-		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataSourceExecutorDPage.class, "name", MetisIcon.EXECUTE));
+		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataViewFormDPage.class, "name", MetisIcon.EDIT));
+		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataViewExecutorDPage.class, "name", MetisIcon.EXECUTE));
+		columnList.add(new OColumn<DataSource>(new Model<String>()) {
+			@Override
+			public String cellValue(DataSource bean, String id, int colNo, String url) {
+				String baseUri = UrlUtil.createUri(DataViewFormDPage.class, true);
+				return String.format("<a href=\"%s?dsName=%s\">%s</a>", baseUri, bean.getName(), MetisIcon.ADD);
+			}
+
+			@Override
+			public String footerCellValue(Object bean, int colNo, String url) {
+				throw new RuntimeException("Footer not supported!");
+			}
+		});
 
 		OGrid<DataSource> oGrid = new OGrid<>();
 		oGrid
