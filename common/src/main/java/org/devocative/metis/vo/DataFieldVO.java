@@ -135,6 +135,9 @@ public class DataFieldVO extends DataAbstractFieldVO {
 	public XDSField toXDSField() {
 		XDSField xdsField = new XDSField();
 		ObjectUtil.merge(xdsField, this, true);
+		xdsField.setInFilterPanel(null);
+		xdsField.setResultType(null);
+		xdsField.setTargetId(null);
 		return xdsField;
 	}
 

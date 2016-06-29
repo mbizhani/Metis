@@ -205,7 +205,7 @@ public class DataVO implements Serializable {
 	// --------------------- BIZ METHODS
 
 	public boolean isDataSourceEditable() {
-		return getDataViewId() == null || getDataSourceId() == null || getName().equals(getDataSourceName());
+		return getDataSourceId() == null || (getName() != null && getName().equals(getDataSourceName()));
 	}
 
 	public List<DataAbstractFieldVO> getAllFields() {
