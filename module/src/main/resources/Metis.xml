@@ -28,21 +28,21 @@
 			   inMenu="false"/>
 
 		<dPage type="org.devocative.metis.web.dPage.data.form.DataViewFormDPage"
-			   title="DataViewForm"
+			   title="KEY:dPage.mts.DataViewForm"
 			   uri="/dvForm"
 			   inMenu="true"/>
 
 		<dPage type="org.devocative.metis.web.dPage.data.DataViewExecutorDPage"
-			   title="DataViewExecutor"
+			   title="KEY:dPage.mts.DataViewExecutor"
 			   uri="/dvExec"
 			   inMenu="false"/>
 
 		<dPage type="org.devocative.metis.web.dPage.DataViewListDPage"
-			   title="DataViewList"
+			   title="KEY:dPage.mts.DataViewList"
 			   uri="dvList"
 			   inMenu="true"/>
 
-		<dPage type="org.devocative.metis.web.dPage.DataSourceList"
+		<dPage type="org.devocative.metis.web.dPage.DataSourceListDPage"
 			   title="KEY:dPage.mts.DataSourceList"
 			   uri="/dsList"
 			   inMenu="true"/>
