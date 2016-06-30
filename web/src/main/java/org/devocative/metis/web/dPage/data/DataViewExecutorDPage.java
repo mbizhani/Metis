@@ -3,12 +3,15 @@ package org.devocative.metis.web.dPage.data;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
+import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
+import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +36,9 @@ public class DataViewExecutorDPage extends DPage {
 
 		add(new Label("dvTitle", dataVO.getTitle()));
 		add(new Label("dvName", dataVO.getName()));
+		add(new ExternalLink("edit", String.format("%s/%s", UrlUtil.createUri(DataViewFormDPage.class, true), params.get(0)))
+				.setVisible(getWebRequest().getRequestParameters().getParameterValue("window").isEmpty())
+		);
 
 		Form<Map<String, Object>> form = new Form<>("form");
 		form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceName(), filter, dataVO.getAllFields()));
