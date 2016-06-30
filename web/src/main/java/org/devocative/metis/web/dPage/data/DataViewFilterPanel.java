@@ -138,14 +138,18 @@ public class DataViewFilterPanel extends DPanel {
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
 					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.executeLookUp(dataSourceName, fieldVO.getTargetDSName());
 					if (filter.containsKey(fieldVO.getName())) {
-						List<String> keys = (List<String>) filter.get(fieldVO.getName());
 						List<KeyValueVO<Serializable, String>> onlySentOnes = new ArrayList<>();
-						for (KeyValueVO<Serializable, String> keyValueVO : lookUpList) {
-							if (keys.contains(keyValueVO.getKey().toString())) {
-								onlySentOnes.add(keyValueVO);
+						List<String> sentKeys = (List<String>) filter.get(fieldVO.getName());
+						for (String sentKey : sentKeys) {
+							for (KeyValueVO<Serializable, String> vo : lookUpList) {
+								if (sentKey.equals(vo.getKey().toString())) {
+									onlySentOnes.add(vo);
+									break;
+								}
 							}
 						}
 						lookUpList = onlySentOnes;
+						filter.put(fieldVO.getName(), onlySentOnes);
 					}
 					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, true);
 				} else {
