@@ -4,5 +4,5 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("aggFunc")
 public enum XDVAggregatorFunction {
-	Sum, Min, Max, Avg
+	sum, avg, min, max
 }

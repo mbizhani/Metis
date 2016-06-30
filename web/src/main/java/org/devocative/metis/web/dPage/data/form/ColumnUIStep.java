@@ -54,7 +54,8 @@ class ColumnUIStep extends WWizardStepPanel {
 						.setEnabled(enb)
 				);
 
-				boolean showFooter = fieldVO.getType().isNumerical() &&
+				boolean showFooter = !dataVO.isDataSourceEditable() &&
+					fieldVO.getType().isNumerical() &&
 					!fieldVO.getIsKeyFieldSafely() &&
 					!fieldVO.getIsSelfRelPointerFieldSafely();
 

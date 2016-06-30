@@ -5,6 +5,7 @@ import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.vo.filter.DataSourceFVO;
+import org.devocative.metis.vo.query.AggregateQueryQVO;
 import org.devocative.metis.vo.query.CountQueryQVO;
 import org.devocative.metis.vo.query.SelectQueryQVO;
 
@@ -41,4 +42,6 @@ public interface IDataSourceService {
 	List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId);
 
 	long execute(CountQueryQVO queryQVO);
+
+	List<Map<String, Object>> execute(AggregateQueryQVO queryQVO);
 }

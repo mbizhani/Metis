@@ -25,6 +25,7 @@ import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.filter.DataSourceFVO;
 import org.devocative.metis.vo.query.AbstractQueryQVO;
+import org.devocative.metis.vo.query.AggregateQueryQVO;
 import org.devocative.metis.vo.query.CountQueryQVO;
 import org.devocative.metis.vo.query.SelectQueryQVO;
 import org.slf4j.Logger;
@@ -450,6 +451,75 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		logger.info("Executed Count: DS=[{}] Usr=[{}] Dur=[{}] #=[{}]",
 			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start, result);
+
+		return result;
+	}
+
+	@Override
+	public List<Map<String, Object>> execute(AggregateQueryQVO queryQVO) {
+		logger.info("Executing Aggregate: DS=[{}] Usr=[{}]",
+			queryQVO.getDataSourceName(), securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
+
+		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
+		XDataSource xDataSource = getXDataSource(dataSource);
+
+		List<String> select = new ArrayList<>();
+		for (Map.Entry<String, List<XDVAggregatorFunction>> entry : queryQVO.getSelectFields().entrySet()) {
+			for (XDVAggregatorFunction function : entry.getValue()) {
+				select.add(String.format("%2$s(%1$s) as %2$s___%1$s", entry.getKey(), function));
+			}
+		}
+
+		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO)
+			.appendSelect(select)
+			.appendFrom()
+			.appendWhere();
+
+		StringBuilder main = builderVO.getQuery();
+
+		Long dbConnId = findProperDBConnection(dataSource);
+
+		String comment = String.format("DsAgr[%s]", dataSource.getName());
+
+		Map<String, Object> row = dbConnectionService.executeQuery(
+			dbConnId,
+			processQuery(
+				dbConnId,
+				main.toString(),
+				xDataSource.getQuery().getMode()),
+			comment,
+			builderVO.queryParams
+		).toListOfMap()
+			.get(0);
+
+		Map<String, Map<String, Object>> map = new LinkedHashMap<>();
+		for (XDVAggregatorFunction function : XDVAggregatorFunction.values()) {
+			map.put(function.name().toLowerCase(), new HashMap<String, Object>());
+		}
+
+		for (Map.Entry<String, Object> entry : row.entrySet()) {
+			String[] parts = entry.getKey().split("___");
+			String func = parts[0];
+			String field = parts[1];
+			map.get(func).put(field, entry.getValue());
+		}
+
+		List<Map<String, Object>> result = new ArrayList<>();
+		for (Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
+			if (entry.getValue().size() > 0) {
+				if (dataSource.getKeyField() != null) {
+					entry.getValue().put(dataSource.getKeyField(), -XDVAggregatorFunction.valueOf(entry.getKey()).ordinal() - 1);
+				}
+				if (dataSource.getTitleField() != null) {
+					entry.getValue().put(dataSource.getTitleField(), entry.getKey());
+				}
+				result.add(entry.getValue());
+			}
+		}
+
+		logger.info("Executed Aggregate: DS=[{}] Usr=[{}] Dur=[{}]",
+			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
 
 		return result;
 	}

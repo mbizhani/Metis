@@ -38,6 +38,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private Map<String, Object> filter;
 	private AsyncBehavior asyncBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
+	private boolean showFooter = false;
 
 	public DataViewGridPanel(String id, DataVO dataVO, Map<String, Object> filter) {
 		super(id);
@@ -75,6 +76,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		grid.setEnabled(false);
 
 		oBaseGrid
+			.setShowFooter(showFooter)
 			.setColumns(columns)
 			.setMultiSort(true)
 			.setSelectionIndicator(true)
@@ -111,7 +113,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		DataViewRVO dataViewRVO = (DataViewRVO) result;
 
 		if (MetisDModule.EXEC_DATA_VIEW.equals(handlerId)) {
-			grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount());
+			grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount(), dataViewRVO.getFooter());
 		} else if (MetisDModule.EXEC_DATA_VIEW_CHILDREN.equals(handlerId)) {
 			((WTreeGrid<Map<String, Object>>) grid).pushChildren(handler, dataViewRVO.getParentId(), dataViewRVO.getList());
 		}
@@ -172,6 +174,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 
 			if (column != null) {
+				//if (fieldVO.getFooter() != null && fieldVO.getFooter().size() > 0) {
+				column.setHasFooter(true);
+				showFooter = true;
+				//}
 				columns.add(column);
 
 				switch (fieldVO.getType()) {

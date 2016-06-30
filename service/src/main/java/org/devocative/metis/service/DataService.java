@@ -7,10 +7,7 @@ import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
-import org.devocative.metis.entity.data.config.XDSFieldType;
-import org.devocative.metis.entity.data.config.XDVField;
-import org.devocative.metis.entity.data.config.XDataSource;
-import org.devocative.metis.entity.data.config.XDataView;
+import org.devocative.metis.entity.data.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
@@ -21,6 +18,7 @@ import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
+import org.devocative.metis.vo.query.AggregateQueryQVO;
 import org.devocative.metis.vo.query.CountQueryQVO;
 import org.devocative.metis.vo.query.ODataQVO;
 import org.devocative.metis.vo.query.SelectQueryQVO;
@@ -230,8 +228,22 @@ public class DataService implements IDataService {
 		countQVO.setInputParams(request.getFilter());
 		long cnt = dataSourceService.execute(countQVO);
 
+		List<Map<String, Object>> footer = null;
+		Map<String, List<XDVAggregatorFunction>> agrFields = new HashMap<>();
+		for (XDVField xdvField : xDataView.getFields()) {
+			if (xdvField.getFooter() != null && xdvField.getFooter().size() > 0) {
+				agrFields.put(xdvField.getName(), xdvField.getFooter());
+			}
+		}
+		if (agrFields.size() > 0) {
+			AggregateQueryQVO agrQVO = new AggregateQueryQVO(xDataView.getDataSourceName(), agrFields);
+			agrQVO.setInputParams(request.getFilter());
+			footer = dataSourceService.execute(agrQVO);
+		}
+
 		DataViewRVO result = new DataViewRVO();
 		result.setList(list);
+		result.setFooter(footer);
 		result.setCount(cnt);
 
 		logger.info("Executed DataView: DV=[{}] Usr=[{}] Dur=[{}]",

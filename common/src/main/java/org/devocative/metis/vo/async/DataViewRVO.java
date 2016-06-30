@@ -6,6 +6,7 @@ import java.util.Map;
 
 public class DataViewRVO implements Serializable {
 	private List<Map<String, Object>> list;
+	private List<Map<String, Object>> footer;
 	private Long count;
 	private String parentId;
 
@@ -15,6 +16,15 @@ public class DataViewRVO implements Serializable {
 
 	public DataViewRVO setList(List<Map<String, Object>> list) {
 		this.list = list;
+		return this;
+	}
+
+	public List<Map<String, Object>> getFooter() {
+		return footer;
+	}
+
+	public DataViewRVO setFooter(List<Map<String, Object>> footer) {
+		this.footer = footer;
 		return this;
 	}
 
