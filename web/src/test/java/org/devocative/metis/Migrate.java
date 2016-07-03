@@ -38,14 +38,14 @@ public class Migrate {
 			.list();
 
 		for (DataSource dataSource : list) {
-			System.out.println(dataSource);
+			System.out.println("Loading DS =" + dataSource);
 
 			XDataSource xDataSource = (XDataSource) dsXStream.fromXML(dataSource.getConfig().getValue());
 			xDataSource.setName(dataSource.getName());
 
 			XDataView xDataView = create(dataSource, xDataSource);
 
-			System.out.println(xDataView);
+			System.out.println("Creating DV = " + xDataView);
 
 			dataSource.getConfig().setValue(dsXStream.toXML(xDataSource));
 			persistorService.saveOrUpdate(dataSource.getConfig());
@@ -71,7 +71,8 @@ public class Migrate {
 			persistorService.saveOrUpdate(dataView);
 		}
 
-		persistorService.commitOrRollback();
+		persistorService.endSession();
+		ModuleLoader.shutdown();
 	}
 
 	private static XDataView create(DataSource dataSource, XDataSource xDataSource) {
