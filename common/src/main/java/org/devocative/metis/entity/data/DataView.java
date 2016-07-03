@@ -10,7 +10,9 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_data_view")
+@Table(name = "t_mts_data_view", uniqueConstraints = {
+	@UniqueConstraint(name = "uk_mts_dataview_name", columnNames = {"c_name"})
+})
 public class DataView implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	@Id
 	@GeneratedValue(generator = "mts_data_view")
@@ -23,7 +25,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		})
 	private Long id;
 
-	@Column(name = "c_name", nullable = false, unique = true)
+	@Column(name = "c_name", nullable = false)
 	private String name;
 
 	@Column(name = "c_title", nullable = false)
