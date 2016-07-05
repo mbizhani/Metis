@@ -7,7 +7,8 @@
 <module
 		shortName="MTS"
 		mainClass="org.devocative.metis.module.MetisDModule"
-		mainResource="org.devocative.metis.web.MetisDModule">
+		mainResource="org.devocative.metis.web.MetisDModule"
+		configKeysClass="org.devocative.metis.MetisConfigKey">
 
 	<entities>
 		<entity type="org.devocative.metis.entity.ConfigLob"/>
@@ -22,11 +23,6 @@
 	</entities>
 
 	<dPages>
-		<dPage type="org.devocative.metis.web.dPage.DataSourceExecutorDPage"
-			   title="KEY:dPage.mts.DataSourceExecutor"
-			   uri="/dsExec"
-			   inMenu="false"/>
-
 		<dPage type="org.devocative.metis.web.dPage.data.form.DataViewFormDPage"
 			   title="KEY:dPage.mts.DataViewForm"
 			   uri="/dvForm"
