@@ -85,10 +85,10 @@ public class DataService implements IDataService {
 	}
 
 	@Override
-	public List<DataAbstractFieldVO> findFilteringFields(List<DataAbstractFieldVO> allFields) {
-		List<DataAbstractFieldVO> result = new ArrayList<>();
+	public List<DataFieldVO> findFilteringFields(List<DataFieldVO> allFields) {
+		List<DataFieldVO> result = new ArrayList<>();
 
-		for (DataAbstractFieldVO dataFieldVO : allFields) {
+		for (DataFieldVO dataFieldVO : allFields) {
 			if (dataFieldVO.getInFilterPanelSafely()) {
 				result.add(dataFieldVO);
 			}

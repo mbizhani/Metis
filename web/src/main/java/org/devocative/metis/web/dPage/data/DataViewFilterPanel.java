@@ -17,7 +17,8 @@ import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
-import org.devocative.metis.vo.DataAbstractFieldVO;
+import org.devocative.metis.vo.DataFieldVO;
+import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.opt.OSize;
@@ -39,7 +40,7 @@ public class DataViewFilterPanel extends DPanel {
 	private IDataSourceService dataSourceService;
 
 	// Main Constructor
-	public DataViewFilterPanel(String id, final String dataSourceName, final Map<String, Object> filter, List<DataAbstractFieldVO> allFields) {
+	public DataViewFilterPanel(String id, final String dataSourceName, final Map<String, Object> filter, List<DataFieldVO> fields, List<DataParameterVO> params) {
 		super(id);
 		this.dataSourceName = dataSourceName;
 
@@ -47,7 +48,7 @@ public class DataViewFilterPanel extends DPanel {
 
 		this.filter = filter;
 
-		fillFilterMapByRequestParams(allFields);
+		fillFilterMapByRequestParams(fields, params);
 
 		disableFilledFilter = getWebRequest()
 			.getQueryParameters()
@@ -58,12 +59,31 @@ public class DataViewFilterPanel extends DPanel {
 		floatTable.setEqualWidth(true);
 		add(floatTable);
 
-		floatTable.add(new ListView<DataAbstractFieldVO>("fields", dataService.findFilteringFields(allFields)) {
+		floatTable.add(new ListView<DataParameterVO>("params", params) {
 			@Override
-			protected void populateItem(ListItem<DataAbstractFieldVO> item) {
-				DataAbstractFieldVO fieldVO = item.getModelObject();
+			protected void populateItem(ListItem<DataParameterVO> item) {
+				DataParameterVO parameterVO = item.getModelObject();
 
-				FormComponent fieldFormItem = createFormField(fieldVO);
+				FormComponent paramFormItem = createParamFormComponent(parameterVO);
+
+				RepeatingView view = new RepeatingView("param");
+				if (paramFormItem != null) {
+					paramFormItem
+						.setLabel(new Model<>(parameterVO.getTitleOrName()))
+						.setRequired(parameterVO.getRequiredSafely())
+						.setEnabled(!disableFilledFilter || !filter.containsKey(parameterVO.getName()));
+					view.add(paramFormItem);
+				}
+				item.add(view);
+			}
+		});
+
+		floatTable.add(new ListView<DataFieldVO>("fields", dataService.findFilteringFields(fields)) {
+			@Override
+			protected void populateItem(ListItem<DataFieldVO> item) {
+				DataFieldVO fieldVO = item.getModelObject();
+
+				FormComponent fieldFormItem = createFieldFormComponent(fieldVO);
 
 				RepeatingView view = new RepeatingView("field");
 				if (fieldFormItem != null) {
@@ -82,7 +102,7 @@ public class DataViewFilterPanel extends DPanel {
 		});
 	}
 
-	private FormComponent createFormField(final DataAbstractFieldVO fieldVO) {
+	private FormComponent createFieldFormComponent(final DataFieldVO fieldVO) {
 		FormComponent fieldFormItem = null;
 
 		switch (fieldVO.getType()) {
@@ -178,11 +198,48 @@ public class DataViewFilterPanel extends DPanel {
 		return fieldFormItem;
 	}
 
-	private void fillFilterMapByRequestParams(List<DataAbstractFieldVO> allFields) {
+	private FormComponent createParamFormComponent(DataParameterVO parameterVO) {
+		FormComponent fieldFormItem = null;
+		switch (parameterVO.getType()) {
+
+			case String:
+				fieldFormItem = new WTextInput(parameterVO.getName());
+				break;
+
+			case Integer:
+				fieldFormItem = new WNumberInput(parameterVO.getName(), Long.class)
+					.setThousandSeparator(",");
+				break;
+
+			case Real:
+				fieldFormItem = new WNumberInput(parameterVO.getName(), BigDecimal.class)
+					.setPrecision(2)
+					.setThousandSeparator(",")
+					.setPrecision(3);
+				break;
+
+			case Date:
+			case DateTime:
+				fieldFormItem = new WDateInput(parameterVO.getName())
+					.setTimePartVisible(XDSFieldType.DateTime == parameterVO.getType());
+
+				break;
+
+			case Boolean:
+				fieldFormItem = new WBooleanInput(parameterVO.getName());
+				break;
+
+			case LookUp:
+				break;
+		}
+		return fieldFormItem;
+	}
+
+	private void fillFilterMapByRequestParams(List<DataFieldVO> allFields, List<DataParameterVO> params) {
 		IRequestParameters queryParameters = getWebRequest().getQueryParameters();
 		Set<String> parameterNames = queryParameters.getParameterNames();
 
-		for (DataAbstractFieldVO fieldVO : allFields) {
+		for (DataFieldVO fieldVO : allFields) {
 			String fieldName = fieldVO.getName();
 			if (parameterNames.contains(fieldName)) {
 				switch (fieldVO.getFilterType()) {
@@ -209,6 +266,14 @@ public class DataViewFilterPanel extends DPanel {
 					RangeVO rangeVO = new RangeVO(lower, upper);
 					filter.put(fieldName, rangeVO);
 				}
+			}
+		}
+
+		for (DataParameterVO parameterVO : params) {
+			String paramName = parameterVO.getName();
+			if (parameterNames.contains(paramName)) {
+				String paramValue = queryParameters.getParameterValue(paramName).toString();
+				filter.put(paramName, convertQueryParam(parameterVO.getType(), paramValue));
 			}
 		}
 	}

@@ -1,10 +1,7 @@
 package org.devocative.metis.vo;
 
 import org.devocative.adroit.ObjectUtil;
-import org.devocative.metis.entity.data.config.XDSField;
-import org.devocative.metis.entity.data.config.XDSFieldResultType;
-import org.devocative.metis.entity.data.config.XDVAggregatorFunction;
-import org.devocative.metis.entity.data.config.XDVField;
+import org.devocative.metis.entity.data.config.*;
 
 import java.util.List;
 
@@ -35,6 +32,11 @@ public class DataFieldVO extends DataAbstractFieldVO {
 	 * XDVField.inFilterPanel
 	 */
 	private Boolean inFilterPanel;
+
+	/**
+	 * XDSAbstractField.filterType
+	 */
+	private XDSFieldFilterType filterType;
 
 	/**
 	 * XDVField.resultType
@@ -96,6 +98,14 @@ public class DataFieldVO extends DataAbstractFieldVO {
 		this.inFilterPanel = inFilterPanel;
 	}
 
+	public XDSFieldFilterType getFilterType() {
+		return filterType;
+	}
+
+	public void setFilterType(XDSFieldFilterType filterType) {
+		this.filterType = filterType;
+	}
+
 	public XDSFieldResultType getResultType() {
 		return resultType;
 	}
@@ -118,7 +128,6 @@ public class DataFieldVO extends DataAbstractFieldVO {
 		return ObjectUtil.isTrue(getIsKeyField());
 	}
 
-	@Override
 	public boolean getInFilterPanelSafely() {
 		return ObjectUtil.isTrue(getInFilterPanel());
 	}
@@ -135,9 +144,6 @@ public class DataFieldVO extends DataAbstractFieldVO {
 	public XDSField toXDSField() {
 		XDSField xdsField = new XDSField();
 		ObjectUtil.merge(xdsField, this, true);
-		xdsField.setInFilterPanel(null);
-		xdsField.setResultType(null);
-		xdsField.setTargetId(null);
 		return xdsField;
 	}
 

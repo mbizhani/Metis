@@ -21,13 +21,6 @@ public abstract class XDSAbstractField implements Serializable {
 	protected XDSFieldType type;
 
 	@XStreamAsAttribute
-	protected XDSFieldFilterType filterType;
-
-	@Deprecated
-	@XStreamAsAttribute
-	protected Long targetId;
-
-	@XStreamAsAttribute
 	protected Long targetDSId;
 
 	@XStreamAsAttribute
@@ -72,26 +65,6 @@ public abstract class XDSAbstractField implements Serializable {
 
 	public XDSAbstractField setType(XDSFieldType type) {
 		this.type = type;
-		return this;
-	}
-
-	public XDSFieldFilterType getFilterType() {
-		return filterType;
-	}
-
-	public XDSAbstractField setFilterType(XDSFieldFilterType filterType) {
-		this.filterType = filterType;
-		return this;
-	}
-
-	@Deprecated
-	public Long getTargetId() {
-		return targetId;
-	}
-
-	@Deprecated
-	public XDSAbstractField setTargetId(Long targetId) {
-		this.targetId = targetId;
 		return this;
 	}
 

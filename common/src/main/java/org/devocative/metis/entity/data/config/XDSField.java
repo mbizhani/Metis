@@ -7,14 +7,8 @@ import org.devocative.metis.IgnoreFalseConverter;
 
 @XStreamAlias("field")
 public class XDSField extends XDSAbstractField {
-	@Deprecated
 	@XStreamAsAttribute
-	@XStreamConverter(IgnoreFalseConverter.class)
-	private Boolean inFilterPanel;
-
-	@Deprecated
-	@XStreamAsAttribute
-	private XDSFieldResultType resultType;
+	private XDSFieldFilterType filterType;
 
 	@XStreamAsAttribute
 	@XStreamConverter(IgnoreFalseConverter.class)
@@ -30,25 +24,12 @@ public class XDSField extends XDSAbstractField {
 
 	// ---------------------------------- ACCESSORS
 
-	@Deprecated
-	public Boolean getInFilterPanel() {
-		return inFilterPanel;
+	public XDSFieldFilterType getFilterType() {
+		return filterType;
 	}
 
-	@Deprecated
-	public XDSField setInFilterPanel(Boolean inFilterPanel) {
-		this.inFilterPanel = inFilterPanel;
-		return this;
-	}
-
-	@Deprecated
-	public XDSFieldResultType getResultType() {
-		return resultType;
-	}
-
-	@Deprecated
-	public XDSField setResultType(XDSFieldResultType resultType) {
-		this.resultType = resultType;
+	public XDSField setFilterType(XDSFieldFilterType filterType) {
+		this.filterType = filterType;
 		return this;
 	}
 

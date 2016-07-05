@@ -3,7 +3,6 @@ package org.devocative.metis.vo;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
-import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 
 import java.io.Serializable;
@@ -29,11 +28,6 @@ public abstract class DataAbstractFieldVO implements Serializable {
 	 * XDSAbstractField.type
 	 */
 	private XDSFieldType type;
-
-	/**
-	 * XDSAbstractField.filterType
-	 */
-	private XDSFieldFilterType filterType;
 
 	/**
 	 * XDSAbstractField.targetDSId
@@ -87,14 +81,6 @@ public abstract class DataAbstractFieldVO implements Serializable {
 
 	public void setType(XDSFieldType type) {
 		this.type = type;
-	}
-
-	public XDSFieldFilterType getFilterType() {
-		return filterType;
-	}
-
-	public void setFilterType(XDSFieldFilterType filterType) {
-		this.filterType = filterType;
 	}
 
 	public Long getTargetDSId() {
@@ -155,10 +141,6 @@ public abstract class DataAbstractFieldVO implements Serializable {
 
 	public String getTitleOrName() {
 		return getTitle() != null ? getTitle() : getName();
-	}
-
-	public boolean getInFilterPanelSafely() {
-		return true;
 	}
 
 	// ----------------------------- OBJECT METHODS

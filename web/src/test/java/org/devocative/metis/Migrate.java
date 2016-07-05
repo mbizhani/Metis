@@ -97,8 +97,8 @@ public class Migrate {
 		XDVField xdvField = new XDVField();
 
 		xdvField.setName(xdsField.getName().toLowerCase());
-		xdvField.setInFilterPanel(xdsField.getInFilterPanel());
-		xdvField.setResultType(xdsField.getResultType());
+		//xdvField.setInFilterPanel(xdsField.getInFilterPanel());
+		//xdvField.setResultType(xdsField.getResultType());
 
 		if (xdvField.getInFilterPanel() == null) {
 			xdvField.setInFilterPanel(true);
@@ -108,10 +108,10 @@ public class Migrate {
 			xdvField.setResultType(XDSFieldResultType.Shown);
 		}
 
-		if (xdsField.getTargetId() != null) {
+		/*if (xdsField.getTargetId() != null) {
 			xdsField.setTargetDSId(xdsField.getTargetId());
 			xdsField.setTargetDSName(persistorService.get(DataSource.class, xdsField.getTargetId()).getName());
-		}
+		}*/
 
 		if (ObjectUtil.isTrue(xdsField.getIsKeyField()) || ObjectUtil.isTrue(xdsField.getIsSelfRelPointerField())) {
 			xdsField.setFilterType(XDSFieldFilterType.Equal);
@@ -149,9 +149,9 @@ public class Migrate {
 		}
 
 		xdsField.setName(xdsField.getName().toLowerCase());
-		xdsField.setTargetId(null);
-		xdsField.setResultType(null);
-		xdsField.setInFilterPanel(null);
+		//xdsField.setTargetId(null);
+		//xdsField.setResultType(null);
+		//xdsField.setInFilterPanel(null);
 
 		return xdvField;
 	}

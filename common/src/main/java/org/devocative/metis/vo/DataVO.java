@@ -208,13 +208,6 @@ public class DataVO implements Serializable {
 		return getDataSourceId() == null || (getName() != null && getName().equals(getDataSourceName()));
 	}
 
-	public List<DataAbstractFieldVO> getAllFields() {
-		List<DataAbstractFieldVO> result = new ArrayList<>();
-		result.addAll(getParams());
-		result.addAll(getFields());
-		return result;
-	}
-
 	public XDVGridSelectionMode getSelectionModeSafely() {
 		return selectionMode != null ? selectionMode : XDVGridSelectionMode.Multiple;
 	}
