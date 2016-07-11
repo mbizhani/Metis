@@ -14,6 +14,7 @@ import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
 import org.devocative.wickomp.form.WTextInput;
+import org.devocative.wickomp.form.validator.WAsciiIdentifierValidator;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
 import javax.inject.Inject;
@@ -41,8 +42,10 @@ class InitStep extends WWizardStepPanel {
 
 		add(new WTextInput("name", new PropertyModel<String>(dataVO, "name"))
 				.setLabelVisible(false)
+				.add(new WAsciiIdentifierValidator())
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.name"))
+				.setEnabled(dataVO.getDataViewId() == null)
 		);
 
 		add(new WTextInput("title", new PropertyModel<String>(dataVO, "title"))
