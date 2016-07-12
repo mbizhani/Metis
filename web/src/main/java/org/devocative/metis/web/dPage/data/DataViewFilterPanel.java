@@ -118,10 +118,10 @@ public class DataViewFilterPanel extends DPanel {
 			case Integer:
 				if (XDSFieldFilterType.Range == fieldVO.getFilterType()) {
 					fieldFormItem = new WNumberRangeInput(fieldVO.getName(), Long.class)
-						.setThousandSeparator(",");
+						.setThousandSeparator(',');
 				} else {
 					fieldFormItem = new WNumberInput(fieldVO.getName(), Long.class)
-						.setThousandSeparator(",");
+						.setThousandSeparator(',');
 				}
 				break;
 
@@ -129,12 +129,12 @@ public class DataViewFilterPanel extends DPanel {
 				if (XDSFieldFilterType.Range == fieldVO.getFilterType()) {
 					fieldFormItem = new WNumberRangeInput(fieldVO.getName(), BigDecimal.class)
 						.setPrecision(2)
-						.setThousandSeparator(",")
+						.setThousandSeparator(',')
 						.setPrecision(3);
 				} else {
 					fieldFormItem = new WNumberInput(fieldVO.getName(), BigDecimal.class)
 						.setPrecision(2)
-						.setThousandSeparator(",")
+						.setThousandSeparator(',')
 						.setPrecision(3);
 				}
 				break;
@@ -208,13 +208,13 @@ public class DataViewFilterPanel extends DPanel {
 
 			case Integer:
 				fieldFormItem = new WNumberInput(parameterVO.getName(), Long.class)
-					.setThousandSeparator(",");
+					.setThousandSeparator(',');
 				break;
 
 			case Real:
 				fieldFormItem = new WNumberInput(parameterVO.getName(), BigDecimal.class)
 					.setPrecision(2)
-					.setThousandSeparator(",")
+					.setThousandSeparator(',')
 					.setPrecision(3);
 				break;
 
