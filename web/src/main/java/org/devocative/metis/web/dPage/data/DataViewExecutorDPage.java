@@ -1,9 +1,13 @@
 package org.devocative.metis.web.dPage.data;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
@@ -32,30 +36,61 @@ public class DataViewExecutorDPage extends DPage {
 	public DataViewExecutorDPage(String id, List<String> params) {
 		super(id, params);
 
-		DataVO dataVO = dataService.loadDataVO(params.get(0));
+		boolean hasDataVO = true;
+		IModel<String> title;
+		String color = "color:inherit;";
 
-		add(new Label("dvTitle", dataVO.getTitle()));
-		add(new Label("dvName", dataVO.getName()));
-		add(new ExternalLink("edit", String.format("%s/%s", UrlUtil.createUri(DataViewFormDPage.class, true), params.get(0)))
-				.setVisible(getWebRequest().getRequestParameters().getParameterValue("window").isEmpty())
+		DataVO dataVO = null;
+		if (params.size() > 0) {
+			dataVO = dataService.loadDataVO(params.get(0));
+		}
+
+		if (dataVO == null) {
+			title = params.size() > 0 ?
+				new ResourceModel("DataView.err.invalid.name", "Invalid DataView") :
+				new ResourceModel("DataView.err.no.param", "No DataView Name");
+
+			dataVO = new DataVO();
+			dataVO.setName(params.size() > 0 ? params.get(0) : "-");
+
+			hasDataVO = false;
+			color = "color:red;";
+		} else {
+			title = new Model<>(dataVO.getTitle());
+		}
+
+		add(new Label("dvTitle", title).add(new AttributeModifier("style", color)));
+		add(new Label("dvName", dataVO.getName()).add(new AttributeModifier("style", color)));
+		add(new ExternalLink("edit", String.format("%s/%s", UrlUtil.createUri(DataViewFormDPage.class, true), dataVO.getName()))
+				.setVisible(getWebRequest().getRequestParameters().getParameterValue("window").isEmpty() && hasDataVO)
 		);
 
 		Form<Map<String, Object>> form = new Form<>("form");
-		form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceName(), filter, dataVO.getFields(), dataVO.getParams()));
-		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				logger.debug("filter = {}", filter);
-				mainGrid.loadData(target);
-			}
-		});
+		form.setVisible(hasDataVO);
 		add(form);
 
-		add(mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter));
+		if (hasDataVO) {
+			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceName(), filter, dataVO.getFields(), dataVO.getParams()));
+			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+				@Override
+				protected void onSubmit(AjaxRequestTarget target) {
+					logger.debug("filter = {}", filter);
+					mainGrid.loadData(target);
+				}
+			});
+			add(mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter));
+		} else {
+			form.add(new WebComponent("filterPanel"));
+			form.add(new WebComponent("search"));
+
+			add(new WebComponent("mainGrid"));
+		}
 	}
 
 	public DataViewExecutorDPage setSelectionJSCallback(String jsCallback) {
-		mainGrid.setSelectionJSCallback(jsCallback);
+		if (mainGrid != null) {
+			mainGrid.setSelectionJSCallback(jsCallback);
+		}
 		return this;
 	}
 }
