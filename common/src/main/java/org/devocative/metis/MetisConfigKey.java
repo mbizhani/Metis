@@ -5,6 +5,7 @@ import org.devocative.adroit.IConfigKey;
 import java.util.List;
 
 public enum MetisConfigKey implements IConfigKey {
+	DBConnParamName("mts.dv.conn.param.name")
 	;
 	private String key;
 	private boolean validate = false;

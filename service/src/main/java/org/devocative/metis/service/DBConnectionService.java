@@ -208,6 +208,10 @@ public class DBConnectionService implements IDBConnectionService {
 		Long pageIndex,
 		Long pageSize) {
 
+		long start = System.currentTimeMillis();
+		logger.info("Executing Query: Cmnt=[{}] User=[{}] Conn=[{}]",
+			comment, securityService.getCurrentUser(), getDBConnection(dbConnId).getName());
+
 		try (Connection connection = getConnection(dbConnId)) {
 			query = String.format("/*%s*/ %s", comment, query);
 
@@ -251,6 +255,11 @@ public class DBConnectionService implements IDBConnectionService {
 				}
 				result.addRow(row);
 			}
+
+			logger.info("Executed Query: Cmnt=[{}] User=[{}] Conn=[{}] Dur=[{}] Res#=[{}]",
+				comment, securityService.getCurrentUser(), getDBConnection(dbConnId).getName(),
+				System.currentTimeMillis() - start, result.getRows().size());
+
 			return result;
 		} catch (SQLException e) {
 			logger.error("executeQuery: " + comment, e);

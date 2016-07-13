@@ -16,7 +16,9 @@ public enum MetisErrorCode implements DErrorCode {
 	EqlInvalidAssociationUsage("Invalid association usage"),
 	DBConnection("Can't get connection from database"),
 	DuplicateDataSourceName("Duplicate DataSource name"),
-	DynamicQuery("Wrong syntax for dynamic query")
+	DynamicQuery("Wrong syntax for dynamic query"),
+
+	InvalidDBConnection("Invalid DB Connection")
 	;
 
 	private String defaultDescription;

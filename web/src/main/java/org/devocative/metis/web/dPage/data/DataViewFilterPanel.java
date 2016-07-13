@@ -10,9 +10,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.IRequestParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.devocative.adroit.CalendarUtil;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.web.DPanel;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
@@ -32,6 +34,8 @@ public class DataViewFilterPanel extends DPanel {
 	private Map<String, Object> filter;
 	private boolean disableFilledFilter;
 	private String dataSourceName;
+
+	private String sentDBConnection;
 
 	@Inject
 	private IDataService dataService;
@@ -100,6 +104,13 @@ public class DataViewFilterPanel extends DPanel {
 				item.add(view);
 			}
 		});
+
+		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
+			sentDBConnection = getWebRequest()
+				.getRequestParameters()
+				.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
+				.toOptionalString();
+		}
 	}
 
 	private FormComponent createFieldFormComponent(final DataFieldVO fieldVO) {
@@ -156,7 +167,7 @@ public class DataViewFilterPanel extends DPanel {
 
 			case LookUp:
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
-					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.executeLookUp(dataSourceName, fieldVO.getTargetDSName());
+					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.executeLookUp(dataSourceName, fieldVO.getTargetDSName(), sentDBConnection);
 					if (filter.containsKey(fieldVO.getName())) {
 						List<KeyValueVO<Serializable, String>> onlySentOnes = new ArrayList<>();
 						List<String> sentKeys = (List<String>) filter.get(fieldVO.getName());

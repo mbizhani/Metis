@@ -207,8 +207,8 @@ public class DataService implements IDataService {
 
 	@Override
 	public DataViewRVO executeDataView(DataViewQVO request) {
-		logger.info("Executing DataView: DV=[{}] Usr=[{}]",
-			request.getName(), securityService.getCurrentUser());
+		logger.info("Executing DataView: DV=[{}] Usr=[{}] SentDB=[{}]",
+			request.getName(), securityService.getCurrentUser(), request.getSentDBConnection());
 		long start = System.currentTimeMillis();
 
 		DataView dataView = dataViewService.loadByName(request.getName());
@@ -221,11 +221,14 @@ public class DataService implements IDataService {
 			.setPageIndex(request.getPageIndex())
 			.setPageSize(request.getPageSize())
 			.setSortFields(request.getSortFieldList())
-			.setInputParams(request.getFilter());
+			.setInputParams(request.getFilter())
+			.setSentDBConnection(request.getSentDBConnection());
 		List<Map<String, Object>> list = dataSourceService.execute(selectQVO);
 
 		CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceName());
-		countQVO.setInputParams(request.getFilter());
+		countQVO
+			.setInputParams(request.getFilter())
+			.setSentDBConnection(request.getSentDBConnection());
 		long cnt = dataSourceService.execute(countQVO);
 
 		List<Map<String, Object>> footer = null;
@@ -237,7 +240,9 @@ public class DataService implements IDataService {
 		}
 		if (agrFields.size() > 0) {
 			AggregateQueryQVO agrQVO = new AggregateQueryQVO(xDataView.getDataSourceName(), agrFields);
-			agrQVO.setInputParams(request.getFilter());
+			agrQVO
+				.setInputParams(request.getFilter())
+				.setSentDBConnection(request.getSentDBConnection());
 			footer = dataSourceService.execute(agrQVO);
 		}
 
@@ -246,8 +251,9 @@ public class DataService implements IDataService {
 		result.setFooter(footer);
 		result.setCount(cnt);
 
-		logger.info("Executed DataView: DV=[{}] Usr=[{}] Dur=[{}]",
-			xDataView.getName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
+		logger.info("Executed DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}] Res#=[{}] Cnt=[{}] Ftr=[{}]",
+			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(),
+			System.currentTimeMillis() - start, list.size(), cnt, footer != null ? footer.size() : null);
 
 		return result;
 	}
@@ -264,7 +270,9 @@ public class DataService implements IDataService {
 		List<String> selectFields = getSelectedFields(xDataView);
 
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
-		selectQVO.setSortFields(request.getSortFieldList());
+		selectQVO
+			.setSortFields(request.getSortFieldList())
+			.setSentDBConnection(request.getSentDBConnection());
 
 		List<Map<String, Object>> list = dataSourceService.executeOfParent(selectQVO, request.getParentId());
 

@@ -37,7 +37,7 @@ public interface IDataSourceService {
 
 	List<Map<String, Object>> execute(SelectQueryQVO queryQVO);
 
-	List<KeyValueVO<Serializable, String>> executeLookUp(String dataSourceName, String targetDataSourceName);
+	List<KeyValueVO<Serializable, String>> executeLookUp(String dataSourceName, String targetDataSourceName, String sentDBConnection);
 
 	List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId);
 

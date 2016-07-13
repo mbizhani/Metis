@@ -11,7 +11,6 @@ import org.devocative.adroit.cache.LRUCache;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
-import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -55,8 +54,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	@Autowired
 	private IPersistorService persistorService;
 
-	@Autowired
-	private ISecurityService securityService;
+	/*@Autowired
+	private ISecurityService securityService;*/
 
 	// ------------------------------
 
@@ -259,9 +258,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public List<Map<String, Object>> execute(SelectQueryQVO queryQVO) {
-		logger.info("Executing DataSource: DS=[{}] Usr=[{}]",
+		/*logger.info("Executing DataSource: DS=[{}] Usr=[{}]",
 			queryQVO.getDataSourceName(), securityService.getCurrentUser());
-		long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();*/
 
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
@@ -272,7 +271,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.appendWhere()
 			.appendSort(queryQVO.getSortFields());
 
-		Long dbConnId = findProperDBConnection(dataSource);
+		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
 
 		String comment = String.format("DsExc[%s]", dataSource.getName());
 
@@ -296,26 +295,27 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					queryQVO.getDataSourceName(),
 					queryQVO.getSelectFields());
 				selectQueryQVO
-					.setSortFields(queryQVO.getSortFields());
+					.setSortFields(queryQVO.getSortFields())
+					.setSentDBConnection(queryQVO.getSentDBConnection());
 				list.addAll(findParentsToRoot(dataSource, selectQueryQVO, parentIds));
 			}
 		}
 
-		logger.info("Executed DataSource: DS=[{}] Usr=[{}] Dur=[{}] Rs#=[{}]",
+		/*logger.info("Executed DataSource: DS=[{}] Usr=[{}] Dur=[{}] Rs#=[{}]",
 			queryQVO.getDataSourceName(), securityService.getCurrentUser(),
-			System.currentTimeMillis() - start, list.size());
+			System.currentTimeMillis() - start, list.size());*/
 
 		return list;
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> executeLookUp(String dataSourceName, String targetDataSourceName) {
+	public List<KeyValueVO<Serializable, String>> executeLookUp(String dataSourceName, String targetDataSourceName, String sentDBConnection) {
 		DataSource dataSource = loadByName(dataSourceName);
 		DataSource targetDataSource = loadByName(targetDataSourceName);
 
-		logger.info("Executing LookUp: Trgt=[{}] Src=[{}] Usr=[{}]",
+		/*logger.info("Executing LookUp: Trgt=[{}] Src=[{}] Usr=[{}]",
 			targetDataSource.getName(), dataSource.getName(), securityService.getCurrentUser());
-		long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();*/
 
 		XDataSource targetXDataSource = getXDataSource(targetDataSource);
 
@@ -331,7 +331,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.appendFrom()
 			.appendSort(sort);
 
-		Long dbConnId = findProperDBConnection(dataSource);
+		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
 		String comment = String.format("DsLkUp[%s > %s]", dataSource.getName(), targetDataSource.getName());
 		List<KeyValueVO<Serializable, String>> result;
 		try {
@@ -346,10 +346,12 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				50L
 			).toListOfKeyValues();
 		} catch (Exception e) {
-			logger.error(String.format("LookUp 1st exec error: source=%s, target=%s",
+			logger.error(String.format("LookUp exec error: source=%s, target=%s",
 				dataSource.getName(), targetDataSource.getName()), e);
+			result = new ArrayList<>();
+			result.add(new KeyValueVO<Serializable, String>("--Error--", "--Error--"));
 
-			try {
+			/*try {
 				dbConnId = findProperDBConnection(targetDataSource);
 				result = dbConnectionService.executeQuery(
 					dbConnId,
@@ -366,21 +368,21 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 				result = new ArrayList<>();
 				result.add(new KeyValueVO<Serializable, String>("--Error--", "--Error--"));
-			}
+			}*/
 		}
 
-		logger.info("Executed LookUp: target=[{}] source=[{}] Dur=[{}] Usr=[{}] Rs#=[{}]",
+		/*logger.info("Executed LookUp: target=[{}] source=[{}] Dur=[{}] Usr=[{}] Rs#=[{}]",
 			targetDataSource.getName(), dataSource.getName(), System.currentTimeMillis() - start,
-			securityService.getCurrentUser(), result.size());
+			securityService.getCurrentUser(), result.size());*/
 
 		return result;
 	}
 
 	@Override
 	public List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId) {
-		logger.info("Executing OfParent: DS=[{}] Prnt=[{}] Usr=[{}]",
+		/*logger.info("Executing OfParent: DS=[{}] Prnt=[{}] Usr=[{}]",
 			queryQVO.getDataSourceName(), parentId, securityService.getCurrentUser());
-		long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();*/
 
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
@@ -399,7 +401,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.appendSort(queryQVO.getSortFields());
 
 		String comment = String.format("DsChld[%s]", dataSource.getName());
-		Long dbConnId = findProperDBConnection(dataSource);
+		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
 		List<Map<String, Object>> result = dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
@@ -410,18 +412,18 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			params
 		).toListOfMap();
 
-		logger.info("Executed OfParent: DS=[{}] Prnt=[{}] Usr=[{}] Dur=[{}] Rs#=[{}]",
+		/*logger.info("Executed OfParent: DS=[{}] Prnt=[{}] Usr=[{}] Dur=[{}] Rs#=[{}]",
 			queryQVO.getDataSourceName(), parentId, securityService.getCurrentUser(),
-			System.currentTimeMillis() - start, result.size());
+			System.currentTimeMillis() - start, result.size());*/
 
 		return result;
 	}
 
 	@Override
 	public long execute(CountQueryQVO queryQVO) {
-		logger.info("Executing Count: DS=[{}] Usr=[{}]",
+		/*logger.info("Executing Count: DS=[{}] Usr=[{}]",
 			queryQVO.getDataSourceName(), securityService.getCurrentUser());
-		long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();*/
 
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
@@ -433,7 +435,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		StringBuilder main = builderVO.getQuery();
 
-		Long dbConnId = findProperDBConnection(dataSource);
+		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
 
 		String comment = String.format("DsCnt[%s]", dataSource.getName());
 
@@ -449,17 +451,17 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		long result = ((BigDecimal) list.get(0).get("cnt")).longValue();
 
-		logger.info("Executed Count: DS=[{}] Usr=[{}] Dur=[{}] #=[{}]",
-			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start, result);
+		/*logger.info("Executed Count: DS=[{}] Usr=[{}] Dur=[{}] #=[{}]",
+			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start, result);*/
 
 		return result;
 	}
 
 	@Override
 	public List<Map<String, Object>> execute(AggregateQueryQVO queryQVO) {
-		logger.info("Executing Aggregate: DS=[{}] Usr=[{}]",
+		/*logger.info("Executing Aggregate: DS=[{}] Usr=[{}]",
 			queryQVO.getDataSourceName(), securityService.getCurrentUser());
-		long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();*/
 
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
@@ -478,7 +480,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		StringBuilder main = builderVO.getQuery();
 
-		Long dbConnId = findProperDBConnection(dataSource);
+		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
 
 		String comment = String.format("DsAgr[%s]", dataSource.getName());
 
@@ -518,8 +520,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 		}
 
-		logger.info("Executed Aggregate: DS=[{}] Usr=[{}] Dur=[{}]",
-			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
+		/*logger.info("Executed Aggregate: DS=[{}] Usr=[{}] Dur=[{}]",
+			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);*/
 
 		return result;
 	}
@@ -689,7 +691,17 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		}
 	}
 
-	private Long findProperDBConnection(DataSource dataSource) {
+	private Long findProperDBConnection(String sentDBConn, DataSource dataSource) {
+		if (sentDBConn != null) {
+			DBConnection dbConnection = dbConnectionService.loadByName(sentDBConn);
+			if (dbConnection == null) {
+				logger.error("Invalid sent db connection: {}", sentDBConn);
+				throw new MetisException(MetisErrorCode.InvalidDBConnection, sentDBConn);
+			} else {
+				return dbConnection.getId();
+			}
+		}
+
 		DBConnection defaultConnection = dbConnectionService.getDefaultConnectionOfCurrentUser();
 		return defaultConnection != null ? defaultConnection.getId() : dataSource.getConnectionId();
 	}
@@ -740,7 +752,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.appendWhere()
 			.appendSort(queryQVO.getSortFields());
 
-		Long dbConnId = findProperDBConnection(dataSource);
+		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
 
 		String comment = String.format("DsPar[%s]", dataSource.getName());
 

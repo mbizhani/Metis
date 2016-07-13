@@ -12,6 +12,10 @@ public class DataViewQVO implements Serializable {
 
 	private Serializable parentId;
 
+	private String sentDBConnection;
+
+	// ------------------------------
+
 	public String getName() {
 		return name;
 	}
@@ -63,6 +67,15 @@ public class DataViewQVO implements Serializable {
 
 	public DataViewQVO setParentId(Serializable parentId) {
 		this.parentId = parentId;
+		return this;
+	}
+
+	public String getSentDBConnection() {
+		return sentDBConnection;
+	}
+
+	public DataViewQVO setSentDBConnection(String sentDBConnection) {
+		this.sentDBConnection = sentDBConnection;
 		return this;
 	}
 }

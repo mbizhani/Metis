@@ -4,7 +4,9 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.DPanel;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.vo.DataFieldVO;
@@ -39,6 +41,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private AsyncBehavior asyncBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
 	private boolean showFooter = false;
+
+	private String sentDBConnection;
 
 	public DataViewGridPanel(String id, DataVO dataVO, Map<String, Object> filter) {
 		super(id);
@@ -95,6 +99,13 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
 			//setEditButtonVisible(false);
 		}
+
+		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
+			sentDBConnection = getWebRequest()
+				.getRequestParameters()
+				.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
+				.toOptionalString();
+		}
 	}
 
 	public DataViewGridPanel setSelectionJSCallback(String jsCallback) {
@@ -133,7 +144,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setPageIndex(pageIndex)
 			.setPageSize(pageSize)
 			.setSortFieldList(getSortFieldsMap(sortFields))
-			.setFilter(getFilterMap());
+			.setFilter(getFilterMap())
+			.setSentDBConnection(sentDBConnection);
 
 		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW, dataViewQVO);
 	}
@@ -145,7 +157,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		dataViewQVO
 			.setName(dataVO.getName())
 			.setParentId(parentId)
-			.setSortFieldList(getSortFieldsMap(sortFields));
+			.setSortFieldList(getSortFieldsMap(sortFields))
+			.setSentDBConnection(sentDBConnection);
 
 		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW_CHILDREN, dataViewQVO);
 	}
