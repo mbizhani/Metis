@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDBConnectionService {
-	DBConnection get(Long id);
+	DBConnection load(Long id);
 
 	List<DBConnection> search(long pageIndex, long pageSize);
 

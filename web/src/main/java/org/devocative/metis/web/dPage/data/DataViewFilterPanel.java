@@ -32,7 +32,7 @@ import java.util.*;
 
 public class DataViewFilterPanel extends DPanel {
 	private Map<String, Object> filter;
-	private boolean disableFilledFilter;
+	//private boolean disableFilledFilter;
 	private String dataSourceName;
 
 	private String sentDBConnection;
@@ -54,10 +54,10 @@ public class DataViewFilterPanel extends DPanel {
 
 		fillFilterMapByRequestParams(fields, params);
 
-		disableFilledFilter = getWebRequest()
+		/*disableFilledFilter = getWebRequest()
 			.getQueryParameters()
 			.getParameterValue("search")
-			.toBoolean(true);
+			.toBoolean(true);*/
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		floatTable.setEqualWidth(true);
@@ -75,7 +75,7 @@ public class DataViewFilterPanel extends DPanel {
 					paramFormItem
 						.setLabel(new Model<>(parameterVO.getTitleOrName()))
 						.setRequired(parameterVO.getRequiredSafely())
-						.setEnabled(!disableFilledFilter || !filter.containsKey(parameterVO.getName()));
+						.setEnabled(/*!disableFilledFilter || */!filter.containsKey(parameterVO.getName()));
 					view.add(paramFormItem);
 				}
 				item.add(view);
@@ -95,8 +95,10 @@ public class DataViewFilterPanel extends DPanel {
 						.setLabel(new Model<>(fieldVO.getTitleOrName()))
 						.setRequired(fieldVO.getRequiredSafely());
 
-					if (!fieldVO.getType().equals(XDSFieldType.LookUp)) {
-						fieldFormItem.setEnabled(!disableFilledFilter || !filter.containsKey(fieldVO.getName()));
+					if (fieldVO.getType().equals(XDSFieldType.LookUp)) {
+						fieldFormItem.setRequired(fieldVO.getRequiredSafely() || filter.containsKey(fieldVO.getName()));
+					} else {
+						fieldFormItem.setEnabled(/*!disableFilledFilter || */!filter.containsKey(fieldVO.getName()));
 					}
 
 					view.add(fieldFormItem);

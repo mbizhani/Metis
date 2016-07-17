@@ -6,11 +6,13 @@ import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.devocative.adroit.ObjectUtil;
+import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
-import org.devocative.adroit.cache.LRUCache;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
+import org.devocative.demeter.iservice.ICacheService;
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -46,7 +49,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	private XStream xstream;
 	private Configuration freeMarkerCfg;
-	private LRUCache<String, DataSource> dataSourceCache;
+	private ICache<String, DataSource> dataSourceCache;
 
 	@Autowired
 	private IDBConnectionService dbConnectionService;
@@ -54,18 +57,22 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	@Autowired
 	private IPersistorService persistorService;
 
-	/*@Autowired
-	private ISecurityService securityService;*/
+	@Autowired
+	private ICacheService cacheService;
+
+	@Autowired
+	private ISecurityService securityService;
 
 	// ------------------------------
 
-	public DataSourceService() {
+	@PostConstruct
+	public void initDataSourceService() {
 		xstream = new XStream();
 		xstream.processAnnotations(XDataSource.class);
 
 		freeMarkerCfg = new Configuration(Configuration.VERSION_2_3_23);
 
-		dataSourceCache = new LRUCache<>(50);
+		dataSourceCache = cacheService.create("MTS_DATA_SOURCE", 50);
 		dataSourceCache.setMissedHitHandler(this);
 	}
 
@@ -73,7 +80,12 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public DataSource load(Long id) {
-		return persistorService.get(DataSource.class, id);
+		DataSource ds = dataSourceCache.findByProperty("id", id);
+		if (ds == null) {
+			ds = persistorService.get(DataSource.class, id);
+			dataSourceCache.put(ds.getName(), ds);
+		}
+		return ds;
 	}
 
 	@Override
@@ -104,7 +116,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		if (dataSourceId == null) {
 			dataSource = new DataSource();
-			dataSource.setConnection(new DBConnection(dbConnId));
 			config = new ConfigLob();
 		} else {
 			dataSource = load(dataSourceId);
@@ -113,6 +124,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		dataSource.setName(xDataSource.getName());
 		dataSource.setTitle(title);
+		dataSource.setConnection(dbConnectionService.load(dbConnId));
 
 		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
 		List<DataSourceRelation> newRelations = new ArrayList<>();
@@ -567,7 +579,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		XSchema xSchema = dbConnectionService.getSchemaOfMapping(dbConnId);
 
 		if (xSchema == null) {
-			throw new MetisException(MetisErrorCode.NoMappingForConnection, dbConnectionService.get(dbConnId).getName());
+			throw new MetisException(MetisErrorCode.NoMappingForConnection, dbConnectionService.load(dbConnId).getName());
 		}
 
 		Map<String, XEntity> aliasToXEntityMap = new HashMap<>();
@@ -693,6 +705,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	private Long findProperDBConnection(String sentDBConn, DataSource dataSource) {
 		if (sentDBConn != null) {
+			logger.info("Sent DB Conn: User=[{}] Conn=[{}]", securityService.getCurrentUser(), sentDBConn);
+
 			DBConnection dbConnection = dbConnectionService.loadByName(sentDBConn);
 			if (dbConnection == null) {
 				logger.error("Invalid sent db connection: {}", sentDBConn);

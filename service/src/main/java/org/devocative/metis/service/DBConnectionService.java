@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
 
@@ -59,7 +60,8 @@ public class DBConnectionService implements IDBConnectionService {
 
 	// ------------------------------
 
-	public DBConnectionService() {
+	@PostConstruct
+	public void initDBConnectionService() {
 		xstream = new XStream();
 		xstream.processAnnotations(XSchema.class);
 		xstream.processAnnotations(XProperty.class);
@@ -70,7 +72,8 @@ public class DBConnectionService implements IDBConnectionService {
 	// ------------------------------
 
 	@Override
-	public DBConnection get(Long id) {
+	public DBConnection load(Long id) {
+		// TODO use ICache
 		return getDBConnection(id);
 	}
 
@@ -379,7 +382,8 @@ public class DBConnectionService implements IDBConnectionService {
 				result = getUnsureConnection(dbConnId);
 				break;
 			} catch (Exception e) {
-				logger.error("getUnsureConnection: " + dbConnId, e);
+				logger.error(String.format("Get Connection: Conn=[%s] User=[%s]",
+					getDBConnection(dbConnId).getName(), securityService.getCurrentUser()), e);
 				last = e;
 				retry++;
 				closePoolSafely(dbConnId);

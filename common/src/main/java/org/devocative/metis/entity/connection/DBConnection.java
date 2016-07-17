@@ -172,6 +172,9 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 
 	public void setGroup(DBConnectionGroup group) {
 		this.group = group;
+		if (group != null) {
+			this.groupId = group.getId();
+		}
 	}
 
 	public Long getGroupId() {
