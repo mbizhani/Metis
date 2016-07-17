@@ -23,7 +23,7 @@ public class Migrate {
 		XStream dvXStream = new XStream();
 		dvXStream.processAnnotations(XDataView.class);
 
-		ConfigUtil.addProperty("dmt.db.interceptor", "none", false);
+		ConfigUtil.addKey("dmt.db.interceptor", "none", false);
 
 		ModuleLoader.init();
 
@@ -110,7 +110,7 @@ public class Migrate {
 
 		/*if (xdsField.getTargetId() != null) {
 			xdsField.setTargetDSId(xdsField.getTargetId());
-			xdsField.setTargetDSName(persistorService.get(DataSource.class, xdsField.getTargetId()).getName());
+			xdsField.setTargetDSName(persistorService.load(DataSource.class, xdsField.getTargetId()).getName());
 		}*/
 
 		if (ObjectUtil.isTrue(xdsField.getIsKeyField()) || ObjectUtil.isTrue(xdsField.getIsSelfRelPointerField())) {

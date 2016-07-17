@@ -123,7 +123,7 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 		dynamicForm.add(new ListView<XDSAbstractField>("fields", getFieldForFilter()) {
 			@Override
 			protected void populateItem(ListItem<XDSAbstractField> item) {
-				final XDSAbstractField dsField = item.getModelObject();
+				final XDSField dsField = (XDSField) item.getModelObject();
 				item.add(new Label("label", dsField.getSafeTitle()));
 
 				FormComponent fieldFormItem = null;
@@ -137,11 +137,11 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 					case Integer:
 						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
 							fieldFormItem = new WNumberRangeInput(dsField.getName(), Long.class)
-								.setThousandSeparator(",")
+								.setThousandSeparator(',')
 								.setLabelVisible(false);
 						} else {
 							fieldFormItem = new WNumberInput(dsField.getName(), Long.class)
-								.setThousandSeparator(",")
+								.setThousandSeparator(',')
 								.setLabelVisible(false);
 						}
 						break;
@@ -149,12 +149,12 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 					case Real:
 						if (XDSFieldFilterType.Range == dsField.getFilterType()) {
 							fieldFormItem = new WNumberRangeInput(dsField.getName(), BigDecimal.class).setPrecision(2)
-								.setThousandSeparator(",")
+								.setThousandSeparator(',')
 								.setPrecision(3)
 								.setLabelVisible(false);
 						} else {
 							fieldFormItem = new WNumberInput(dsField.getName(), BigDecimal.class).setPrecision(2)
-								.setThousandSeparator(",")
+								.setThousandSeparator(',')
 								.setPrecision(3)
 								.setLabelVisible(false);
 						}
@@ -179,7 +179,7 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 					case LookUp:
 						if (dsField.getFilterType() == XDSFieldFilterType.List) {
 							List<KeyValueVO<Serializable, String>> lookUpList =
-								dataSourceService.executeLookUp(dataSource.getName(), dsField.getTargetDSName());
+								dataSourceService.executeLookUp(dataSource.getName(), dsField.getTargetDSName(), null);
 							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true)
 								.setLabelVisible(false);
 						} else {
