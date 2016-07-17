@@ -1,6 +1,7 @@
 package org.devocative.metis.iservice;
 
 import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.query.QueryRVO;
@@ -51,7 +52,7 @@ public interface IDBConnectionService {
 
 	boolean checkConnection(Long id);
 
-	void groupChanged(Long groupId);
+	void groupChanged(DBConnectionGroup dbConnectionGroup);
 
 	void setDefaultConnectionForCurrentUser(Long id);
 

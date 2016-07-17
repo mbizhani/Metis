@@ -19,6 +19,8 @@ public class DBConnectionGroupService implements IDBConnectionGroupService {
 	@Autowired
 	private IDBConnectionService connectionService;
 
+	// ------------------------------
+
 	@Override
 	public List<DBConnectionGroup> search(long pageIndex, long pageSize) {
 		return persistorService
@@ -50,7 +52,7 @@ public class DBConnectionGroupService implements IDBConnectionGroupService {
 		persistorService.saveOrUpdate(dbConnectionGroup);
 		persistorService.commitOrRollback();
 
-		connectionService.groupChanged(dbConnectionGroup.getId());
+		connectionService.groupChanged(dbConnectionGroup);
 	}
 
 	@Override

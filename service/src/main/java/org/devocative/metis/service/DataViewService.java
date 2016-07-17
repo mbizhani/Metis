@@ -6,9 +6,9 @@ import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
-import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDataView;
+import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.iservice.IDataViewService;
 import org.devocative.metis.vo.filter.DataViewFVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +28,9 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 	@Autowired
 	private ICacheService cacheService;
 
+	@Autowired
+	private IDataSourceService dataSourceService;
+
 	@PostConstruct
 	public void initDataViewService() {
 		xStream = new XStream();
@@ -37,7 +40,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		dataViewCache.setMissedHitHandler(this);
 	}
 
-	// ---------------------- PUBLIC METHODS
+	// ------------------------------ PUBLIC METHODS
 
 	@Override
 	public DataView load(Long id) {
@@ -113,7 +116,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		dataView.setName(xDataView.getName());
 		dataView.setTitle(title);
 		dataView.setConfig(config);
-		dataView.setDataSource(new DataSource(xDataView.getDataSourceId()));
+		dataView.setDataSource(dataSourceService.load(xDataView.getDataSourceId()));
 
 		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataView);
@@ -129,19 +132,5 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 			.list();
 	}
 
-	// ---------------------- PRIVATE METHODS
-
-	/*private Long loadConfigId(Long dataViewId) {
-		if (dataViewId != null) {
-			return persistorService
-				.createQueryBuilder()
-				.addSelect("select ent.config.id")
-				.addFrom(DataView.class, "ent")
-				.addWhere("and ent.id = :id")
-				.addParam("id", dataViewId)
-				.object();
-		}
-		return null;
-	}*/
-
+	// ------------------------------ PRIVATE METHODS
 }

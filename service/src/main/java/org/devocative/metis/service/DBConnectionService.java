@@ -2,7 +2,10 @@ package org.devocative.metis.service;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.thoughtworks.xstream.XStream;
+import org.devocative.adroit.cache.ICache;
+import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.demeter.vo.UserVO;
@@ -11,6 +14,7 @@ import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.MetisUserProfile;
 import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.connection.mapping.XMany2One;
 import org.devocative.metis.entity.connection.mapping.XOne2Many;
 import org.devocative.metis.entity.connection.mapping.XProperty;
@@ -28,15 +32,15 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service("mtsDBConnectionService")
 public class DBConnectionService implements IDBConnectionService {
 	private static final Logger logger = LoggerFactory.getLogger(DBConnectionService.class);
-
-	private static final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new HashMap<>();
-	private static final Map<Long, DBConnection> CONNECTION_MAP = new HashMap<>();
-	private static final Map<Long, XSchema> CONNECTION_MAPPING_MAP = new HashMap<>();
 
 	private static final List<Integer> STRING_TYPES = Arrays.asList(Types.VARCHAR, Types.CHAR, Types.NVARCHAR,
 		Types.NCHAR, Types.LONGNVARCHAR, Types.CLOB, Types.NCLOB);
@@ -51,12 +55,18 @@ public class DBConnectionService implements IDBConnectionService {
 	private static final String METIS_DEFAULT_CONNECTION = "METIS_DEFAULT_CONNECTION";
 
 	private XStream xstream;
+	private ICache<Long, DBConnection> dbConnectionCache;
+	private ICache<Long, XSchema> xSchemaCache;
+	private final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new ConcurrentHashMap<>();
 
 	@Autowired
 	private IPersistorService persistorService;
 
 	@Autowired
 	private ISecurityService securityService;
+
+	@Autowired
+	private ICacheService cacheService;
 
 	// ------------------------------
 
@@ -67,14 +77,39 @@ public class DBConnectionService implements IDBConnectionService {
 		xstream.processAnnotations(XProperty.class);
 		xstream.processAnnotations(XMany2One.class);
 		xstream.processAnnotations(XOne2Many.class);
+
+		dbConnectionCache = cacheService.create("MTS_DB_CONNECTION", 20);
+		dbConnectionCache.setMissedHitHandler(new IMissedHitHandler<Long, DBConnection>() {
+			@Override
+			public DBConnection loadForCache(Long key) {
+				return persistorService.get(DBConnection.class, key);
+			}
+		});
+
+		xSchemaCache = cacheService.create("MTS_DB_X_SCHEMA", 5);
+		xSchemaCache.setMissedHitHandler(new IMissedHitHandler<Long, XSchema>() {
+			@Override
+			public XSchema loadForCache(Long key) {
+				String config = persistorService.createQueryBuilder()
+					.addSelect("select ent.value")
+					.addFrom(ConfigLob.class, "ent")
+					.addWhere("and ent.id = :id")
+					.addParam("id", key)
+					.object();
+
+				if (config != null) {
+					return (XSchema) xstream.fromXML(config);
+				}
+				return null;
+			}
+		});
 	}
 
 	// ------------------------------
 
 	@Override
 	public DBConnection load(Long id) {
-		// TODO use ICache
-		return getDBConnection(id);
+		return dbConnectionCache.get(id);
 	}
 
 	@Override
@@ -103,12 +138,16 @@ public class DBConnectionService implements IDBConnectionService {
 			configLob.setValue(mappingXML);
 			persistorService.saveOrUpdate(configLob);
 			dbConnection.setConfig(configLob);
+
+			xSchemaCache.update(configLob.getId(), (XSchema) xstream.fromXML(mappingXML));
 		}
 
 		//TODO encrypt database password before save
 
 		persistorService.saveOrUpdate(dbConnection);
 		persistorService.commitOrRollback();
+
+		dbConnectionCache.update(dbConnection.getId(), dbConnection);
 
 		connectionChanged(dbConnection.getId());
 	}
@@ -120,12 +159,19 @@ public class DBConnectionService implements IDBConnectionService {
 
 	@Override
 	public DBConnection loadByName(String name) {
-		return persistorService
-			.createQueryBuilder()
-			.addFrom(DBConnection.class, "ent")
-			.addWhere("and ent.name=:name")
-			.addParam("name", name)
-			.object();
+		DBConnection result = dbConnectionCache.findByProperty("name", name);
+		if (result == null) {
+			result = persistorService
+				.createQueryBuilder()
+				.addFrom(DBConnection.class, "ent")
+				.addWhere("and ent.name=:name")
+				.addParam("name", name)
+				.object();
+			if (result != null) {
+				dbConnectionCache.put(result.getId(), result);
+			}
+		}
+		return result;
 	}
 
 	// ---------------
@@ -213,7 +259,7 @@ public class DBConnectionService implements IDBConnectionService {
 
 		long start = System.currentTimeMillis();
 		logger.info("Executing Query: Cmnt=[{}] User=[{}] Conn=[{}]",
-			comment, securityService.getCurrentUser(), getDBConnection(dbConnId).getName());
+			comment, securityService.getCurrentUser(), load(dbConnId).getName());
 
 		try (Connection connection = getConnection(dbConnId)) {
 			query = String.format("/*%s*/ %s", comment, query);
@@ -260,7 +306,7 @@ public class DBConnectionService implements IDBConnectionService {
 			}
 
 			logger.info("Executed Query: Cmnt=[{}] User=[{}] Conn=[{}] Dur=[{}] Res#=[{}]",
-				comment, securityService.getCurrentUser(), getDBConnection(dbConnId).getName(),
+				comment, securityService.getCurrentUser(), load(dbConnId).getName(),
 				System.currentTimeMillis() - start, result.getRows().size());
 
 			return result;
@@ -274,26 +320,17 @@ public class DBConnectionService implements IDBConnectionService {
 
 	@Override
 	public XSchema getSchemaOfMapping(Long dbConnId) {
-		if (!CONNECTION_MAPPING_MAP.containsKey(dbConnId)) {
-			Long safeConfigId = getDBConnection(dbConnId).getSafeConfigId();
-			String config = persistorService.createQueryBuilder()
-				.addSelect("select ent.value")
-				.addFrom(ConfigLob.class, "ent")
-				.addWhere("and ent.id = :id")
-				.addParam("id", safeConfigId)
-				.object();
-
-			if (config != null) {
-				XSchema xSchema = (XSchema) xstream.fromXML(config);
-				CONNECTION_MAPPING_MAP.put(dbConnId, xSchema);
-			}
+		XSchema result = null;
+		Long safeConfigId = load(dbConnId).getSafeConfigId();
+		if (safeConfigId != null) {
+			result = xSchemaCache.get(safeConfigId);
 		}
-		return CONNECTION_MAPPING_MAP.get(dbConnId);
+		return result;
 	}
 
 	@Override
 	public boolean checkConnection(Long id) {
-		DBConnection dbConnection = getDBConnection(id);
+		DBConnection dbConnection = load(id);
 		if (dbConnection.getSafeTestQuery() != null) {
 			try (Connection connection = getConnection(id)) {
 				Statement st = connection.createStatement();
@@ -308,25 +345,31 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public void groupChanged(Long groupId) {
-		logger.info("DBConnection(s) updating: DBConnectionGroup changed = {}", groupId);
+	public void groupChanged(DBConnectionGroup group) {
+		logger.info("DBConnection(s) updating: DBConnectionGroup changed = [{}]", group.getName());
+
+		if (group.getConfig() != null) {
+			XSchema xSchema = (XSchema) xstream.fromXML(group.getConfig().getValue());
+			xSchemaCache.update(group.getConfig().getId(), xSchema);
+		}
+
 		List<Long> ids = persistorService
 			.createQueryBuilder()
 			.addSelect("select ent.id")
 			.addFrom(DBConnection.class, "ent")
 			.addWhere("and ent.group.id = :groupId")
-			.addParam("groupId", groupId)
+			.addParam("groupId", group.getId())
 			.list();
 
 		for (Long id : ids) {
 			connectionChanged(id);
 		}
-		logger.info(" DBConnectionGroup changed = {} => DBConnection(s) updated = {} ", groupId, ids.size());
+		logger.info(" DBConnectionGroup changed = [{}] => DBConnection(s) updated = [{}] ", group.getName(), ids.size());
 	}
 
 	@Override
 	public void setDefaultConnectionForCurrentUser(Long id) {
-		DBConnection dbConnection = getDBConnection(id);
+		DBConnection dbConnection = load(id);
 		if (dbConnection != null) {
 			UserVO currentUser = securityService.getCurrentUser();
 
@@ -357,7 +400,7 @@ public class DBConnectionService implements IDBConnectionService {
 			}
 			currentUser.addOtherProfileInfo(METIS_DEFAULT_CONNECTION, defaultConn);
 		}
-		return defaultConn != -1 ? getDBConnection(defaultConn) : null;
+		return defaultConn != -1 ? load(defaultConn) : null;
 	}
 
 	@Override
@@ -383,7 +426,7 @@ public class DBConnectionService implements IDBConnectionService {
 				break;
 			} catch (Exception e) {
 				logger.error(String.format("Get Connection: Conn=[%s] User=[%s]",
-					getDBConnection(dbConnId).getName(), securityService.getCurrentUser()), e);
+					load(dbConnId).getName(), securityService.getCurrentUser()), e);
 				last = e;
 				retry++;
 				closePoolSafely(dbConnId);
@@ -398,7 +441,7 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	private Connection getUnsureConnection(Long dbConnId) throws Exception {
-		DBConnection dbConnection = getDBConnection(dbConnId);
+		DBConnection dbConnection = load(dbConnId);
 		if (!CONNECTION_POOL_MAP.containsKey(dbConnId)) {
 			ComboPooledDataSource cpds = new ComboPooledDataSource();
 			cpds.setDriverClass(dbConnection.getSafeDriver());
@@ -418,26 +461,13 @@ public class DBConnectionService implements IDBConnectionService {
 		return connection;
 	}
 
-	private DBConnection getDBConnection(Long dbConnId) {
-		if (!CONNECTION_MAP.containsKey(dbConnId)) {
-			DBConnection info = persistorService.get(DBConnection.class, dbConnId);
-			CONNECTION_MAP.put(dbConnId, info);
-		}
-
-		return CONNECTION_MAP.get(dbConnId);
-	}
-
 	private String getSchemaForDB(Long dbConnId) {
-		return getDBConnection(dbConnId).getSchema();
+		return load(dbConnId).getSchema();
 	}
 
 	private void connectionChanged(Long id) {
-		CONNECTION_MAP.remove(id);
-		CONNECTION_MAPPING_MAP.remove(id);
-
-		// TODO only necessary changed data need close
 		closePoolSafely(id);
-		logger.info("DBConnection changed: {}", id);
+		logger.info("DBConnection changed: {}", load(id).getName());
 	}
 
 	private synchronized void closePoolSafely(Long dbConnId) {
