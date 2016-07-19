@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-@Component("mtsExecuteDataSourceDTask")
 @Scope("prototype")
+@Component("mtsExecuteDataSourceDTask")
 public class ExecuteDataViewDTask extends DTask {
 	private DataViewQVO data;
 
@@ -18,7 +18,7 @@ public class ExecuteDataViewDTask extends DTask {
 
 	@Override
 	public void init() {
-		data = (DataViewQVO) inputData;
+		data = (DataViewQVO) getInputData();
 	}
 
 	@Override
@@ -28,13 +28,15 @@ public class ExecuteDataViewDTask extends DTask {
 
 	@Override
 	public void execute() {
-		DataViewRVO dataViewRVO;
-		if (data.getParentId() == null) {
-			dataViewRVO = dataService.executeDataView(data);
-		} else {
-			dataViewRVO = dataService.executeDataViewForParent(data);
-		}
+		if (data != null) {
+			DataViewRVO dataViewRVO;
+			if (data.getParentId() == null) {
+				dataViewRVO = dataService.executeDataView(data);
+			} else {
+				dataViewRVO = dataService.executeDataViewForParent(data);
+			}
 
-		setResult(dataViewRVO);
+			setResult(dataViewRVO);
+		}
 	}
 }

@@ -23,6 +23,10 @@
 		<entity type="org.devocative.metis.entity.data.DataView"/>
 	</entities>
 
+	<tasks>
+		<task type="org.devocative.metis.service.task.ExecuteDataViewDTask"/>
+	</tasks>
+
 	<dPages>
 		<dPage type="org.devocative.metis.web.dPage.data.form.DataViewFormDPage"
 			   title="KEY:dPage.mts.DataViewForm"
