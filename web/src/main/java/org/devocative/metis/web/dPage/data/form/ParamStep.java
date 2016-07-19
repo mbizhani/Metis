@@ -17,7 +17,9 @@ import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
 import javax.inject.Inject;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 class ParamStep extends WWizardStepPanel {
 	private DataVO dataVO;
@@ -51,12 +53,17 @@ class ParamStep extends WWizardStepPanel {
 			protected void populateItem(ListItem<DataParameterVO> item) {
 				DataParameterVO parameterVO = item.getModelObject();
 
+				List<XDSFieldType> xdsFieldTypes = new ArrayList<>();
+				Collections.addAll(xdsFieldTypes, XDSFieldType.values());
+				xdsFieldTypes.remove(XDSFieldType.LookUp);
+				xdsFieldTypes.remove(XDSFieldType.Unknown);
+
 				final WSelectionInput type;
 				item.add(new Label("name", parameterVO.getName()));
 				item.add(new WTextInput("title", new PropertyModel<String>(parameterVO, "title"))
 					.setLabelVisible(false));
 				item.add(type = new WSelectionInput("type", new PropertyModel<String>(parameterVO, "type"),
-					Arrays.asList(XDSFieldType.values()), false));
+					xdsFieldTypes, false));
 				item.add(new CheckBox("required", new PropertyModel<Boolean>(parameterVO, "required")));
 				item.add(new WTextInput("sampleData", new PropertyModel<String>(parameterVO, "sampleData"))
 					.setLabelVisible(false));
