@@ -321,9 +321,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> executeLookUp(String dataSourceName, String targetDataSourceName, String sentDBConnection) {
-		DataSource dataSource = loadByName(dataSourceName);
-		DataSource targetDataSource = loadByName(targetDataSourceName);
+	public List<KeyValueVO<Serializable, String>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection) {
+		DataSource dataSource = load(dataSourceId);
+		DataSource targetDataSource = load(targetDataSourceId);
 
 		/*logger.info("Executing LookUp: Trgt=[{}] Src=[{}] Usr=[{}]",
 			targetDataSource.getName(), dataSource.getName(), securityService.getCurrentUser());

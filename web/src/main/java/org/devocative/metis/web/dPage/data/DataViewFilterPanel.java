@@ -33,7 +33,7 @@ import java.util.*;
 public class DataViewFilterPanel extends DPanel {
 	private Map<String, Object> filter;
 	//private boolean disableFilledFilter;
-	private String dataSourceName;
+	private Long dataSourceId;
 
 	private String sentDBConnection;
 
@@ -44,9 +44,9 @@ public class DataViewFilterPanel extends DPanel {
 	private IDataSourceService dataSourceService;
 
 	// Main Constructor
-	public DataViewFilterPanel(String id, final String dataSourceName, final Map<String, Object> filter, List<DataFieldVO> fields, List<DataParameterVO> params) {
+	public DataViewFilterPanel(String id, final Long dataSourceId, final Map<String, Object> filter, List<DataFieldVO> fields, List<DataParameterVO> params) {
 		super(id);
-		this.dataSourceName = dataSourceName;
+		this.dataSourceId = dataSourceId;
 
 		setDefaultModel(new CompoundPropertyModel<>(filter));
 
@@ -169,7 +169,7 @@ public class DataViewFilterPanel extends DPanel {
 
 			case LookUp:
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
-					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.executeLookUp(dataSourceName, fieldVO.getTargetDSName(), sentDBConnection);
+					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.executeLookUp(dataSourceId, fieldVO.getTargetDSId(), sentDBConnection);
 					if (filter.containsKey(fieldVO.getName())) {
 						List<KeyValueVO<Serializable, String>> onlySentOnes = new ArrayList<>();
 						List<String> sentKeys = (List<String>) filter.get(fieldVO.getName());
@@ -194,9 +194,10 @@ public class DataViewFilterPanel extends DPanel {
 
 						@Override
 						protected Component createSelectionPanel(String selectionPanelId) {
+							String targetDSName = dataSourceService.load(fieldVO.getTargetDSId()).getName();
 							return new DataViewExecutorDPage(
 								selectionPanelId,
-								Collections.singletonList(fieldVO.getTargetDSName()))
+								Collections.singletonList(targetDSName))
 								.setSelectionJSCallback(getJSCallback());
 						}
 

@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHandler {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceExecutorDPage.class);
 
@@ -179,7 +180,7 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 					case LookUp:
 						if (dsField.getFilterType() == XDSFieldFilterType.List) {
 							List<KeyValueVO<Serializable, String>> lookUpList =
-								dataSourceService.executeLookUp(dataSource.getName(), dsField.getTargetDSName(), null);
+								dataSourceService.executeLookUp(dataSource.getId(), dsField.getTargetDSId(), null);
 							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true)
 								.setLabelVisible(false);
 						} else {
