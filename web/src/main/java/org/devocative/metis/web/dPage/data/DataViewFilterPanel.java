@@ -168,8 +168,17 @@ public class DataViewFilterPanel extends DPanel {
 				break;
 
 			case LookUp:
+				final Map<String, Object> targetDSFilter = createMapToFilterTargetDS(fieldVO.getTargetDSFilter());
+
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
-					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService.executeLookUp(dataSourceId, fieldVO.getTargetDSId(), sentDBConnection);
+					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService
+						.executeLookUp(
+							dataSourceId,
+							fieldVO.getTargetDSId(),
+							sentDBConnection,
+							targetDSFilter
+						);
+
 					if (filter.containsKey(fieldVO.getName())) {
 						List<KeyValueVO<Serializable, String>> onlySentOnes = new ArrayList<>();
 						List<String> sentKeys = (List<String>) filter.get(fieldVO.getName());
@@ -198,7 +207,8 @@ public class DataViewFilterPanel extends DPanel {
 							return new DataViewExecutorDPage(
 								selectionPanelId,
 								Collections.singletonList(targetDSName))
-								.setSelectionJSCallback(getJSCallback());
+								.setSelectionJSCallback(getJSCallback())
+								.addToFilter(targetDSFilter);
 						}
 
 						@Override
@@ -326,6 +336,20 @@ public class DataViewFilterPanel extends DPanel {
 			}
 		}
 
+		return result;
+	}
+
+	private Map<String, Object> createMapToFilterTargetDS(String filter) {
+		Map<String, Object> result = new HashMap<>();
+		if (filter != null) {
+			String[] params = filter.split("[&]");
+			for (String paramValue : params) {
+				int i = paramValue.indexOf("=");
+				String param = paramValue.substring(0, i);
+				String value = paramValue.substring(i + 1);
+				result.put(param, value); //TODO list
+			}
+		}
 		return result;
 	}
 }

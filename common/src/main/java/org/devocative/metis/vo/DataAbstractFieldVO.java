@@ -49,7 +49,12 @@ public abstract class DataAbstractFieldVO implements Serializable {
 	 */
 	private String targetDVName;
 
-	// --------------------- ACCESSORS
+	/**
+	 * XDVField.targetDSFilter
+	 */
+	private String targetDSFilter;
+
+	// ------------------------------ ACCESSORS
 
 	public String getName() {
 		return name;
@@ -91,15 +96,6 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		this.targetDSId = targetDSId;
 	}
 
-	public DataSource getTargetDS() {
-		return new DataSource(getTargetDSId());
-	}
-
-	public void setTargetDS(DataSource target) {
-		setTargetDSId(target.getId());
-		setTargetDSName(target.getName());
-	}
-
 	public Long getTargetDVId() {
 		return targetDVId;
 	}
@@ -116,6 +112,33 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		this.targetDSName = targetDSName;
 	}
 
+	public String getTargetDVName() {
+		return targetDVName;
+	}
+
+	public void setTargetDVName(String targetDVName) {
+		this.targetDVName = targetDVName;
+	}
+
+	public String getTargetDSFilter() {
+		return targetDSFilter;
+	}
+
+	public void setTargetDSFilter(String targetDSFilter) {
+		this.targetDSFilter = targetDSFilter;
+	}
+
+	// ------------------------------ HELPER METHODS
+
+	public DataSource getTargetDS() {
+		return new DataSource(getTargetDSId());
+	}
+
+	public void setTargetDS(DataSource target) {
+		setTargetDSId(target.getId());
+		setTargetDSName(target.getName());
+	}
+
 	public DataView getTargetDV() {
 		return new DataView(getTargetDVId());
 	}
@@ -125,16 +148,6 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		setTargetDVName(dataView.getName());
 	}
 
-	public String getTargetDVName() {
-		return targetDVName;
-	}
-
-	public void setTargetDVName(String targetDVName) {
-		this.targetDVName = targetDVName;
-	}
-
-	// ----------------------------- HELPER METHODS
-
 	public boolean getRequiredSafely() {
 		return ObjectUtil.isTrue(getRequired());
 	}
@@ -143,7 +156,7 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		return getTitle() != null ? getTitle() : getName();
 	}
 
-	// ----------------------------- OBJECT METHODS
+	// ------------------------------ OBJECT METHODS
 
 	@Override
 	public boolean equals(Object o) {

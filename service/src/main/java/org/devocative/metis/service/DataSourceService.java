@@ -321,13 +321,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection) {
+	public List<KeyValueVO<Serializable, String>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, Map<String, Object> filter) {
 		DataSource dataSource = load(dataSourceId);
 		DataSource targetDataSource = load(targetDataSourceId);
-
-		/*logger.info("Executing LookUp: Trgt=[{}] Src=[{}] Usr=[{}]",
-			targetDataSource.getName(), dataSource.getName(), securityService.getCurrentUser());
-		long start = System.currentTimeMillis();*/
 
 		XDataSource targetXDataSource = getXDataSource(targetDataSource);
 
@@ -341,6 +337,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		DSQueryBuilder builder = new DSQueryBuilder(targetXDataSource)
 			.appendSelect(select)
 			.appendFrom()
+			.appendWhere(filter)
 			.appendSort(sort);
 
 		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
@@ -354,6 +351,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					builder.getQuery().toString(),
 					targetXDataSource.getQuery().getMode()),
 				comment,
+				builder.getQueryParams(),
 				1L,
 				50L
 			).toListOfKeyValues();
@@ -362,30 +360,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				dataSource.getName(), targetDataSource.getName()), e);
 			result = new ArrayList<>();
 			result.add(new KeyValueVO<Serializable, String>("--Error--", "--Error--"));
-
-			/*try {
-				dbConnId = findProperDBConnection(targetDataSource);
-				result = dbConnectionService.executeQuery(
-					dbConnId,
-					processQuery(
-						dbConnId,
-						builder.getQuery().toString(),
-						targetXDataSource.getQuery().getMode()),
-					comment,
-					1L,
-					100L
-				).toListOfKeyValues();
-			} catch (Exception e1) {
-				logger.error(String.format("LookUp 2st exec error: target=%s", targetDataSource.getName()), e);
-
-				result = new ArrayList<>();
-				result.add(new KeyValueVO<Serializable, String>("--Error--", "--Error--"));
-			}*/
 		}
-
-		/*logger.info("Executed LookUp: target=[{}] source=[{}] Dur=[{}] Usr=[{}] Rs#=[{}]",
-			targetDataSource.getName(), dataSource.getName(), System.currentTimeMillis() - start,
-			securityService.getCurrentUser(), result.size());*/
 
 		return result;
 	}
@@ -902,6 +877,25 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 
 			appendFilters(xDataSource, queryQVO.getInputParams());
+			return this;
+		}
+
+		public DSQueryBuilder appendWhere(String filter) {
+			if (filter != null) {
+				query.append("where\n\t");
+				if (filter.toLowerCase().startsWith("or") || filter.toLowerCase().startsWith("and")) {
+					query.append("1=1");
+				}
+				query.append(filter);
+			}
+			return this;
+		}
+
+		public DSQueryBuilder appendWhere(Map<String, Object> filter) {
+			if (filter != null && filter.size() > 0) {
+				query.append("where\n\t1=1\n");
+				appendFilters(xDataSource, filter);
+			}
 			return this;
 		}
 

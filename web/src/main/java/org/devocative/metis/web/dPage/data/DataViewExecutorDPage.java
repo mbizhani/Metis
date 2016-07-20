@@ -93,4 +93,9 @@ public class DataViewExecutorDPage extends DPage {
 		}
 		return this;
 	}
+
+	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
+		this.filter.putAll(filter);
+		return this;
+	}
 }

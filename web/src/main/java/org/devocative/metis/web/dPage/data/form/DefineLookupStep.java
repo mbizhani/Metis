@@ -1,5 +1,6 @@
 package org.devocative.metis.web.dPage.data.form;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -13,6 +14,7 @@ import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WSelectionInput;
+import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
 import javax.inject.Inject;
@@ -40,7 +42,6 @@ class DefineLookupStep extends WWizardStepPanel {
 
 	@Override
 	protected void onInit() {
-		setEnabled(dataVO.isDataSourceEditable());
 
 		table = new WebMarkupContainer("table");
 		add(table);
@@ -52,10 +53,17 @@ class DefineLookupStep extends WWizardStepPanel {
 
 				item.add(new Label("name", fieldVO.getName()));
 				item.add(new WSelectionInput("targetDS", new PropertyModel(fieldVO, "targetDS"),
-					dataSourceList, false)
-					.setLabelVisible(false)
-					.setRequired(true)
-					.setLabel(new Model<>(fieldVO.getName())));
+						dataSourceList, false)
+						.setLabelVisible(false)
+						.setRequired(true)
+						.setLabel(new Model<>(fieldVO.getName()))
+						.setEnabled(dataVO.isDataSourceEditable())
+				);
+
+				item.add(new WTextInput("targetDSFilter", new PropertyModel<String>(fieldVO, "targetDSFilter"))
+						.setLabelVisible(false)
+						.add(new AttributeModifier("size", "50"))
+				);
 			}
 		});
 

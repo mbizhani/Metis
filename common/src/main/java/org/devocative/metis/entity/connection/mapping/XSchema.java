@@ -36,8 +36,10 @@ public class XSchema implements Serializable {
 		Map<String, Map<String, String>> result = new HashMap<>();
 		for (XEntity xEntity : entities) {
 			Map<String, String> props = new HashMap<>();
-			for (XAbstractProperty xProp : xEntity.getProperties()) {
-				props.put(xProp.getName(), null);
+			if (xEntity.getProperties() != null) {
+				for (XAbstractProperty xProp : xEntity.getProperties()) {
+					props.put(xProp.getName(), null);
+				}
 			}
 			result.put(xEntity.getName(), props);
 		}

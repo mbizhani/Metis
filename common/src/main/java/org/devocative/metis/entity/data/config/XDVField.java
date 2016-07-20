@@ -29,6 +29,9 @@ public class XDVField implements Serializable {
 	@XStreamAsAttribute
 	private String targetDVName;
 
+	@XStreamAsAttribute
+	private String targetDSFilter;
+
 	private List<XDVAggregatorFunction> footer;
 
 	// ------------------------------ ACCESSORS
@@ -79,6 +82,14 @@ public class XDVField implements Serializable {
 
 	public void setTargetDVName(String targetDVName) {
 		this.targetDVName = targetDVName;
+	}
+
+	public String getTargetDSFilter() {
+		return targetDSFilter;
+	}
+
+	public void setTargetDSFilter(String targetDSFilter) {
+		this.targetDSFilter = targetDSFilter;
 	}
 
 	public List<XDVAggregatorFunction> getFooter() {
