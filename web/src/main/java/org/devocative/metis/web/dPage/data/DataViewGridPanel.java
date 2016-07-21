@@ -40,9 +40,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private Map<String, Object> filter;
 	private AsyncBehavior asyncBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
+	private OBaseGrid<Map<String, Object>> oBaseGrid;
 	private boolean showFooter = false;
 
 	private String sentDBConnection;
+
+	// ------------------------------
 
 	public DataViewGridPanel(String id, DataVO dataVO, Map<String, Object> filter) {
 		super(id);
@@ -57,7 +60,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		DataFieldVO titleField = dataVO.findTitleField();
 		DataFieldVO keyField = dataVO.findKeyField();
 
-		OBaseGrid<Map<String, Object>> oBaseGrid;
 		if (selfRelPointerField == null) {
 			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
 			gridOptions
@@ -108,8 +110,15 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 	}
 
+	// ------------------------------
+
 	public DataViewGridPanel setSelectionJSCallback(String jsCallback) {
 		grid.getOptions().setSelectionJSHandler(jsCallback);
+		return this;
+	}
+
+	public DataViewGridPanel setMultiSelect(boolean multiSelect) {
+		oBaseGrid.setSingleSelect(!multiSelect);
 		return this;
 	}
 
@@ -118,7 +127,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		grid.loadData(target);
 	}
 
-	// IAsyncResponseHandler
+	// ------------------------------ IAsyncResponseHandler
+
 	@Override
 	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Serializable result) {
 		DataViewRVO dataViewRVO = (DataViewRVO) result;
@@ -135,7 +145,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		grid.pushError(handler, error);
 	}
 
-	// IGridAsyncDataSource
+	// ------------------------------ IGridAsyncDataSource
+
 	@Override
 	public void list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 		DataViewQVO dataViewQVO = new DataViewQVO();
@@ -150,7 +161,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW, dataViewQVO);
 	}
 
-	// ITreeGridAsyncDataSource
+	// ------------------------------ ITreeGridAsyncDataSource
+
 	@Override
 	public void listByParent(Serializable parentId, List<WSortField> sortFields) {
 		DataViewQVO dataViewQVO = new DataViewQVO();
@@ -163,17 +175,19 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW_CHILDREN, dataViewQVO);
 	}
 
-	// ITreeGridAsyncDataSource
 	@Override
 	public boolean hasChildren(Map<String, Object> bean) {
 		return true;
 	}
 
-	// IDataSource
+	// ------------------------------ IDataSource
+
 	@Override
 	public IModel<Map<String, Object>> model(Map<String, Object> object) {
 		return new WModel<>(object);
 	}
+
+	// ------------------------------
 
 	private OColumnList<Map<String, Object>> createColumns(DataVO dataVO) {
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
