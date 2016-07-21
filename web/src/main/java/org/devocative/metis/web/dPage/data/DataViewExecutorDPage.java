@@ -13,9 +13,11 @@ import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.iservice.IDataService;
+import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
+import org.devocative.wickomp.WebUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +29,17 @@ import java.util.Map;
 public class DataViewExecutorDPage extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewExecutorDPage.class);
 
-	private Map<String, Object> filter = new HashMap<>();
+	private DataVO dataVO;
 	private DataViewGridPanel mainGrid;
+	private Map<String, Object> filter = new HashMap<>();
 
 	@Inject
 	private IDataService dataService;
+
+	@Inject
+	private IDataSourceService dataSourceService;
+
+	// ------------------------------
 
 	public DataViewExecutorDPage(String id, List<String> params) {
 		super(id, params);
@@ -40,7 +48,6 @@ public class DataViewExecutorDPage extends DPage {
 		IModel<String> title;
 		String color = "color:inherit;";
 
-		DataVO dataVO = null;
 		if (params.size() > 0) {
 			dataVO = dataService.loadDataVO(params.get(0));
 		}
@@ -70,6 +77,9 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
+			Map<String, List<String>> webParams = WebUtil.toMap(getWebRequest().getRequestParameters());
+			filter.putAll(dataSourceService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), webParams, false));
+
 			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getFields(), dataVO.getParams()));
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				@Override
@@ -87,6 +97,8 @@ public class DataViewExecutorDPage extends DPage {
 		}
 	}
 
+	// ------------------------------
+
 	public DataViewExecutorDPage setSelectionJSCallback(String jsCallback) {
 		if (mainGrid != null) {
 			mainGrid.setSelectionJSCallback(jsCallback);
@@ -94,8 +106,15 @@ public class DataViewExecutorDPage extends DPage {
 		return this;
 	}
 
-	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
-		this.filter.putAll(filter);
+	public DataViewExecutorDPage addToFilter(Map<String, List<String>> simpleParams) {
+		filter.putAll(dataSourceService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), simpleParams, false));
+		return this;
+	}
+
+	public DataViewExecutorDPage setMultiSelect(boolean multiSelect) {
+		if (mainGrid != null) {
+			mainGrid.setMultiSelect(multiSelect);
+		}
 		return this;
 	}
 }
