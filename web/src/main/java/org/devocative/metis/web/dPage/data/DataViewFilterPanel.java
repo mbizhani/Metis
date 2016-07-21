@@ -194,7 +194,7 @@ public class DataViewFilterPanel extends DPanel {
 						}
 					}
 
-					if (targetDSFilter != null) {
+					if (targetDSFilter.size() > 0) {
 						filter.put(fieldVO.getName(), lookUpList);
 					}
 

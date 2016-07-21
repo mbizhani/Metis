@@ -561,43 +561,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		return result;
 	}
 
-	private Serializable convertQueryParam(XDSFieldType fieldType, String value) {
-		Serializable result = null;
-
-		if (value != null) {
-			switch (fieldType) {
-				case String:
-					result = value;
-					break;
-
-				case Integer:
-					result = Long.valueOf(value);
-					break;
-
-				case Real:
-					result = new BigDecimal(value);
-					break;
-
-				case Date:
-					result = CalendarUtil.toGregorian(value, "yyyyMMdd");
-					break;
-
-				case DateTime:
-					result = CalendarUtil.toGregorian(value, "yyyyMMddHHmmss");
-					break;
-
-				case Boolean:
-					result = Boolean.valueOf(value);
-					break;
-
-				case LookUp:
-					break;
-			}
-		}
-
-		return result;
-	}
-
 	// -------------------------- PRIVATE METHODS
 
 	private void checkDuplicateDataSource(String name) {
@@ -736,17 +699,19 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		while (columnMatcher.find()) {
 			String alias = columnMatcher.group(1);
 			String prop = columnMatcher.group(2);
-			XEntity xEntity = findXEntity(aliasToXEntityMap, alias);
-			if (xEntity.findProperty(prop) == null) {
-				throw new MetisException(MetisErrorCode.EqlUnknownProperty, String.format("%s.%s", alias, prop));
-			}
-			XAbstractProperty xAProp = xEntity.findProperty(prop);
-			if (xAProp instanceof XProperty) {
-				XProperty xProperty = (XProperty) xAProp;
-				String replacement = String.format("%s.%s", alias, xProperty.getColumn());
-				columnMatcher.appendReplacement(columnReplacerBuffer, replacement);
-			} else {
-				throw new MetisException(MetisErrorCode.EqlInvalidAssociationUsage, String.format("%s.%s", alias, prop));
+			if (aliasToXEntityMap.containsKey(alias)) {
+				XEntity xEntity = aliasToXEntityMap.get(alias);
+				if (xEntity.findProperty(prop) == null) {
+					throw new MetisException(MetisErrorCode.EqlUnknownProperty, String.format("%s.%s", alias, prop));
+				}
+				XAbstractProperty xAProp = xEntity.findProperty(prop);
+				if (xAProp instanceof XProperty) {
+					XProperty xProperty = (XProperty) xAProp;
+					String replacement = String.format("%s.%s", alias, xProperty.getColumn());
+					columnMatcher.appendReplacement(columnReplacerBuffer, replacement);
+				} else {
+					throw new MetisException(MetisErrorCode.EqlInvalidAssociationUsage, String.format("%s.%s", alias, prop));
+				}
 			}
 		}
 		columnMatcher.appendTail(columnReplacerBuffer);
@@ -858,6 +823,43 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				if (visitedParents.contains(parentIds.get(i))) {
 					parentIds.remove(i);
 				}
+			}
+		}
+
+		return result;
+	}
+
+	private Serializable convertQueryParam(XDSFieldType fieldType, String value) {
+		Serializable result = null;
+
+		if (value != null) {
+			switch (fieldType) {
+				case String:
+					result = value;
+					break;
+
+				case Integer:
+					result = Long.valueOf(value);
+					break;
+
+				case Real:
+					result = new BigDecimal(value);
+					break;
+
+				case Date:
+					result = CalendarUtil.toGregorian(value, "yyyyMMdd");
+					break;
+
+				case DateTime:
+					result = CalendarUtil.toGregorian(value, "yyyyMMddHHmmss");
+					break;
+
+				case Boolean:
+					result = Boolean.valueOf(value);
+					break;
+
+				case LookUp:
+					break;
 			}
 		}
 
