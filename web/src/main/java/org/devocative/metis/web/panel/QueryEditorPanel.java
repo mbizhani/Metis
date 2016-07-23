@@ -26,7 +26,6 @@ public class QueryEditorPanel extends WPanel {
 	private List<String> header = new ArrayList<>();
 	private List<List<Object>> rows = new ArrayList<>();
 
-	private OCode options = new OCode(OCodeMode.SQL);
 	private WebMarkupContainer resultTable;
 	private WCodeInput editor;
 
@@ -37,10 +36,13 @@ public class QueryEditorPanel extends WPanel {
 		super(id);
 
 		Form form = new Form("form");
-		form.add(editor = new WCodeInput("editor", new Model<>(sql), options));
+		form.add(editor = new WCodeInput("editor", new Model<>(sql), new OCode(OCodeMode.SQL)));
 		form.add(new DAjaxButton("execute", new ResourceModel("label.execute"), MetisIcon.EXECUTE) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
+				header.clear();
+				rows.clear();
+
 				QueryRVO resultVO = dbConnectionService.executeQuery(dbConnId, editor.getModelObject(), "QryEdtr", params, 1L, 10L);
 				header.addAll(resultVO.getHeader());
 				rows.addAll(resultVO.getRows());
