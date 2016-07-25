@@ -14,6 +14,7 @@ import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.ISecurityService;
+import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -26,10 +27,7 @@ import org.devocative.metis.entity.data.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.filter.DataSourceFVO;
-import org.devocative.metis.vo.query.AbstractQueryQVO;
-import org.devocative.metis.vo.query.AggregateQueryQVO;
-import org.devocative.metis.vo.query.CountQueryQVO;
-import org.devocative.metis.vo.query.SelectQueryQVO;
+import org.devocative.metis.vo.query.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +81,13 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	public DataSource load(Long id) {
 		DataSource ds = dataSourceCache.findByProperty("id", id);
 		if (ds == null) {
-			ds = persistorService.get(DataSource.class, id);
+			ds = persistorService
+				.createQueryBuilder()
+				.addFrom(DataSource.class, "ent")
+				.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+				.addWhere("and ent.id = :id")
+				.addParam("id", id)
+				.object();
 			dataSourceCache.put(ds.getName(), ds);
 		}
 		return ds;
@@ -100,6 +104,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DataSource.class, "ent")
+			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
 			.addWhere("and ent.name = :name")
 			.addParam("name", key)
 			.object();
@@ -259,7 +264,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				finalQuery = query;
 				break;
 			case Eql:
-				finalQuery = processEntityQuery(dbConnId, query);
+				finalQuery = processEntityQuery(dbConnId, query).getSql();
 				break;
 			/*case SqlAndEql:
 				throw new RuntimeException("Mode SqlAndEql not implemented!"); //TODO*/
@@ -268,6 +273,147 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		logger.debug("Process Query: FINAL = {}", finalQuery);
 		return finalQuery;
 	}
+
+	@Override
+	public EQLMetaDataVO processEntityQuery(Long dbConnId, String query) {
+		XSchema xSchema = dbConnectionService.getSchemaOfMapping(dbConnId);
+
+		if (xSchema == null) {
+			throw new MetisException(MetisErrorCode.NoMappingForConnection, dbConnectionService.load(dbConnId).getName());
+		}
+
+		EQLMetaDataVO metaDataVO = new EQLMetaDataVO();
+		metaDataVO.setEql(query);
+
+		Map<String, XEntity> aliasToXEntityMap = new HashMap<>();
+
+		StringBuffer tableReplacerBuffer = new StringBuffer();
+		Pattern tablePattern = Pattern.compile("(from|join)\\s+(\\w+\\.)?(\\w+)(\\s+(\\w+))?", Pattern.CASE_INSENSITIVE);
+		Matcher tableMatcher = tablePattern.matcher(query);
+		while (tableMatcher.find()) {
+			String schema = tableMatcher.group(2);
+			if (schema != null) {
+				//throw new MetisException(MetisErrorCode.SchemaInEql, schema);
+				metaDataVO.addError(MetisErrorCode.SchemaInEql, schema);
+			}
+
+			String alias = tableMatcher.group(5);
+			if (aliasToXEntityMap.containsKey(alias)) {
+				//throw new MetisException(MetisErrorCode.DuplicateAlias, alias);
+				metaDataVO.addError(MetisErrorCode.DuplicateAlias, alias);
+			}
+			String entity = tableMatcher.group(3);
+
+			XEntity xEntity = xSchema.findEntity(entity);
+			if (xEntity == null || xEntity.getTable() == null) {
+				//throw new MetisException(MetisErrorCode.EntityWithoutMapping, entity);
+				metaDataVO.addError(MetisErrorCode.EntityWithoutMapping, entity);
+			} else {
+				aliasToXEntityMap.put(alias, xEntity);
+				String replacement = String.format("%s %s %s", tableMatcher.group(1), xEntity.getTable(), alias);
+				tableMatcher.appendReplacement(tableReplacerBuffer, replacement);
+			}
+		}
+		tableMatcher.appendTail(tableReplacerBuffer);
+
+		StringBuffer joinCondReplacerBuffer = new StringBuffer();
+		Pattern joinCondPattern = Pattern.compile("on\\s+(\\w+([.]\\w+)?)\\s*[~]\\s*(\\w+([.]\\w+)?)", Pattern.CASE_INSENSITIVE);
+		Matcher joinCondMatcher = joinCondPattern.matcher(tableReplacerBuffer.toString());
+		while (joinCondMatcher.find()) {
+			String leftAlias = null;
+			String leftColumn = null;
+			String rightAlias = null;
+			String rightColumn = null;
+
+			boolean validJoin = true;
+			if (joinCondMatcher.group(2) != null && joinCondMatcher.group(4) != null) {
+				//throw new MetisException(MetisErrorCode.EqlInvalidJoin, joinCondMatcher.group(0));
+				metaDataVO.addError(MetisErrorCode.EqlInvalidJoin, joinCondMatcher.group(0));
+				validJoin = false;
+			} else if (joinCondMatcher.group(2) == null && joinCondMatcher.group(4) == null) { // one PK is FK to another one
+				leftAlias = joinCondMatcher.group(1);
+				leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
+				rightAlias = joinCondMatcher.group(3);
+				rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
+			} else if (joinCondMatcher.group(2) != null) {
+				String[] split = joinCondMatcher.group(1).split("\\.");
+				leftAlias = split[0].trim();
+				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, leftAlias).findProperty(split[1].trim());
+
+				checkJoinProperty(xAProp, joinCondMatcher.group(1));
+
+				if (xAProp instanceof XMany2One) {
+					XMany2One xMany2One = (XMany2One) xAProp;
+					leftColumn = xMany2One.getColumn();
+					rightAlias = joinCondMatcher.group(3);
+					rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
+				} else { // XOne2Many
+					XOne2Many xOne2Many = (XOne2Many) xAProp;
+					leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
+					rightAlias = joinCondMatcher.group(3);
+					rightColumn = xOne2Many.getManySideColumn();
+				}
+			} else { //joinCondMatcher.group(4) != null
+				String[] split = joinCondMatcher.group(3).split("\\.");
+				rightAlias = split[0].trim();
+				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, rightAlias).findProperty(split[1].trim());
+
+				checkJoinProperty(xAProp, joinCondMatcher.group(3));
+
+				if (xAProp instanceof XMany2One) {
+					XMany2One xMany2One = (XMany2One) xAProp;
+					rightColumn = xMany2One.getColumn();
+					leftAlias = joinCondMatcher.group(1);
+					leftColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
+				} else { // XOne2Many
+					XOne2Many xOne2Many = (XOne2Many) xAProp;
+					rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
+					leftAlias = joinCondMatcher.group(1);
+					leftColumn = xOne2Many.getManySideColumn();
+				}
+			}
+
+			// Using ~ char instead of . to be ignored in the column replacement (next paragraph),
+			// and then at the end the ~ replaced with .
+			if (validJoin) {
+				joinCondMatcher.appendReplacement(joinCondReplacerBuffer,
+					String.format("on %s~%s=%s~%s", leftAlias, leftColumn, rightAlias, rightColumn));
+			}
+		}
+		joinCondMatcher.appendTail(joinCondReplacerBuffer);
+
+		StringBuffer columnReplacerBuffer = new StringBuffer();
+		Pattern columnPattern = Pattern.compile("(\\w+)\\.(\\w+)", Pattern.CASE_INSENSITIVE);
+		Matcher columnMatcher = columnPattern.matcher(joinCondReplacerBuffer.toString());
+		while (columnMatcher.find()) {
+			String alias = columnMatcher.group(1);
+			String prop = columnMatcher.group(2);
+			if (aliasToXEntityMap.containsKey(alias)) {
+				XEntity xEntity = aliasToXEntityMap.get(alias);
+				if (xEntity.findProperty(prop) == null) {
+					//throw new MetisException(MetisErrorCode.EqlUnknownProperty, String.format("%s.%s", alias, prop));
+					metaDataVO.addError(MetisErrorCode.EqlUnknownProperty, String.format("%s.%s", alias, prop));
+				} else {
+					XAbstractProperty xAProp = xEntity.findProperty(prop);
+					if (xAProp instanceof XProperty) {
+						XProperty xProperty = (XProperty) xAProp;
+						String replacement = String.format("%s.%s", alias, xProperty.getColumn());
+						columnMatcher.appendReplacement(columnReplacerBuffer, replacement);
+					} else {
+						//throw new MetisException(MetisErrorCode.EqlInvalidAssociationUsage, String.format("%s.%s", alias, prop));
+						metaDataVO.addError(MetisErrorCode.EqlInvalidAssociationUsage, String.format("%s.%s", alias, prop));
+					}
+				}
+			}
+		}
+		columnMatcher.appendTail(columnReplacerBuffer);
+
+		metaDataVO.setAliasToXEntityMap(aliasToXEntityMap);
+		metaDataVO.setSql(columnReplacerBuffer.toString().replace('~', '.'));
+		return metaDataVO;
+	}
+
+	// ---------------
 
 	@Override
 	public List<Map<String, Object>> execute(SelectQueryQVO queryQVO) {
@@ -596,127 +742,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		for (DataSourceRelation relation : relations) {
 			map.put(relation.getSourcePointerField(), relation);
 		}
-	}
-
-	private String processEntityQuery(Long dbConnId, String query) {
-		XSchema xSchema = dbConnectionService.getSchemaOfMapping(dbConnId);
-
-		if (xSchema == null) {
-			throw new MetisException(MetisErrorCode.NoMappingForConnection, dbConnectionService.load(dbConnId).getName());
-		}
-
-		Map<String, XEntity> aliasToXEntityMap = new HashMap<>();
-
-		StringBuffer tableReplacerBuffer = new StringBuffer();
-		Pattern tablePattern = Pattern.compile("(from|join)\\s+(\\w+\\.)?(\\w+)(\\s+(\\w+))?", Pattern.CASE_INSENSITIVE);
-		Matcher tableMatcher = tablePattern.matcher(query);
-		while (tableMatcher.find()) {
-			String schema = tableMatcher.group(2);
-			if (schema != null) {
-				throw new MetisException(MetisErrorCode.SchemaInEql, schema);
-			}
-
-			String alias = tableMatcher.group(5);
-			if (aliasToXEntityMap.containsKey(alias)) {
-				throw new MetisException(MetisErrorCode.DuplicateAlias, alias);
-			}
-			String entity = tableMatcher.group(3);
-
-			XEntity xEntity = xSchema.findEntity(entity);
-			if (xEntity == null || xEntity.getTable() == null) {
-				throw new MetisException(MetisErrorCode.EntityWithoutMapping, entity);
-			}
-			aliasToXEntityMap.put(alias, xEntity);
-			String replacement = String.format("%s %s %s", tableMatcher.group(1), xEntity.getTable(), alias);
-			tableMatcher.appendReplacement(tableReplacerBuffer, replacement);
-		}
-		tableMatcher.appendTail(tableReplacerBuffer);
-
-		StringBuffer joinCondReplacerBuffer = new StringBuffer();
-		Pattern joinCondPattern = Pattern.compile("on\\s+(\\w+([.]\\w+)?)\\s*[~]\\s*(\\w+([.]\\w+)?)", Pattern.CASE_INSENSITIVE);
-		Matcher joinCondMatcher = joinCondPattern.matcher(tableReplacerBuffer.toString());
-		while (joinCondMatcher.find()) {
-			String leftAlias;
-			String leftColumn;
-			String rightAlias;
-			String rightColumn;
-
-			if (joinCondMatcher.group(2) != null && joinCondMatcher.group(4) != null) {
-				throw new MetisException(MetisErrorCode.EqlInvalidJoin, joinCondMatcher.group(0));
-			} else if (joinCondMatcher.group(2) == null && joinCondMatcher.group(4) == null) { // one PK is FK to another one
-				leftAlias = joinCondMatcher.group(1);
-				leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
-				rightAlias = joinCondMatcher.group(3);
-				rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
-			} else if (joinCondMatcher.group(2) != null) {
-				String[] split = joinCondMatcher.group(1).split("\\.");
-				leftAlias = split[0].trim();
-				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, leftAlias).findProperty(split[1].trim());
-
-				checkJoinProperty(xAProp, joinCondMatcher.group(1));
-
-				if (xAProp instanceof XMany2One) {
-					XMany2One xMany2One = (XMany2One) xAProp;
-					leftColumn = xMany2One.getColumn();
-					rightAlias = joinCondMatcher.group(3);
-					rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
-				} else { // XOne2Many
-					XOne2Many xOne2Many = (XOne2Many) xAProp;
-					leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
-					rightAlias = joinCondMatcher.group(3);
-					rightColumn = xOne2Many.getManySideColumn();
-				}
-			} else { //joinCondMatcher.group(4) != null
-				String[] split = joinCondMatcher.group(3).split("\\.");
-				rightAlias = split[0].trim();
-				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, rightAlias).findProperty(split[1].trim());
-
-				checkJoinProperty(xAProp, joinCondMatcher.group(3));
-
-				if (xAProp instanceof XMany2One) {
-					XMany2One xMany2One = (XMany2One) xAProp;
-					rightColumn = xMany2One.getColumn();
-					leftAlias = joinCondMatcher.group(1);
-					leftColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
-				} else { // XOne2Many
-					XOne2Many xOne2Many = (XOne2Many) xAProp;
-					rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
-					leftAlias = joinCondMatcher.group(1);
-					leftColumn = xOne2Many.getManySideColumn();
-				}
-			}
-
-			// Using ~ char instead of . to be ignored in the column replacement (next paragraph),
-			// and then at the end the ~ replaced with .
-			joinCondMatcher.appendReplacement(joinCondReplacerBuffer,
-				String.format("on %s~%s=%s~%s", leftAlias, leftColumn, rightAlias, rightColumn));
-		}
-		joinCondMatcher.appendTail(joinCondReplacerBuffer);
-
-		StringBuffer columnReplacerBuffer = new StringBuffer();
-		Pattern columnPattern = Pattern.compile("(\\w+)\\.(\\w+)", Pattern.CASE_INSENSITIVE);
-		Matcher columnMatcher = columnPattern.matcher(joinCondReplacerBuffer.toString());
-		while (columnMatcher.find()) {
-			String alias = columnMatcher.group(1);
-			String prop = columnMatcher.group(2);
-			if (aliasToXEntityMap.containsKey(alias)) {
-				XEntity xEntity = aliasToXEntityMap.get(alias);
-				if (xEntity.findProperty(prop) == null) {
-					throw new MetisException(MetisErrorCode.EqlUnknownProperty, String.format("%s.%s", alias, prop));
-				}
-				XAbstractProperty xAProp = xEntity.findProperty(prop);
-				if (xAProp instanceof XProperty) {
-					XProperty xProperty = (XProperty) xAProp;
-					String replacement = String.format("%s.%s", alias, xProperty.getColumn());
-					columnMatcher.appendReplacement(columnReplacerBuffer, replacement);
-				} else {
-					throw new MetisException(MetisErrorCode.EqlInvalidAssociationUsage, String.format("%s.%s", alias, prop));
-				}
-			}
-		}
-		columnMatcher.appendTail(columnReplacerBuffer);
-
-		return columnReplacerBuffer.toString().replace('~', '.');
 	}
 
 	private void checkJoinProperty(XAbstractProperty xAProp, String joinClause) {

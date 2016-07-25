@@ -7,6 +7,7 @@ import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.vo.filter.DataSourceFVO;
 import org.devocative.metis.vo.query.AggregateQueryQVO;
 import org.devocative.metis.vo.query.CountQueryQVO;
+import org.devocative.metis.vo.query.EQLMetaDataVO;
 import org.devocative.metis.vo.query.SelectQueryQVO;
 
 import java.io.Serializable;
@@ -34,6 +35,8 @@ public interface IDataSourceService {
 
 	// ---------------
 	String processQuery(Long dbConnId, String query, XDSQueryMode mode);
+
+	EQLMetaDataVO processEntityQuery(Long dbConnId, String query);
 
 	List<Map<String, Object>> execute(SelectQueryQVO queryQVO);
 
