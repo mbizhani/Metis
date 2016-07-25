@@ -1,5 +1,6 @@
 package org.devocative.metis.web.dPage.data.form;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -35,10 +36,12 @@ class ParamStep extends WWizardStepPanel {
 	}
 
 	@Override
-	public void onStepSubmit() {
+	public boolean onStepSubmit(AjaxRequestTarget target) {
 		if (dataVO.isDataSourceEditable()) {
 			dataService.updateFieldsByQuery(dataVO);
 		}
+
+		return true;
 	}
 
 	@Override
