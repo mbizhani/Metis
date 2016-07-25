@@ -5,6 +5,7 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.iservice.IDBConnectionService;
@@ -12,16 +13,19 @@ import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.query.EQLMetaDataVO;
 import org.devocative.metis.web.panel.QueryEditorPanel;
 import org.devocative.wickomp.form.code.OCode;
 import org.devocative.wickomp.form.code.OCodeMode;
 import org.devocative.wickomp.form.code.WCodeInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
+import org.devocative.wickomp.html.WMessager;
 import org.devocative.wickomp.html.window.WModalWindow;
 import org.devocative.wickomp.opt.OSize;
 
 import javax.inject.Inject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class QueryStep extends WWizardStepPanel {
@@ -29,6 +33,8 @@ class QueryStep extends WWizardStepPanel {
 
 	private OCode oCode = new OCode(OCodeMode.SQL);
 	private WModalWindow modalWindow;
+	private DAjaxButton showEqlWarns;
+	private boolean waitOnWarn = false;
 
 	@Inject
 	private IDataService dataService;
@@ -44,10 +50,30 @@ class QueryStep extends WWizardStepPanel {
 	}
 
 	@Override
-	public void onStepSubmit() {
+	public boolean onStepSubmit(AjaxRequestTarget target) {
 		if (dataVO.isDataSourceEditable()) {
 			dataService.updateParamsByQuery(dataVO.getQuery().getText(), dataVO.getParams());
+
+			if (dataVO.getQuery().getMode() == XDSQueryMode.Eql) {
+				EQLMetaDataVO metaDataVO = dataSourceService.processEntityQuery(
+					dataVO.getConnectionId(),
+					dataVO.getQuery().getText());
+
+				if (!waitOnWarn && metaDataVO.getErrors().size() > 0) {
+					waitOnWarn = true;
+
+					StringBuilder builder = new StringBuilder();
+					for (Map.Entry<MetisErrorCode, List<String>> entry : metaDataVO.getErrors().entrySet()) {
+						builder.append(entry.getKey().getCode());
+						builder.append(WMessager.getHtml(entry.getValue()));
+					}
+					WMessager.show("Warnings", builder.toString(), target);
+
+					return false;
+				}
+			}
 		}
+		return true;
 	}
 
 	@Override
@@ -91,6 +117,25 @@ class QueryStep extends WWizardStepPanel {
 				//WMessager.show("SQL", String.format("<p class='al-ltr'>%s</p>", sql), target);
 			}
 		});
+
+		add(showEqlWarns = new DAjaxButton("showEqlWarns") {
+			@Override
+			protected void onSubmit(AjaxRequestTarget target) {
+				EQLMetaDataVO metaDataVO = dataSourceService.processEntityQuery(
+					dataVO.getConnectionId(),
+					dataVO.getQuery().getText());
+				if (metaDataVO.getErrors().size() > 0) {
+					StringBuilder builder = new StringBuilder();
+					for (Map.Entry<MetisErrorCode, List<String>> entry : metaDataVO.getErrors().entrySet()) {
+						builder.append(entry.getKey().getCode());
+						builder.append(WMessager.getHtml(entry.getValue()));
+					}
+					WMessager.show("Warnings", builder.toString(), target);
+				} else {
+					WMessager.show("Info", "No Warnings!", target);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -108,5 +153,6 @@ class QueryStep extends WWizardStepPanel {
 		}
 
 		//showSQL.setVisible(dataVO.getQuery().getMode() != XDSQueryMode.Sql);
+		showEqlWarns.setEnabled(dataVO.isDataSourceEditable() && dataVO.getQuery().getMode() == XDSQueryMode.Eql);
 	}
 }
