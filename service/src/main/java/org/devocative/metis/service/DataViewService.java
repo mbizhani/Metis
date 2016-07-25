@@ -4,6 +4,7 @@ import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.demeter.iservice.ICacheService;
+import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.data.DataView;
@@ -46,7 +47,13 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 	public DataView load(Long id) {
 		DataView dv = dataViewCache.findByProperty("id", id);
 		if (dv == null) {
-			dv = persistorService.get(DataView.class, id);
+			dv = persistorService
+				.createQueryBuilder()
+				.addFrom(DataView.class, "ent")
+				.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+				.addWhere("and ent.id = :id")
+				.addParam("id", id)
+				.object();
 			dataViewCache.put(dv.getName(), dv);
 		}
 		return dv;
@@ -63,6 +70,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DataView.class, "ent")
+			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
 			.addWhere("and ent.name = :name")
 			.addParam("name", key)
 			.object();
