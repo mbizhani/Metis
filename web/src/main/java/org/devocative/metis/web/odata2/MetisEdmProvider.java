@@ -53,30 +53,40 @@ public class MetisEdmProvider extends EdmProvider {
 	public List<Schema> getSchemas() throws ODataException {
 		logger.info("OData: GetSchema: User=[{}]", securityService.getCurrentUser());
 
-		EntityContainer entityContainer = new EntityContainer()
-			.setName(ENTITY_CONTAINER)
-			.setDefaultEntityContainer(true);
+		try {
+			EntityContainer entityContainer = new EntityContainer()
+				.setName(ENTITY_CONTAINER)
+				.setDefaultEntityContainer(true);
 
-		List<EntityType> entityTypeList = new ArrayList<>();
-		List<EntitySet> entitySetList = new ArrayList<EntitySet>();
+			List<EntityType> entityTypeList = new ArrayList<>();
+			List<EntitySet> entitySetList = new ArrayList<>();
 
-		List<String> dataViewsForOData = dataViewService.listForOData();
-		for (String dataViewName : dataViewsForOData) {
-			FullQualifiedName edmFQName = new FullQualifiedName(NAMESPACE, dataViewName);
+			List<String> dataViewsForOData = dataViewService.listForOData();
+			for (String dataViewName : dataViewsForOData) {
+				try {
+					FullQualifiedName edmFQName = new FullQualifiedName(NAMESPACE, dataViewName);
 
-			EntityType entityType = getEntityType(edmFQName);
-			entityTypeList.add(entityType);
+					EntityType entityType = getEntityType(edmFQName);
+					entityTypeList.add(entityType);
 
-			entitySetList.add(getEntitySet(ENTITY_CONTAINER, dataViewName));
+					entitySetList.add(getEntitySet(ENTITY_CONTAINER, dataViewName));
+				} catch (Exception e) {
+					logger.error("OData: GetSchema: EntityType(DataView) addition problem = " + dataViewName, e);
+				}
+			}
+
+			entityContainer.setEntitySets(entitySetList);
+
+			Schema schema = new Schema()
+				.setNamespace(NAMESPACE)
+				.setEntityTypes(entityTypeList)
+				.setEntityContainers(Collections.singletonList(entityContainer));
+			return Collections.singletonList(schema);
+
+		} catch (Exception e) {
+			logger.error("OData: GetSchema", e);
+			throw new ODataException(e);
 		}
-
-		entityContainer.setEntitySets(entitySetList);
-
-		Schema schema = new Schema()
-			.setNamespace(NAMESPACE)
-			.setEntityTypes(entityTypeList)
-			.setEntityContainers(Collections.singletonList(entityContainer));
-		return Collections.singletonList(schema);
 	}
 
 	@Override
@@ -91,9 +101,9 @@ public class MetisEdmProvider extends EdmProvider {
 				for (DataFieldVO fieldVO : dataVO.getFields()) {
 					EdmSimpleTypeKind type = EdmSimpleTypeKind.String;
 
-					/*switch (fieldVO.getType()) {
+					switch (fieldVO.getType()) {
 						case Integer:
-							type = EdmSimpleTypeKind.Int64;
+							type = EdmSimpleTypeKind.Decimal;
 							break;
 						case Real:
 							type = EdmSimpleTypeKind.Double;
@@ -102,10 +112,7 @@ public class MetisEdmProvider extends EdmProvider {
 						case DateTime:
 							type = EdmSimpleTypeKind.DateTime;
 							break;
-						case Boolean:
-							type = EdmSimpleTypeKind.Boolean;
-							break;
-					}*/
+					}
 
 					Property property = new SimpleProperty()
 						.setName(fieldVO.getName())

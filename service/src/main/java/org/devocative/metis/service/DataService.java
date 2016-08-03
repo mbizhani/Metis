@@ -298,8 +298,8 @@ public class DataService implements IDataService {
 
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
 		selectQVO
-			.setPageIndex(1L)
-			.setPageSize(100L)
+			.setPageIndex(request.getPageIndex())
+			.setPageSize(request.getPageSize())
 			.setFilterExpression(request.getFilterExpression())
 			.setInputParams(request.getInputParams());
 

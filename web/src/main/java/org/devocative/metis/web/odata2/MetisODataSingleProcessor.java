@@ -55,9 +55,10 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		logger.info("OData: DataList: DataView=[{}] User=[{}]",
 			entitySet.getEntityType().getName(), securityService.getCurrentUser());
 
+		// TODO using OData top and skip if available
 		ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName())
 			.setPageIndex(1)
-			.setPageSize(10);
+			.setPageSize(2000);
 
 		Map<String, Object> inputParams = new HashMap<>();
 
