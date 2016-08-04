@@ -77,7 +77,7 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
-			Map<String, List<String>> webParams = WebUtil.toMap(getWebRequest().getRequestParameters());
+			Map<String, List<String>> webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true);
 			filter.putAll(dataSourceService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), webParams, false));
 
 			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getFields(), dataVO.getParams()));
