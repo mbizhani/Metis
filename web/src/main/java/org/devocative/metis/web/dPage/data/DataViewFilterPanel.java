@@ -49,8 +49,6 @@ public class DataViewFilterPanel extends DPanel {
 
 		this.filter = filter;
 
-		//fillFilterMapByRequestParams(fields, params);
-
 		/*disableFilledFilter = getWebRequest()
 			.getQueryParameters()
 			.getParameterValue("search")
@@ -179,14 +177,20 @@ public class DataViewFilterPanel extends DPanel {
 					if (filter.containsKey(fieldVO.getName())) {
 						Object filterValue = filter.get(fieldVO.getName());
 						if (filterValue instanceof List) {
-							List<String> sentKeys = (List<String>) filterValue;
+							List<?> sentKeys = (List) filterValue;
 							List<KeyValueVO<Serializable, String>> onlySentOnes = new ArrayList<>();
-							for (String sentKey : sentKeys) {
-								for (KeyValueVO<Serializable, String> vo : lookUpList) {
-									if (sentKey.equals(vo.getKey().toString())) {
-										onlySentOnes.add(vo);
-										break;
+							for (Object sentKeyObj : sentKeys) {
+								if (sentKeyObj instanceof String) {
+									String sentKey = (String) sentKeyObj;
+									for (KeyValueVO<Serializable, String> vo : lookUpList) {
+										if (sentKey.equals(vo.getKey().toString())) {
+											onlySentOnes.add(vo);
+											break;
+										}
 									}
+								} else if (sentKeyObj instanceof KeyValueVO) {
+									KeyValueVO<Serializable, String> sentKey = (KeyValueVO) sentKeyObj;
+									onlySentOnes.add(sentKey);
 								}
 							}
 							lookUpList = onlySentOnes;
