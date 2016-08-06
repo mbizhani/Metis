@@ -6,11 +6,13 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.validator.RangeValidator;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.entity.data.config.XDVAggregatorFunction;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.wickomp.form.WNumberInput;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
@@ -50,7 +52,7 @@ class ColumnUIStep extends WWizardStepPanel {
 				item.add(new WSelectionInput("resultType", new PropertyModel<String>(fieldVO, "resultType"), resultTypeList, false)
 						.setLabelVisible(false)
 						.setRequired(true)
-						.setLabel(new Model<>(getString("XDVField.resultType", null, "resultType") + " " + fieldVO.getName()))
+						.setLabel(new Model<>(getString("XDSField.resultType") + " " + fieldVO.getName()))
 						.setEnabled(enb)
 				);
 
@@ -64,6 +66,11 @@ class ColumnUIStep extends WWizardStepPanel {
 						.setLabelVisible(false)
 						.setVisible(showFooter)
 				);
+
+				item.add(new WNumberInput("columnWidth", new PropertyModel<Number>(fieldVO, "columnWidth"), Integer.class)
+					.setLabelVisible(false)
+					.setLabel(new Model<>(getString("XDVField.columnWidth") + " " + fieldVO.getName()))
+					.add(RangeValidator.range(50, 500)));
 			}
 		});
 	}

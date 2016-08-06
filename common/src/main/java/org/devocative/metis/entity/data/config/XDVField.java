@@ -21,6 +21,9 @@ public class XDVField implements Serializable {
 	private Boolean inFilterPanel;
 
 	@XStreamAsAttribute
+	private Integer columnWidth;
+
+	@XStreamAsAttribute
 	private XDSFieldResultType resultType;
 
 	@XStreamAsAttribute
@@ -58,6 +61,14 @@ public class XDVField implements Serializable {
 
 	public void setInFilterPanel(Boolean inFilterPanel) {
 		this.inFilterPanel = inFilterPanel;
+	}
+
+	public Integer getColumnWidth() {
+		return columnWidth;
+	}
+
+	public void setColumnWidth(Integer columnWidth) {
+		this.columnWidth = columnWidth;
 	}
 
 	public XDSFieldResultType getResultType() {

@@ -34,6 +34,11 @@ public class DataFieldVO extends DataAbstractFieldVO {
 	private Boolean inFilterPanel;
 
 	/**
+	 * XDVField.columnWidth
+	 */
+	private Integer columnWidth;
+
+	/**
 	 * XDSAbstractField.filterType
 	 */
 	private XDSFieldFilterType filterType;
@@ -96,6 +101,14 @@ public class DataFieldVO extends DataAbstractFieldVO {
 
 	public void setInFilterPanel(Boolean inFilterPanel) {
 		this.inFilterPanel = inFilterPanel;
+	}
+
+	public Integer getColumnWidth() {
+		return columnWidth;
+	}
+
+	public void setColumnWidth(Integer columnWidth) {
+		this.columnWidth = columnWidth;
 	}
 
 	public XDSFieldFilterType getFilterType() {

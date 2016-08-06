@@ -41,7 +41,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private AsyncBehavior asyncBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
 	private OBaseGrid<Map<String, Object>> oBaseGrid;
-	private boolean showFooter = false;
 
 	private String sentDBConnection;
 
@@ -82,7 +81,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		grid.setEnabled(false);
 
 		oBaseGrid
-			.setShowFooter(showFooter)
+			.setShowFooter(true)
 			.setColumns(columns)
 			.setMultiSort(true)
 			.setSelectionIndicator(true)
@@ -196,16 +195,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			if (XDSFieldResultType.Shown.equals(fieldVO.getResultType())) {
 				column = new OPropertyColumn<>(new Model<>(fieldVO.getTitleOrName()), fieldVO.getName());
 				column.setSortable(true);
-			} else if (XDSFieldResultType.Hidden.equals(fieldVO.getResultType())) {
-				column = new OHiddenColumn<>(fieldVO.getName());
-			}
 
-			if (column != null) {
-				//if (fieldVO.getFooter() != null && fieldVO.getFooter().size() > 0) {
-				column.setHasFooter(true);
-				showFooter = true;
-				//}
-				columns.add(column);
+				if (fieldVO.getColumnWidth() != null) {
+					column.setWidth(OSize.fixed(fieldVO.getColumnWidth()));
+				}
 
 				if (!fieldVO.getIsKeyFieldSafely() && !fieldVO.getIsSelfRelPointerFieldSafely()) {
 					switch (fieldVO.getType()) {
@@ -226,6 +219,13 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							break;
 					}
 				}
+
+				column.setHasFooter(true);
+				columns.add(column);
+
+			} else if (XDSFieldResultType.Hidden.equals(fieldVO.getResultType())) {
+				column = new OHiddenColumn<>(fieldVO.getName());
+				columns.add(column);
 			}
 		}
 
