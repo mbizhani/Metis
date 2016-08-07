@@ -1,6 +1,10 @@
 package org.devocative.metis.service;
 
+import org.devocative.adroit.CalendarUtil;
+import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.adroit.vo.KeyValueVO;
+import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.MetisErrorCode;
@@ -27,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -311,6 +317,80 @@ public class DataService implements IDataService {
 		return list;
 	}
 
+	@Override
+	public Map<String, Object> convertSimpleParamsToFilter(
+		Long dataSourceId,
+		List<DataFieldVO> fields,
+		Map<String, List<String>> params,
+		String sentDBConnection) {
+
+		Map<String, Object> result = new HashMap<>();
+
+		for (DataFieldVO fieldVO : fields) {
+			String fieldName = fieldVO.getName();
+			List<String> values = params.get(fieldName);
+
+			if (values != null && values.size() > 0) {
+				switch (fieldVO.getFilterType()) {
+					case Equal:
+						result.put(fieldName, convertQueryParam(fieldVO.getType(), values));
+						break;
+
+					case Contain:
+						String paramValue = values.get(0);
+						result.put(fieldName, convertQueryParam(fieldVO.getType(), paramValue));
+						break;
+
+					case List:
+					case Search:
+						DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
+						XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
+
+						Map<String, Object> lookUpFilter = new HashMap<>();
+
+						if (fieldVO.getTargetDSFilter() != null) {
+							Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
+							lookUpFilter.putAll(filterTargetDS);
+						}
+
+						XDSField keyField = targetXDS.getField(targetDS.getKeyField());
+						lookUpFilter.put(keyField.getName(), convertQueryParam(keyField.getType(), values));
+
+						List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
+							dataSourceId,
+							fieldVO.getTargetDSId(),
+							sentDBConnection,
+							lookUpFilter
+						);
+						result.put(fieldName, filtered);
+						break;
+				}
+			} else if (params.containsKey(fieldName + "_u") || params.containsKey(fieldName + "_l")) {
+				if (fieldVO.getFilterType().equals(XDSFieldFilterType.Range)) {
+					Serializable lower = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_l").get(0));
+					Serializable upper = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_u").get(0));
+					RangeVO rangeVO = new RangeVO<>(lower, upper);
+					result.put(fieldName, rangeVO);
+				}
+			} else if (fieldVO.getTargetDSFilter() != null) {
+				DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
+				XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
+				Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
+				List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
+					dataSourceId,
+					fieldVO.getTargetDSId(),
+					sentDBConnection,
+					filterTargetDS
+				);
+				result.put(fieldName, filtered);
+
+			}
+		}
+
+		return result;
+	}
+
+
 	// ------------------------------ PRIVATE METHODS
 
 	private List<String> getSelectedFields(XDataView xDataView) {
@@ -328,4 +408,97 @@ public class DataService implements IDataService {
 		return selectFields;
 	}
 
+	private Object convertQueryParam(XDSFieldType fieldType, List<String> values) {
+		List<Object> convertedValues = new ArrayList<>();
+		for (String value : values) {
+			convertedValues.add(convertQueryParam(fieldType, value));
+		}
+		return convertedValues;
+	}
+
+	private Serializable convertQueryParam(XDSFieldType fieldType, String value) {
+		Serializable result = null;
+
+		if (value != null) {
+			switch (fieldType) {
+				case String:
+					result = value;
+					break;
+
+				case Integer:
+					result = Long.valueOf(value);
+					break;
+
+				case Real:
+					result = new BigDecimal(value);
+					break;
+
+				case Date:
+					result = CalendarUtil.toGregorian(value, "yyyyMMdd");
+					break;
+
+				case DateTime:
+					result = CalendarUtil.toGregorian(value, "yyyyMMddHHmmss");
+					break;
+
+				case Boolean:
+					result = Boolean.valueOf(value);
+					break;
+
+				case LookUp:
+					break;
+			}
+		}
+
+		return result;
+	}
+
+	private Map<String, Object> createMapOfFilterTargetDS(String filter, List<XDSField> xdsFields) {
+		Map<String, List<String>> paramsMap = new HashMap<>();
+
+		String[] params = filter.split("[&]");
+		for (String paramValue : params) {
+			int i = paramValue.indexOf("=");
+			String param = paramValue.substring(0, i).toLowerCase();
+			String value = paramValue.substring(i + 1);
+			if (paramsMap.containsKey(param)) {
+				paramsMap.get(param).add(value);
+			} else {
+				paramsMap.put(param, ObjectUtil.asList(value));
+			}
+		}
+
+		Map<String, Object> result = new HashMap<>();
+		for (XDSField xdsField : xdsFields) {
+			String fieldName = xdsField.getName();
+			List<String> values = paramsMap.get(fieldName);
+
+			if (values != null && values.size() > 0) {
+				switch (xdsField.getFilterType()) {
+					case Equal:
+						result.put(fieldName, convertQueryParam(xdsField.getType(), values));
+						break;
+
+					case Contain:
+						String paramValue = values.get(0);
+						result.put(fieldName, convertQueryParam(xdsField.getType(), paramValue));
+						break;
+
+					case List:
+					case Search:
+						result.put(fieldName, values);
+						break;
+				}
+			} else if (paramsMap.containsKey(fieldName + "_u") || paramsMap.containsKey(fieldName + "_l")) {
+				if (xdsField.getFilterType().equals(XDSFieldFilterType.Range)) {
+					Serializable lower = convertQueryParam(xdsField.getType(), paramsMap.get(fieldName + "_l").get(0));
+					Serializable upper = convertQueryParam(xdsField.getType(), paramsMap.get(fieldName + "_u").get(0));
+					RangeVO rangeVO = new RangeVO<>(lower, upper);
+					result.put(fieldName, rangeVO);
+				}
+			}
+		}
+
+		return result;
+	}
 }

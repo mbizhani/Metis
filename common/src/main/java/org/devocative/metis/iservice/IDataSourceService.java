@@ -47,6 +47,4 @@ public interface IDataSourceService {
 	long execute(CountQueryQVO queryQVO);
 
 	List<Map<String, Object>> execute(AggregateQueryQVO queryQVO);
-
-	Map<String, Object> convertSimpleParamsToFilter(Long dsId, Map<String, List<String>> params, boolean usedInList);
 }

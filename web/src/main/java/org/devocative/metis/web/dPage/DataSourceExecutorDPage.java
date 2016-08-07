@@ -206,6 +206,11 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 								protected KeyValueVO<Serializable, String> createServerObject(String key) {
 									return new KeyValueVO<Serializable, String>(key, null);
 								}
+
+								@Override
+								protected List<KeyValueVO<String, String>> createClientOptions(List<KeyValueVO<Serializable, String>> list) {
+									return null;
+								}
 							}
 								.setLabelVisible(false);
 						}

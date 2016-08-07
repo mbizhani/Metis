@@ -9,11 +9,12 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.iservice.IDataService;
-import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
@@ -35,9 +36,6 @@ public class DataViewExecutorDPage extends DPage {
 
 	@Inject
 	private IDataService dataService;
-
-	@Inject
-	private IDataSourceService dataSourceService;
 
 	// ------------------------------
 
@@ -77,8 +75,15 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
+			String sentDBConnection = null;
+			if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
+				sentDBConnection = getWebRequest()
+					.getRequestParameters()
+					.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
+					.toOptionalString();
+			}
 			Map<String, List<String>> webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true);
-			filter.putAll(dataSourceService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), webParams, false));
+			filter.putAll(dataService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), dataVO.getFields(), webParams, sentDBConnection));
 
 			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getFields(), dataVO.getParams()));
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
@@ -103,11 +108,6 @@ public class DataViewExecutorDPage extends DPage {
 		if (mainGrid != null) {
 			mainGrid.setSelectionJSCallback(jsCallback);
 		}
-		return this;
-	}
-
-	public DataViewExecutorDPage addToFilter(Map<String, List<String>> simpleParams) {
-		filter.putAll(dataSourceService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), simpleParams, false));
 		return this;
 	}
 

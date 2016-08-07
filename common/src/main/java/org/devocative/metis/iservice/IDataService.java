@@ -31,4 +31,10 @@ public interface IDataService {
 	DataViewRVO executeDataViewForParent(DataViewQVO request);
 
 	List<Map<String, Object>> executeOData(ODataQVO request);
+
+	Map<String, Object> convertSimpleParamsToFilter(
+		Long dataSourceId,
+		List<DataFieldVO> fields,
+		Map<String, List<String>> params,
+		String sentDBConnection);
 }

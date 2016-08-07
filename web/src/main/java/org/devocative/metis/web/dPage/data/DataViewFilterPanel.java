@@ -8,7 +8,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
 import org.devocative.adroit.ConfigUtil;
-import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.MetisConfigKey;
@@ -25,7 +24,9 @@ import org.devocative.wickomp.opt.OSize;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class DataViewFilterPanel extends DPanel {
 	private Map<String, Object> filter;
@@ -163,49 +164,22 @@ public class DataViewFilterPanel extends DPanel {
 				break;
 
 			case LookUp:
-				final Map<String, List<String>> targetDSFilter = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter());
-
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
-					List<KeyValueVO<Serializable, String>> lookUpList = dataSourceService
-						.executeLookUp(
+					List<KeyValueVO<Serializable, String>> lookUpList;
+					if (filter.containsKey(fieldVO.getName())) {
+						lookUpList = (List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName());
+					} else {
+						lookUpList = dataSourceService.executeLookUp(
 							dataSourceId,
 							fieldVO.getTargetDSId(),
 							sentDBConnection,
-							dataSourceService.convertSimpleParamsToFilter(fieldVO.getTargetDSId(), targetDSFilter, true)
+							null
 						);
-
-					if (filter.containsKey(fieldVO.getName())) {
-						Object filterValue = filter.get(fieldVO.getName());
-						if (filterValue instanceof List) {
-							List<?> sentKeys = (List) filterValue;
-							List<KeyValueVO<Serializable, String>> onlySentOnes = new ArrayList<>();
-							for (Object sentKeyObj : sentKeys) {
-								if (sentKeyObj instanceof String) {
-									String sentKey = (String) sentKeyObj;
-									for (KeyValueVO<Serializable, String> vo : lookUpList) {
-										if (sentKey.equals(vo.getKey().toString())) {
-											onlySentOnes.add(vo);
-											break;
-										}
-									}
-								} else if (sentKeyObj instanceof KeyValueVO) {
-									KeyValueVO<Serializable, String> sentKey = (KeyValueVO) sentKeyObj;
-									onlySentOnes.add(sentKey);
-								}
-							}
-							lookUpList = onlySentOnes;
-							filter.put(fieldVO.getName(), onlySentOnes);
-						}
-					}
-
-					if (targetDSFilter.size() > 0) {
-						filter.put(fieldVO.getName(), lookUpList);
 					}
 
 					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, true);
 				} else {
-					//TODO if filter.containsKey(fieldVO.getName()), only show those, disable/enable popup based on disableFilledFilter
-					fieldFormItem = new WClientSearchableListInput<KeyValueVO<Serializable, String>>(fieldVO.getName()) {
+					fieldFormItem = new WClientSearchableListInput<KeyValueVO<String, String>>(fieldVO.getName()) {
 						{
 							getModalWindowOptions().setWidth(OSize.percent(80));
 						}
@@ -217,15 +191,19 @@ public class DataViewFilterPanel extends DPanel {
 								selectionPanelId,
 								Collections.singletonList(targetDSName))
 								.setSelectionJSCallback(getJSCallback())
-								.addToFilter(targetDSFilter)
 								.setMultiSelect(true);
 						}
 
 						@Override
-						protected KeyValueVO<Serializable, String> createServerObject(String key) {
-							return new KeyValueVO<Serializable, String>(key, null);
+						protected KeyValueVO<String, String> createServerObject(String key) {
+							return new KeyValueVO<>(key, null);
 						}
-					};
+
+						@Override
+						protected List<KeyValueVO<String, String>> createClientOptions(List<KeyValueVO<String, String>> list) {
+							return list;
+						}
+					}.setOpenModalLinkVisible(!filter.containsKey(fieldVO.getName()));
 				}
 				break;
 		}
@@ -267,23 +245,5 @@ public class DataViewFilterPanel extends DPanel {
 				break;
 		}
 		return fieldFormItem;
-	}
-
-	private Map<String, List<String>> createMapOfFilterTargetDS(String filter) {
-		Map<String, List<String>> result = new HashMap<>();
-		if (filter != null) {
-			String[] params = filter.split("[&]");
-			for (String paramValue : params) {
-				int i = paramValue.indexOf("=");
-				String param = paramValue.substring(0, i);
-				String value = paramValue.substring(i + 1);
-				if (result.containsKey(param)) {
-					result.get(param).add(value);
-				} else {
-					result.put(param, ObjectUtil.asList(value));
-				}
-			}
-		}
-		return result;
 	}
 }
