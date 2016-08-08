@@ -1,5 +1,6 @@
 package org.devocative.metis.web.dPage.data.form;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -14,6 +15,7 @@ import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WNumberInput;
 import org.devocative.wickomp.form.WSelectionInput;
+import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
 import java.util.ArrayList;
@@ -35,13 +37,17 @@ class ColumnUIStep extends WWizardStepPanel {
 				DataFieldVO fieldVO = item.getModelObject();
 				boolean enb = !XDSFieldType.Unknown.equals(fieldVO.getType());
 
+				if (fieldVO.getType() == XDSFieldType.LookUp) {
+					fieldVO.setInFilterPanel(true);
+				}
+
 				item.add(new Label("name", fieldVO.getName()));
 				item.add(new Label("type", fieldVO.getType()));
 
 				item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(fieldVO, "inFilterPanel"))
 					.setRequired(fieldVO.getRequiredSafely())
 					.setLabel(new Model<>(getString("XDVField.inFilterPanel", null, "inFilterPanel") + " " + fieldVO.getName()))
-					.setEnabled(enb));
+					.setEnabled(enb && fieldVO.getType() != XDSFieldType.LookUp));
 
 				List<XDSFieldResultType> resultTypeList = new ArrayList<>();
 				if (!fieldVO.getIsKeyFieldSafely() && !fieldVO.getIsSelfRelPointerFieldSafely()) {
@@ -49,12 +55,32 @@ class ColumnUIStep extends WWizardStepPanel {
 				}
 				resultTypeList.add(XDSFieldResultType.Hidden);
 				resultTypeList.add(XDSFieldResultType.Shown);
-				item.add(new WSelectionInput("resultType", new PropertyModel<String>(fieldVO, "resultType"), resultTypeList, false)
-						.setLabelVisible(false)
-						.setRequired(true)
-						.setLabel(new Model<>(getString("XDSField.resultType") + " " + fieldVO.getName()))
-						.setEnabled(enb)
-				);
+
+				final WNumberInput columnWidth;
+				item.add(columnWidth = new WNumberInput("columnWidth", new PropertyModel<Number>(fieldVO, "columnWidth"), Integer.class));
+				columnWidth
+					.setLabelVisible(false)
+					.setLabel(new Model<>(getString("XDVField.columnWidth") + " " + fieldVO.getName()))
+					.add(RangeValidator.range(50, 500))
+					.setOutputMarkupId(true)
+					.setOutputMarkupPlaceholderTag(true)
+					.setVisible(fieldVO.getResultType() == null || fieldVO.getResultType() == XDSFieldResultType.Shown);
+
+				WSelectionInput resultType;
+				item.add(resultType = new WSelectionInput("resultType", new PropertyModel<String>(fieldVO, "resultType"), resultTypeList, false));
+				resultType
+					.setLabelVisible(false)
+					.setRequired(true)
+					.setLabel(new Model<>(getString("XDSField.resultType") + " " + fieldVO.getName()))
+					.setEnabled(enb);
+				resultType.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
+					@Override
+					protected void onUpdate(AjaxRequestTarget target) {
+						XDSFieldResultType resultType = (XDSFieldResultType) getComponent().getDefaultModelObject();
+						columnWidth.setVisible(resultType == XDSFieldResultType.Shown);
+						target.add(columnWidth);
+					}
+				});
 
 				boolean showFooter = !dataVO.isDataSourceEditable() &&
 					fieldVO.getType().isNumerical() &&
@@ -66,11 +92,6 @@ class ColumnUIStep extends WWizardStepPanel {
 						.setLabelVisible(false)
 						.setVisible(showFooter)
 				);
-
-				item.add(new WNumberInput("columnWidth", new PropertyModel<Number>(fieldVO, "columnWidth"), Integer.class)
-					.setLabelVisible(false)
-					.setLabel(new Model<>(getString("XDVField.columnWidth") + " " + fieldVO.getName()))
-					.add(RangeValidator.range(50, 500)));
 			}
 		});
 	}
