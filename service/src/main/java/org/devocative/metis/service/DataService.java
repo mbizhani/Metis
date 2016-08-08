@@ -330,60 +330,65 @@ public class DataService implements IDataService {
 			String fieldName = fieldVO.getName();
 			List<String> values = params.get(fieldName);
 
-			if (values != null && values.size() > 0) {
-				switch (fieldVO.getFilterType()) {
-					case Equal:
-						result.put(fieldName, convertQueryParam(fieldVO.getType(), values));
-						break;
+			try {
+				if (values != null && values.size() > 0) {
+					switch (fieldVO.getFilterType()) {
+						case Equal:
+							result.put(fieldName, convertQueryParam(fieldVO.getType(), values));
+							break;
 
-					case Contain:
-						String paramValue = values.get(0);
-						result.put(fieldName, convertQueryParam(fieldVO.getType(), paramValue));
-						break;
+						case Contain:
+							String paramValue = values.get(0);
+							result.put(fieldName, convertQueryParam(fieldVO.getType(), paramValue));
+							break;
 
-					case List:
-					case Search:
-						DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
-						XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
+						case List:
+						case Search:
+							DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
+							XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
 
-						Map<String, Object> lookUpFilter = new HashMap<>();
+							Map<String, Object> lookUpFilter = new HashMap<>();
 
-						if (fieldVO.getTargetDSFilter() != null) {
-							Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
-							lookUpFilter.putAll(filterTargetDS);
-						}
+							if (fieldVO.getTargetDSFilter() != null) {
+								Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
+								lookUpFilter.putAll(filterTargetDS);
+							}
 
-						XDSField keyField = targetXDS.getField(targetDS.getKeyField());
-						lookUpFilter.put(keyField.getName(), convertQueryParam(keyField.getType(), values));
+							XDSField keyField = targetXDS.getField(targetDS.getKeyField());
+							lookUpFilter.put(keyField.getName(), convertQueryParam(keyField.getType(), values));
 
-						List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
-							dataSourceId,
-							fieldVO.getTargetDSId(),
-							sentDBConnection,
-							lookUpFilter
-						);
-						result.put(fieldName, filtered);
-						break;
+							List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
+								dataSourceId,
+								fieldVO.getTargetDSId(),
+								sentDBConnection,
+								lookUpFilter
+							);
+							result.put(fieldName, filtered);
+							break;
+					}
+				} else if (params.containsKey(fieldName + "_u") || params.containsKey(fieldName + "_l")) {
+					if (fieldVO.getFilterType().equals(XDSFieldFilterType.Range)) {
+						Serializable lower = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_l").get(0));
+						Serializable upper = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_u").get(0));
+						RangeVO rangeVO = new RangeVO<>(lower, upper);
+						result.put(fieldName, rangeVO);
+					}
+				} else if (fieldVO.getTargetDSFilter() != null) {
+					DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
+					XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
+					Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
+					List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
+						dataSourceId,
+						fieldVO.getTargetDSId(),
+						sentDBConnection,
+						filterTargetDS
+					);
+					result.put(fieldName, filtered);
+
 				}
-			} else if (params.containsKey(fieldName + "_u") || params.containsKey(fieldName + "_l")) {
-				if (fieldVO.getFilterType().equals(XDSFieldFilterType.Range)) {
-					Serializable lower = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_l").get(0));
-					Serializable upper = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_u").get(0));
-					RangeVO rangeVO = new RangeVO<>(lower, upper);
-					result.put(fieldName, rangeVO);
-				}
-			} else if (fieldVO.getTargetDSFilter() != null) {
-				DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
-				XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
-				Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
-				List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
-					dataSourceId,
-					fieldVO.getTargetDSId(),
-					sentDBConnection,
-					filterTargetDS
-				);
-				result.put(fieldName, filtered);
-
+			} catch (Exception e) {
+				logger.warn("Converting sent parameter value={} to filter, field=[{}], dsId=[{}], error=[{}]",
+					values, fieldName, dataSourceId, e.toString());
 			}
 		}
 
