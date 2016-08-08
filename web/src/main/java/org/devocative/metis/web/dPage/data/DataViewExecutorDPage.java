@@ -82,7 +82,7 @@ public class DataViewExecutorDPage extends DPage {
 					.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
 					.toOptionalString();
 			}
-			Map<String, List<String>> webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true);
+			Map<String, List<String>> webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
 			filter.putAll(dataService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), dataVO.getFields(), webParams, sentDBConnection));
 
 			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getFields(), dataVO.getParams()));
