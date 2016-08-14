@@ -31,6 +31,7 @@ import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.opt.OSize;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setSingleSelect(dataVO.getSelectionModeSafely() == XDVGridSelectionMode.Single)
 			.setIdField(keyField != null ? keyField.getName() : null)
 			.setTitleField(titleField != null ? titleField.getName() : null)
+			.setPageList(Arrays.asList(100, 200, 500, 1000))
 			/*.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				MetisIcon.EXPORT_EXCEL,
 				String.format("%s-export.xlsx", dataVO.getName()),

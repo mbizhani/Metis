@@ -2,6 +2,7 @@ package org.devocative.metis.web.dPage.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.component.DAjaxButton;
@@ -52,7 +53,7 @@ class QueryStep extends WWizardStepPanel {
 	@Override
 	public boolean onStepSubmit(AjaxRequestTarget target) {
 		if (dataVO.isDataSourceEditable()) {
-			dataService.updateParamsByQuery(dataVO.getQuery().getText(), dataVO.getParams());
+			dataService.updateParamsByQuery(dataVO.getParams(), dataVO.getQuery().getText(), dataVO.getQuery().getBefore());
 
 			if (dataVO.getQuery().getMode() == XDSQueryMode.Eql) {
 				EQLMetaDataVO metaDataVO = dataSourceService.processEntityQuery(
@@ -86,6 +87,10 @@ class QueryStep extends WWizardStepPanel {
 			.setHeight(OSize.fixed(800));
 
 		add(new CheckBox("dynamic", new PropertyModel<Boolean>(dataVO.getQuery(), "dynamic"))
+				.setEnabled(dataVO.isDataSourceEditable())
+		);
+
+		add(new TextField<>("before", new PropertyModel<String>(dataVO.getQuery(), "before"), String.class)
 				.setEnabled(dataVO.isDataSourceEditable())
 		);
 

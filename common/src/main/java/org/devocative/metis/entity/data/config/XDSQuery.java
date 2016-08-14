@@ -13,6 +13,8 @@ public class XDSQuery implements Serializable {
 	@XStreamAsAttribute
 	private Boolean dynamic;
 
+	private String before;
+
 	private String text;
 
 	public XDSQueryMode getMode() {
@@ -29,6 +31,14 @@ public class XDSQuery implements Serializable {
 
 	public void setDynamic(Boolean dynamic) {
 		this.dynamic = dynamic;
+	}
+
+	public String getBefore() {
+		return before;
+	}
+
+	public void setBefore(String before) {
+		this.before = before;
 	}
 
 	public String getText() {

@@ -20,7 +20,7 @@ public interface IDataService {
 
 	List<DataAbstractFieldVO> findLookUpFields(DataVO dataVO);
 
-	void updateParamsByQuery(String query, List<DataParameterVO> existingParams);
+	void updateParamsByQuery(List<DataParameterVO> currentParams, String... query);
 
 	void updateFieldsByQuery(DataVO dataVO);
 

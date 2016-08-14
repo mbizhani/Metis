@@ -183,7 +183,8 @@ public class DBConnectionService implements IDBConnectionService {
 		try (Connection connection = getConnection(dbConnId)) {
 			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, getSchemaForDB(dbConnId));
 			nps.setFetchSize(1);
-			nps.setParameters(params);
+			nps.setParameters(params)
+				.setIgnoreExtraPassedParam(true); //TODO
 
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
@@ -268,7 +269,8 @@ public class DBConnectionService implements IDBConnectionService {
 			nps
 				.setDateClassReplacement(Timestamp.class)
 				.setPageIndex(pageIndex)
-				.setPageSize(pageSize);
+				.setPageSize(pageSize)
+				.setIgnoreExtraPassedParam(true); //TODO
 
 			if (params != null) {
 				nps.setParameters(params);
@@ -314,6 +316,29 @@ public class DBConnectionService implements IDBConnectionService {
 			logger.error("executeQuery: " + comment, e);
 			throw new MetisException(MetisErrorCode.SQLExecution, e);
 		}
+	}
+
+	@Override
+	public void execute(Long dbConnId,
+						String query,
+						String comment,
+						Map<String, Object> params) {
+		try (Connection connection = getConnection(dbConnId)) {
+			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
+			nps
+				.setDateClassReplacement(Timestamp.class)
+				.setIgnoreExtraPassedParam(true);
+
+			if (params != null) {
+				nps.setParameters(params);
+			}
+
+			nps.executeQuery();
+		} catch (SQLException e) {
+			logger.error("executeQuery: " + comment, e);
+			throw new MetisException(MetisErrorCode.SQLExecution, e);
+		}
+
 	}
 
 	// ---------------

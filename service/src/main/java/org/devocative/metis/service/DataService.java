@@ -122,20 +122,24 @@ public class DataService implements IDataService {
 	}
 
 	@Override
-	public void updateParamsByQuery(String query, List<DataParameterVO> currentParams) {
+	public void updateParamsByQuery(List<DataParameterVO> currentParams, String... queries) {
 		List<DataParameterVO> temp = new ArrayList<>();
 
-		List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(query);
+		for (String query : queries) {
+			if (query != null) {
+				List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(query);
 
-		for (String param : paramsInQuery) {
-			DataParameterVO parameterVO = new DataParameterVO();
-			parameterVO.setName(param);
+				for (String param : paramsInQuery) {
+					DataParameterVO parameterVO = new DataParameterVO();
+					parameterVO.setName(param);
 
-			int idx = currentParams.indexOf(parameterVO);
-			if (idx < 0) {
-				temp.add(parameterVO);
-			} else {
-				temp.add(currentParams.get(idx));
+					int idx = currentParams.indexOf(parameterVO);
+					if (idx < 0) {
+						temp.add(parameterVO);
+					} else {
+						temp.add(currentParams.get(idx));
+					}
+				}
 			}
 		}
 

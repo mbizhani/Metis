@@ -48,6 +48,11 @@ public interface IDBConnectionService {
 
 	void closeAllPools();
 
+	void execute(Long dbConnId,
+				 String query,
+				 String comment,
+				 Map<String, Object> params);
+
 	XSchema getSchemaOfMapping(Long id);
 
 	boolean checkConnection(Long id);

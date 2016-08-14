@@ -1,10 +1,23 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 	<div wicket:id="modal"></div>
+	<table style="direction: ltr">
+		<tr>
+			<td>Dynamic</td>
+			<td><input type="checkbox" wicket:id="dynamic"/></td>
+		</tr>
 
-	Dynamic <input type="checkbox" wicket:id="dynamic"/>
+		<tr>
+			<td>Before</td>
+			<td><input type="text" wicket:id="before" size="100"/></td>
+		</tr>
 
-	<div style="width:800px;" wicket:id="query"></div>
+		<tr>
+			<td colspan="2">
+				<div style="width:800px;" wicket:id="query"></div>
+			</td>
+		</tr>
+	</table>
 
 	<input type="submit" wicket:id="showSQL" wicket:message="value:DataSource.showSQL"/>
 	<input type="submit" wicket:id="showEqlWarns" value="EQL Warnings"/>

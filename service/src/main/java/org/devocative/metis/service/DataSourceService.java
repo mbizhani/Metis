@@ -433,6 +433,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		String comment = String.format("DsExc[%s]", dataSource.getName());
 
+		if (xDataSource.getQuery().getBefore() != null) {
+			dbConnectionService.execute(dbConnId, xDataSource.getQuery().getBefore(), "B4" + comment, queryQVO.getInputParams());
+		}
+
 		List<Map<String, Object>> list = dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
