@@ -189,7 +189,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		}
 
 		String query = xDataSource.getQuery().getText().trim();
-		if (!query.startsWith("\n<![CDATA[\n")) {
+		if (!query.contains("<![CDATA[")) {
 			xDataSource.getQuery().setText(String.format("\n<![CDATA[\n%s\n]]>\n", query));
 		}
 
