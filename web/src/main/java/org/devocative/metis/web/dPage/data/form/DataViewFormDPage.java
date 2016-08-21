@@ -57,7 +57,9 @@ public class DataViewFormDPage extends DPage {
 						logger.debug("Step={}, DataVO = {}", stepId, ObjectUtil.toString(dataVO));
 					}
 
-					setTitle(dataVO.getName());
+					if ("init".equals(stepId)) {
+						setTitle(dataVO.getName());
+					}
 				}
 
 				@Override
@@ -72,7 +74,12 @@ public class DataViewFormDPage extends DPage {
 					WMessager.show(getString("label.error"), errors, target);
 				}
 
+				@Override
+				protected void onCancel(AjaxRequestTarget target, String stepId) {
+					UrlUtil.redirectTo(DataViewExecutorDPage.class, dataVO.getName());
+				}
 			}.setTitle(dataVO.getName())
+				.setCancelButtonVisible(dataVO.getName() != null)
 		);
 
 		add(new EasyUIBehavior());
