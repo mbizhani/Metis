@@ -45,7 +45,6 @@ class InitStep extends WWizardStepPanel {
 				.add(new WAsciiIdentifierValidator())
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.name"))
-				.setEnabled(dataVO.getDataViewId() == null)
 		);
 
 		add(new WTextInput("title", new PropertyModel<String>(dataVO, "title"))

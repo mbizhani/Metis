@@ -77,6 +77,10 @@ public class DataVO implements Serializable {
 	 */
 	private List<XDVDetail> details;
 
+	// ----
+
+	private boolean dataSourceEditable = false;
+
 	// --------------------- ACCESSORS
 
 	public Long getDataViewId() {
@@ -202,11 +206,15 @@ public class DataVO implements Serializable {
 		this.details = details;
 	}
 
-	// --------------------- BIZ METHODS
-
 	public boolean isDataSourceEditable() {
-		return getDataSourceId() == null || (getName() != null && getName().equals(getDataSourceName()));
+		return dataSourceEditable;
 	}
+
+	public void setDataSourceEditable(boolean dataSourceEditable) {
+		this.dataSourceEditable = dataSourceEditable;
+	}
+
+	// --------------------- BIZ METHODS
 
 	public XDVGridSelectionMode getSelectionModeSafely() {
 		return selectionMode != null ? selectionMode : XDVGridSelectionMode.Multiple;
@@ -246,7 +254,7 @@ public class DataVO implements Serializable {
 
 	public XDataSource toXDataSource() {
 		XDataSource xDataSource = new XDataSource();
-		xDataSource.setName(getDataSourceName());
+		xDataSource.setName(getName());
 		xDataSource.setQuery(getQuery());
 
 		for (DataFieldVO fieldVO : getFields()) {
@@ -264,7 +272,7 @@ public class DataVO implements Serializable {
 		XDataView xDataView = new XDataView();
 		xDataView.setName(getName());
 		xDataView.setDataSourceId(getDataSourceId());
-		xDataView.setDataSourceName(getDataSourceName());
+		xDataView.setDataSourceName(isDataSourceEditable() ? getName() : getDataSourceName());
 		xDataView.setSelectionMode(getSelectionMode());
 		xDataView.setGridHeight(getGridHeight());
 

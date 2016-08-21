@@ -74,6 +74,11 @@ public class DataService implements IDataService {
 			result.setDataViewId(dataView.getId());
 
 			result.fromXDataView(xDataView);
+
+			result.setDataSourceEditable(
+				result.getDataSourceId() == null ||
+					(result.getName() != null && result.getName().equals(result.getDataSourceName()))
+			);
 		}
 		return result;
 	}
@@ -196,7 +201,6 @@ public class DataService implements IDataService {
 	public void saveOrUpdate(DataVO dataVO) {
 		if (dataVO.isDataSourceEditable()) {
 			XDataSource xDataSource = dataVO.toXDataSource();
-			xDataSource.setName(dataVO.getName());
 			DataSource dataSource = dataSourceService.saveOrUpdate(
 				dataVO.getDataSourceId(),
 				dataVO.getConnectionId(),
@@ -208,7 +212,6 @@ public class DataService implements IDataService {
 
 		XDataView xDataView = dataVO.toXDataView();
 		xDataView.setDataSourceId(dataVO.getDataSourceId());
-		xDataView.setDataSourceName(dataVO.getDataSourceName());
 
 		dataViewService.saveOrUpdate(dataVO.getDataViewId(), dataVO.getTitle(), xDataView);
 
