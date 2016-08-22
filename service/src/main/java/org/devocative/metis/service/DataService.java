@@ -61,6 +61,8 @@ public class DataService implements IDataService {
 
 	@Override
 	public DataVO loadDataVO(String dataViewName) {
+		logger.info("Loading DataView data: DV=[{}] Usr=[{}]", dataViewName, securityService.getCurrentUser());
+
 		DataView dataView = dataViewService.loadByName(dataViewName);
 
 		DataVO result = null;

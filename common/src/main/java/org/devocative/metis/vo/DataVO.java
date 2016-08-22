@@ -308,7 +308,9 @@ public class DataVO implements Serializable {
 			fieldsMap.put(fieldVO.getName(), fieldVO);
 		}
 		for (XDVField xdvField : xDataView.getFields()) {
-			fieldsMap.get(xdvField.getName()).fromXDVField(xdvField);
+			if (fieldsMap.containsKey(xdvField.getName())) {
+				fieldsMap.get(xdvField.getName()).fromXDVField(xdvField);
+			}
 		}
 	}
 }
