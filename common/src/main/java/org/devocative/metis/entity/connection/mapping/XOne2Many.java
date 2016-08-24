@@ -5,6 +5,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 @XStreamAlias("one2many")
 public class XOne2Many extends XAbstractProperty {
+	private static final long serialVersionUID = 6572540976676673591L;
+
 	@XStreamAsAttribute
 	private String manySideColumn;
 

@@ -31,6 +31,8 @@ import javax.inject.Inject;
 import java.util.List;
 
 public class DBConnectionGroupForm extends DPage {
+	private static final long serialVersionUID = -1203339338350100077L;
+
 	@Inject
 	private IDBConnectionGroupService connectionGroupService;
 
@@ -66,6 +68,8 @@ public class DBConnectionGroupForm extends DPage {
 			.setLabel(new ResourceModel("DBConnection.testQuery")));
 		form.add(configFile = new FileUploadField("configFile", new WModel<List<FileUpload>>()));
 		form.add(new DButton("save", new ResourceModel("label.save"), MetisIcon.SAVE) {
+			private static final long serialVersionUID = 570113399579714626L;
+
 			@Override
 			protected void onFormSubmit() {
 				String mappingXML = null;
@@ -83,6 +87,8 @@ public class DBConnectionGroupForm extends DPage {
 		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("DBConnection.driver"), "driver"));
 		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("DBConnection.url"), "url"));
 		columnList.add(new OColumn<DBConnectionGroup>(new ResourceModel("DBConnection.testQuery")) {
+			private static final long serialVersionUID = -6779049575847536279L;
+
 			@Override
 			public String cellValue(DBConnectionGroup bean, String id, int colNo, String url) {
 				return bean.getTestQuery() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
@@ -94,6 +100,8 @@ public class DBConnectionGroupForm extends DPage {
 			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OColumn<DBConnectionGroup>(new ResourceModel("DBConnection.config")) {
+			private static final long serialVersionUID = 7514001254778483999L;
+
 			@Override
 			public String cellValue(DBConnectionGroup bean, String id, int colNo, String url) {
 				return bean.getConfigId() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
@@ -120,6 +128,8 @@ public class DBConnectionGroupForm extends DPage {
 			.setFit(true);
 
 		layout.add(new WDataGrid<>("grid", oGrid, new IGridDataSource<DBConnectionGroup>() {
+			private static final long serialVersionUID = 5895190921902445124L;
+
 			@Override
 			public List<DBConnectionGroup> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return connectionGroupService.search(pageIndex, pageSize);

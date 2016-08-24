@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 class QueryStep extends WWizardStepPanel {
+	private static final long serialVersionUID = 6539341649298665749L;
+
 	private DataVO dataVO;
 
 	private OCode oCode = new OCode(OCodeMode.SQL);
@@ -101,6 +103,8 @@ class QueryStep extends WWizardStepPanel {
 		);
 
 		add(new DAjaxButton("showSQL") {
+			private static final long serialVersionUID = -8648409656785402139L;
+
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				String sql = dataSourceService.processQuery(
@@ -124,6 +128,8 @@ class QueryStep extends WWizardStepPanel {
 		});
 
 		add(showEqlWarns = new DAjaxButton("showEqlWarns") {
+			private static final long serialVersionUID = -3258368858868144176L;
+
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				EQLMetaDataVO metaDataVO = dataSourceService.processEntityQuery(

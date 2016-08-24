@@ -5,6 +5,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 @XStreamAlias("property")
 public class XProperty extends XAbstractProperty {
+	private static final long serialVersionUID = 1315318236170000003L;
+
 	@XStreamAsAttribute
 	private String column;
 

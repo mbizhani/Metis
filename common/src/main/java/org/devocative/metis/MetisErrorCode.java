@@ -18,7 +18,9 @@ public enum MetisErrorCode implements DErrorCode {
 	DuplicateDataSourceName("Duplicate DataSource name"),
 	DynamicQuery("Wrong syntax for dynamic query"),
 
-	InvalidDBConnection("Invalid DB Connection")
+	InvalidDBConnection("Invalid DB Connection"),
+
+	InvalidDataViewState("Invalid DataView State")
 	;
 
 	private String defaultDescription;

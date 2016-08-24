@@ -7,6 +7,8 @@ import java.io.Serializable;
 
 @XStreamAlias("query")
 public class XDSQuery implements Serializable {
+	private static final long serialVersionUID = -3162775747402040477L;
+
 	@XStreamAsAttribute
 	private XDSQueryMode mode;
 

@@ -7,6 +7,8 @@ import org.devocative.metis.IgnoreFalseConverter;
 import java.io.Serializable;
 
 public abstract class XDSAbstractField implements Serializable {
+	private static final long serialVersionUID = -5662436639652671904L;
+
 	@XStreamAsAttribute
 	protected String name;
 

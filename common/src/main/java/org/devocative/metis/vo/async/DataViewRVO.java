@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DataViewRVO implements Serializable {
+	private static final long serialVersionUID = 1739759418739333193L;
+
 	private List<Map<String, Object>> list;
 	private List<Map<String, Object>> footer;
 	private Long count;

@@ -19,6 +19,8 @@ import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 import java.util.Arrays;
 
 class ColumnDefStep extends WWizardStepPanel {
+	private static final long serialVersionUID = 5055227586735243534L;
+
 	private DataVO dataVO;
 
 	public ColumnDefStep(DataVO dataVO) {
@@ -31,6 +33,8 @@ class ColumnDefStep extends WWizardStepPanel {
 
 
 		add(new ListView<DataFieldVO>("fields", dataVO.getFields()) {
+			private static final long serialVersionUID = 6095184285857491645L;
+
 			@Override
 			protected void populateItem(ListItem<DataFieldVO> item) {
 				DataFieldVO fieldVO = item.getModelObject();
@@ -59,6 +63,8 @@ class ColumnDefStep extends WWizardStepPanel {
 					.add(new AttributeModifier("group", "isSelfRelField")));
 
 				type.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
+					private static final long serialVersionUID = -8045527399676785760L;
+
 					@Override
 					protected void onUpdate(AjaxRequestTarget target) {
 						XDSFieldType type = (XDSFieldType) getComponent().getDefaultModelObject();

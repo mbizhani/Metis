@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DataViewFilterPanel extends DPanel {
+	private static final long serialVersionUID = -8467382200091757194L;
+
 	private Map<String, Object> filter;
 	//private boolean disableFilledFilter;
 	private Long dataSourceId;
@@ -60,6 +62,8 @@ public class DataViewFilterPanel extends DPanel {
 		add(floatTable);
 
 		floatTable.add(new ListView<DataParameterVO>("params", params) {
+			private static final long serialVersionUID = 4460030356468316049L;
+
 			@Override
 			protected void populateItem(ListItem<DataParameterVO> item) {
 				DataParameterVO parameterVO = item.getModelObject();
@@ -79,6 +83,8 @@ public class DataViewFilterPanel extends DPanel {
 		});
 
 		floatTable.add(new ListView<DataFieldVO>("fields", dataService.findFilteringFields(fields)) {
+			private static final long serialVersionUID = -2835258374896015122L;
+
 			@Override
 			protected void populateItem(ListItem<DataFieldVO> item) {
 				DataFieldVO fieldVO = item.getModelObject();
@@ -180,6 +186,8 @@ public class DataViewFilterPanel extends DPanel {
 					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, true);
 				} else {
 					fieldFormItem = new WClientSearchableListInput<KeyValueVO<String, String>>(fieldVO.getName()) {
+						private static final long serialVersionUID = 9122156586999811309L;
+
 						{
 							getModalWindowOptions().setWidth(OSize.percent(80));
 						}

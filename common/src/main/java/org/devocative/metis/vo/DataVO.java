@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DataVO implements Serializable {
+	private static final long serialVersionUID = -1306564276626018062L;
+
 	/**
 	 * DataView.id
 	 */
@@ -79,7 +81,7 @@ public class DataVO implements Serializable {
 
 	// ----
 
-	private boolean dataSourceEditable = false;
+	private boolean dataSourceEditable = true;
 
 	// --------------------- ACCESSORS
 

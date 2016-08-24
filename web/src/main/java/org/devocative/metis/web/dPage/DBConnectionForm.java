@@ -42,6 +42,7 @@ import java.util.List;
 
 public class DBConnectionForm extends DPage {
 
+	private static final long serialVersionUID = 6767061177987559239L;
 	@Inject
 	private IDBConnectionService connectionService;
 
@@ -66,6 +67,8 @@ public class DBConnectionForm extends DPage {
 		add(userDefaultConn);
 
 		removeDefaultConn = new WAjaxLink("removeDefaultConn", new Model<>(""), MetisIcon.REMOVE) {
+			private static final long serialVersionUID = 4008256506453353775L;
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				connectionService.removeDefaultConnectionOfCurrentUser();
@@ -118,6 +121,8 @@ public class DBConnectionForm extends DPage {
 			.setLabel(new ResourceModel("DBConnection.testQuery")));
 		form.add(configFile = new FileUploadField("configFile", new WModel<List<FileUpload>>()));
 		form.add(new DButton("save", new ResourceModel("label.save"), MetisIcon.SAVE) {
+			private static final long serialVersionUID = -2651131940646212239L;
+
 			@Override
 			protected void onFormSubmit() {
 				String mappingXML = null;
@@ -157,6 +162,8 @@ public class DBConnectionForm extends DPage {
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.username"), "username"));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.schema"), "schema"));
 		columnList.add(new OColumn<DBConnection>(new ResourceModel("DBConnection.testQuery")) {
+			private static final long serialVersionUID = 1282233385153044702L;
+
 			@Override
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
 				return bean.getSafeTestQuery() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
@@ -168,6 +175,8 @@ public class DBConnectionForm extends DPage {
 			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OColumn<DBConnection>(new ResourceModel("DBConnection.config")) {
+			private static final long serialVersionUID = 1389013353865170084L;
+
 			@Override
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
 				return bean.getSafeConfigId() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
@@ -187,6 +196,8 @@ public class DBConnectionForm extends DPage {
 
 		columnList.add(new ORESTLinkColumn<DBConnection>(new Model<String>(), DBConnectionForm.class, "name", MetisIcon.EDIT));
 		columnList.add(new OAjaxLinkColumn<DBConnection>(new Model<String>(), MetisIcon.CHECK_CONNECTION) {
+			private static final long serialVersionUID = 2470902620673067344L;
+
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<DBConnection> rowData) {
 				boolean b = connectionService.checkConnection(rowData.getObject().getId());
@@ -195,6 +206,8 @@ public class DBConnectionForm extends DPage {
 			}
 		});
 		columnList.add(new OAjaxLinkColumn<DBConnection>(new Model<String>(), MetisIcon.DEFAULT_CONNECTION) {
+			private static final long serialVersionUID = 4438846282287451624L;
+
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<DBConnection> rowData) {
 				DBConnection dbConn = rowData.getObject();
@@ -216,6 +229,8 @@ public class DBConnectionForm extends DPage {
 		;
 
 		layout.add(new WDataGrid<>("grid", oGrid, new IGridDataSource<DBConnection>() {
+			private static final long serialVersionUID = 4400584936688500576L;
+
 			@Override
 			public List<DBConnection> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return connectionService.search(pageIndex, pageSize);

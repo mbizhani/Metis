@@ -16,4 +16,5 @@ import javax.servlet.annotation.WebServlet;
 	}
 )
 public class MetisODataServlet extends ODataServlet {
+	private static final long serialVersionUID = -8425872756837260540L;
 }

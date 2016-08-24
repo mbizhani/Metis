@@ -12,6 +12,8 @@ import java.util.Date;
 @Entity
 @Table(name = "t_mts_db_conn_grp")
 public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+	private static final long serialVersionUID = -2484087648382976449L;
+
 	@Id
 	@GeneratedValue(generator = "mts_db_conn_grp")
 	@org.hibernate.annotations.GenericGenerator(name = "mts_db_conn_grp", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",

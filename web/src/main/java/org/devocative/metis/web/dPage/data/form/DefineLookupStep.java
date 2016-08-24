@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 class DefineLookupStep extends WWizardStepPanel {
+	private static final long serialVersionUID = -8238129378929524572L;
+
 	private DataVO dataVO;
 
 	private List<DataAbstractFieldVO> lookupFields = new ArrayList<>();
@@ -47,6 +49,8 @@ class DefineLookupStep extends WWizardStepPanel {
 		add(table);
 
 		table.add(new ListView<DataAbstractFieldVO>("fields", lookupFields) {
+			private static final long serialVersionUID = 6753517836822734711L;
+
 			@Override
 			protected void populateItem(ListItem<DataAbstractFieldVO> item) {
 				DataAbstractFieldVO fieldVO = item.getModelObject();

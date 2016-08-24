@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 public class QueryEditorPanel extends WPanel {
+	private static final long serialVersionUID = -978099734594170667L;
+
 	private List<String> header = new ArrayList<>();
 	private List<List<Object>> rows = new ArrayList<>();
 
@@ -38,6 +40,8 @@ public class QueryEditorPanel extends WPanel {
 		Form form = new Form("form");
 		form.add(editor = new WCodeInput("editor", new Model<>(sql), new OCode(OCodeMode.SQL)));
 		form.add(new DAjaxButton("execute", new ResourceModel("label.execute"), MetisIcon.EXECUTE) {
+			private static final long serialVersionUID = 5285685168080899566L;
+
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				header.clear();
@@ -56,6 +60,8 @@ public class QueryEditorPanel extends WPanel {
 		add(resultTable);
 
 		resultTable.add(new ListView<String>("headerRow", header) {
+			private static final long serialVersionUID = -3070418784239881495L;
+
 			@Override
 			protected void populateItem(ListItem<String> item) {
 				String header = item.getModelObject();
@@ -64,11 +70,15 @@ public class QueryEditorPanel extends WPanel {
 		});
 
 		resultTable.add(new ListView<List<Object>>("rows", rows) {
+			private static final long serialVersionUID = 7559706450201621325L;
+
 			@Override
 			protected void populateItem(ListItem<List<Object>> item) {
 				List<Object> row = item.getModelObject();
 
 				item.add(new ListView<Object>("row", row) {
+					private static final long serialVersionUID = -6340802887851465912L;
+
 					@Override
 					protected void populateItem(ListItem<Object> item) {
 						Object cell = item.getModelObject();

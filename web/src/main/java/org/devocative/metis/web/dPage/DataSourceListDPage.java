@@ -38,6 +38,8 @@ import javax.inject.Inject;
 import java.util.List;
 
 public class DataSourceListDPage extends DPage {
+	private static final long serialVersionUID = -9027432645938136642L;
+
 	private DataSourceFVO filter = new DataSourceFVO();
 
 	private WDataGrid<DataSource> grid;
@@ -69,6 +71,8 @@ public class DataSourceListDPage extends DPage {
 		floatTable.add(new WSelectionInput("modifierUser", users, true).setLabel(new ResourceModel("entity.modifierUser")));
 		form.add(floatTable);
 		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+			private static final long serialVersionUID = 8552310566824028749L;
+
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				grid.setEnabled(true);
@@ -95,6 +99,8 @@ public class DataSourceListDPage extends DPage {
 		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataViewFormDPage.class, "name", MetisIcon.EDIT));
 		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataViewExecutorDPage.class, "name", MetisIcon.EXECUTE));
 		columnList.add(new OColumn<DataSource>(new Model<String>()) {
+			private static final long serialVersionUID = 2676890534453105099L;
+
 			@Override
 			public String cellValue(DataSource bean, String id, int colNo, String url) {
 				String baseUri = UrlUtil.createUri(DataViewFormDPage.class, true);
@@ -115,6 +121,8 @@ public class DataSourceListDPage extends DPage {
 			.setWidth(OSize.percent(100));
 
 		add(grid = new WDataGrid<>("grid", oGrid, new IGridDataSource<DataSource>() {
+			private static final long serialVersionUID = -7922746882157931742L;
+
 			@Override
 			public List<DataSource> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
 				return dataSourceService.search(filter, pageIndex, pageSize);

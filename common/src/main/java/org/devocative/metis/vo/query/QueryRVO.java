@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 public class QueryRVO implements Serializable {
+	private static final long serialVersionUID = -1129436995334750688L;
+
 	private List<String> header = new ArrayList<>();
 
 	private List<List<Object>> rows = new ArrayList<>();

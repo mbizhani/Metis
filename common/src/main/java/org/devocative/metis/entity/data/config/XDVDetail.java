@@ -7,6 +7,8 @@ import java.io.Serializable;
 
 @XStreamAlias("detail")
 public class XDVDetail implements Serializable {
+	private static final long serialVersionUID = 5447124632143685942L;
+
 	@XStreamAsAttribute
 	private Integer level;
 

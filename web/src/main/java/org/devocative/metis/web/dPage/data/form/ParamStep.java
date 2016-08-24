@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 
 class ParamStep extends WWizardStepPanel {
+	private static final long serialVersionUID = -5889919676603233247L;
+
 	private DataVO dataVO;
 
 	private Label messageWhenNoParam;
@@ -52,6 +54,8 @@ class ParamStep extends WWizardStepPanel {
 		add(table);
 
 		table.add(new ListView<DataParameterVO>("params", dataVO.getParams()) {
+			private static final long serialVersionUID = -3179712784909396096L;
+
 			@Override
 			protected void populateItem(ListItem<DataParameterVO> item) {
 				DataParameterVO parameterVO = item.getModelObject();

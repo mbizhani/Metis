@@ -4,6 +4,8 @@ import org.devocative.adroit.ObjectUtil;
 import org.devocative.metis.entity.data.config.XDSParameter;
 
 public class DataParameterVO extends DataAbstractFieldVO {
+	private static final long serialVersionUID = 2904570466535233997L;
+
 	/**
 	 * XDSParameter.sampleData
 	 */

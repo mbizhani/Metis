@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.List;
 
 public class DataViewFormDPage extends DPage {
+	private static final long serialVersionUID = -2793411368253405276L;
+
 	private static Logger logger = LoggerFactory.getLogger(DataViewFormDPage.class);
 	private DataVO dataVO;
 
@@ -51,6 +53,8 @@ public class DataViewFormDPage extends DPage {
 			.addStep("columnUI", new ColumnUIStep(dataVO));
 
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
+				private static final long serialVersionUID = -4534169573929180621L;
+
 				@Override
 				protected void onNext(AjaxRequestTarget target, String stepId) {
 					if (logger.isDebugEnabled()) {

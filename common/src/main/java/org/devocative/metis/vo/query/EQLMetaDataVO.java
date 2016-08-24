@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EQLMetaDataVO implements Serializable {
+	private static final long serialVersionUID = 6276528993055511486L;
+
 	private String eql;
 	private String sql;
 	private Map<String, XEntity> aliasToXEntityMap;

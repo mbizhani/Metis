@@ -9,6 +9,8 @@ import java.util.List;
 
 @XStreamAlias("entity")
 public class XEntity implements Serializable {
+	private static final long serialVersionUID = -3497361196657706842L;
+
 	@XStreamAsAttribute
 	private String name;
 

@@ -11,6 +11,8 @@ import java.util.Date;
 @Entity
 @Table(name = "t_mts_cfg_lob")
 public class ConfigLob implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+	private static final long serialVersionUID = 6050670399856521189L;
+
 	@Id
 	@GeneratedValue(generator = "mts_cfg_lob")
 	@org.hibernate.annotations.GenericGenerator(name = "mts_cfg_lob", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",

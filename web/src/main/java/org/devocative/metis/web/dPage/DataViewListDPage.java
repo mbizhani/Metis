@@ -36,6 +36,8 @@ import javax.inject.Inject;
 import java.util.List;
 
 public class DataViewListDPage extends DPage implements IGridDataSource<DataView> {
+	private static final long serialVersionUID = 642936567605429259L;
+
 	private DataViewFVO filter = new DataViewFVO();
 
 	private WDataGrid<DataView> grid;
@@ -68,6 +70,8 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 		floatTable.add(new WSelectionInput("modifierUser", users, true).setLabel(new ResourceModel("entity.modifierUser")));
 		form.add(floatTable);
 		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+			private static final long serialVersionUID = 8018122257048239845L;
+
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				grid.setEnabled(true);

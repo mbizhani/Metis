@@ -14,6 +14,8 @@ import java.util.Date;
 		@UniqueConstraint(name = "datasrc_main", columnNames = {"c_src_ptr_field", "f_src_datasrc"})
 	})
 public class DataSourceRelation implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+	private static final long serialVersionUID = -8316259666720647816L;
+
 	@Id
 	@GeneratedValue(generator = "mts_data_src_rel")
 	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src_rel", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",

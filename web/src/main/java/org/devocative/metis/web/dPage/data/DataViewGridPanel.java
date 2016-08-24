@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSource<Map<String, Object>>, IAsyncResponseHandler {
+	private static final long serialVersionUID = 6957270102281915596L;
+
 	private DataVO dataVO;
 	private Map<String, Object> filter;
 	private AsyncBehavior asyncBehavior;

@@ -8,6 +8,8 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import java.io.Serializable;
 
 public abstract class DataAbstractFieldVO implements Serializable {
+	private static final long serialVersionUID = 3087772339561606073L;
+
 	/**
 	 * XDSAbstractField.name
 	 * XDVField.name

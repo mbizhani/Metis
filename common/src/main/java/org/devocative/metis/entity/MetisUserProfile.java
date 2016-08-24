@@ -11,6 +11,8 @@ import java.util.Date;
 @Entity
 @Table(name = "t_mts_usr_prf")
 public class MetisUserProfile implements ICreationDate, IModificationDate {
+	private static final long serialVersionUID = 4805397319500384541L;
+
 	@Id
 	private Long id;
 

@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 public class DataViewQVO implements Serializable {
+	private static final long serialVersionUID = 5547889135754963068L;
+
 	private String name;
 	private long pageIndex;
 	private long pageSize;

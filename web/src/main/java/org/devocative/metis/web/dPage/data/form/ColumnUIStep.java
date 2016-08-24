@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 
 class ColumnUIStep extends WWizardStepPanel {
+	private static final long serialVersionUID = -1788789595236589905L;
+
 	private DataVO dataVO;
 
 	public ColumnUIStep(DataVO dataVO) {
@@ -32,6 +34,8 @@ class ColumnUIStep extends WWizardStepPanel {
 	@Override
 	protected void onInit() {
 		add(new ListView<DataFieldVO>("fields", dataVO.getFields()) {
+			private static final long serialVersionUID = 7157602000394481452L;
+
 			@Override
 			protected void populateItem(ListItem<DataFieldVO> item) {
 				DataFieldVO fieldVO = item.getModelObject();
@@ -74,6 +78,8 @@ class ColumnUIStep extends WWizardStepPanel {
 					.setLabel(new Model<>(getString("XDSField.resultType") + " " + fieldVO.getName()))
 					.setEnabled(enb);
 				resultType.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
+					private static final long serialVersionUID = -6395621430140842441L;
+
 					@Override
 					protected void onUpdate(AjaxRequestTarget target) {
 						XDSFieldResultType resultType = (XDSFieldResultType) getComponent().getDefaultModelObject();

@@ -15,6 +15,8 @@ import java.util.Date;
 	@UniqueConstraint(name = "uk_mts_datasrc_name", columnNames = {"c_name"})
 })
 public class DataSource implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+	private static final long serialVersionUID = -1352772492330821846L;
+
 	@Id
 	@GeneratedValue(generator = "mts_data_src")
 	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",

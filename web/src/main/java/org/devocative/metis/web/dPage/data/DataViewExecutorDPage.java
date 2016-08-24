@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DataViewExecutorDPage extends DPage {
+	private static final long serialVersionUID = 733765900178805871L;
+
 	private static final Logger logger = LoggerFactory.getLogger(DataViewExecutorDPage.class);
 
 	private DataVO dataVO;
@@ -87,6 +89,8 @@ public class DataViewExecutorDPage extends DPage {
 
 			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getFields(), dataVO.getParams()));
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+				private static final long serialVersionUID = -8066384058553336246L;
+
 				@Override
 				protected void onSubmit(AjaxRequestTarget target) {
 					logger.debug("filter = {}", filter);

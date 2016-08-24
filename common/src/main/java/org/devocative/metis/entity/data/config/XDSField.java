@@ -7,6 +7,8 @@ import org.devocative.metis.IgnoreFalseConverter;
 
 @XStreamAlias("field")
 public class XDSField extends XDSAbstractField {
+	private static final long serialVersionUID = -4721484096163722504L;
+
 	@XStreamAsAttribute
 	private XDSFieldFilterType filterType;
 

@@ -9,6 +9,8 @@ import java.util.Map;
 
 @XStreamAlias("schema")
 public class XSchema implements Serializable {
+	private static final long serialVersionUID = -8028763488738714531L;
+
 	private List<XEntity> entities;
 
 	// ------------------- ACCESSORS

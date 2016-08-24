@@ -6,6 +6,8 @@ import org.devocative.metis.entity.data.config.*;
 import java.util.List;
 
 public class DataFieldVO extends DataAbstractFieldVO {
+	private static final long serialVersionUID = 3865016457590792360L;
+
 	/**
 	 * XDSField.isKeyField
 	 */

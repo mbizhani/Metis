@@ -10,6 +10,8 @@ import java.util.List;
 
 @XStreamAlias("field")
 public class XDVField implements Serializable {
+	private static final long serialVersionUID = 2115358019135124711L;
+
 	@XStreamAsAttribute
 	protected String name;
 

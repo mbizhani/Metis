@@ -14,6 +14,8 @@ import java.util.Date;
 	@UniqueConstraint(name = "uk_mts_dataview_name", columnNames = {"c_name"})
 })
 public class DataView implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+	private static final long serialVersionUID = 1406191496517488967L;
+
 	@Id
 	@GeneratedValue(generator = "mts_data_view")
 	@org.hibernate.annotations.GenericGenerator(name = "mts_data_view", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",

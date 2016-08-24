@@ -9,6 +9,8 @@ import java.util.List;
 
 @XStreamAlias("dataView")
 public class XDataView implements Serializable {
+	private static final long serialVersionUID = 8271286562496660889L;
+
 	@XStreamAsAttribute
 	private String name;
 

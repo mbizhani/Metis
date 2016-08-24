@@ -11,6 +11,8 @@ import java.util.List;
 
 @Filterer
 public class DataSourceFVO implements Serializable {
+	private static final long serialVersionUID = 1659727466173742997L;
+
 	private String name;
 
 	private String title;

@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 
 class InitStep extends WWizardStepPanel {
+	private static final long serialVersionUID = -1186489219839480432L;
+
 	private DataVO dataVO;
 
 	@Inject
@@ -86,6 +88,8 @@ class InitStep extends WWizardStepPanel {
 
 		if (dataVO.isDataSourceEditable()) {
 			connection.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
+				private static final long serialVersionUID = -7082781026542918009L;
+
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
 					DBConnection dbConnection = (DBConnection) getComponent().getDefaultModelObject();

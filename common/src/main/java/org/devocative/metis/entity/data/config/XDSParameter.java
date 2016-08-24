@@ -5,6 +5,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 @XStreamAlias("param")
 public class XDSParameter extends XDSAbstractField {
+	private static final long serialVersionUID = -8827549726729155924L;
+
 	@XStreamAsAttribute
 	private String sampleData;
 

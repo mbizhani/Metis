@@ -13,6 +13,8 @@ import java.util.Date;
 	@UniqueConstraint(name = "uk_mts_datagrp_name", columnNames = {"c_name"})
 })
 public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+	private static final long serialVersionUID = 6455487013206016555L;
+
 	@Id
 	@GeneratedValue(generator = "mts_data_group")
 	@org.hibernate.annotations.GenericGenerator(name = "mts_data_view", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",

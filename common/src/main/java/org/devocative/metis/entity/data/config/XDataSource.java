@@ -12,6 +12,8 @@ import java.util.Map;
 
 @XStreamAlias("dataSource")
 public class XDataSource implements Serializable {
+	private static final long serialVersionUID = -7499548167115676540L;
+
 	// ---------------------- XML FIELDS
 
 	@XStreamAsAttribute
