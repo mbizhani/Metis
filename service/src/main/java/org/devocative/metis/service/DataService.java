@@ -70,16 +70,20 @@ public class DataService implements IDataService {
 			result = new DataVO();
 
 			XDataView xDataView = dataViewService.getXDataView(dataView);
+
+			if (dataView.getDataSourceId() == null || !dataView.getDataSourceId().equals(xDataView.getDataSourceId())) {
+				throw new MetisException(MetisErrorCode.InvalidDataViewState);
+			}
+
 			result.setTitle(dataView.getTitle());
 
-			updateDataVOByDataSource(result, xDataView.getDataSourceName());
+			updateDataVOByDataSource(result, dataView.getDataSourceId());
 			result.setDataViewId(dataView.getId());
 
 			result.fromXDataView(xDataView);
 
 			result.setDataSourceEditable(
-				result.getDataSourceId() == null ||
-					(result.getName() != null && result.getName().equals(result.getDataSourceName()))
+				result.getName() != null && result.getName().equals(result.getDataSourceName())
 			);
 		}
 		return result;
@@ -88,13 +92,7 @@ public class DataService implements IDataService {
 	@Override
 	public void updateDataVOByDataSource(DataVO dataVO, String dsName) {
 		DataSource dataSource = dataSourceService.loadByName(dsName);
-		XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
-
-		dataVO.setDataSourceId(dataSource.getId());
-		dataVO.setConnectionId(dataSource.getConnection().getId());
-		dataVO.setConnectionHasMapping(dataSource.getConnection().getSafeConfigId() != null);
-
-		dataVO.fromXDataSource(xDataSource);
+		updateDataVOByDataSource(dataVO, dataSource.getId());
 	}
 
 	@Override
@@ -406,6 +404,17 @@ public class DataService implements IDataService {
 
 
 	// ------------------------------ PRIVATE METHODS
+
+	private void updateDataVOByDataSource(DataVO dataVO, Long dsId) {
+		DataSource dataSource = dataSourceService.load(dsId);
+		XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
+
+		dataVO.setDataSourceId(dataSource.getId());
+		dataVO.setConnectionId(dataSource.getConnection().getId());
+		dataVO.setConnectionHasMapping(dataSource.getConnection().getSafeConfigId() != null);
+
+		dataVO.fromXDataSource(xDataSource);
+	}
 
 	private List<String> getSelectedFields(XDataView xDataView) {
 		List<String> selectFields = new ArrayList<>();
