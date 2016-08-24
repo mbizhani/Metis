@@ -2,6 +2,7 @@ package org.devocative.metis.web.dPage.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.Model;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
@@ -53,37 +54,39 @@ public class DataViewFormDPage extends DPage {
 			.addStep("columnUI", new ColumnUIStep(dataVO));
 
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
-				private static final long serialVersionUID = -4534169573929180621L;
+			private static final long serialVersionUID = -4534169573929180621L;
 
-				@Override
-				protected void onNext(AjaxRequestTarget target, String stepId) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Step={}, DataVO = {}", stepId, ObjectUtil.toString(dataVO));
-					}
-
-					if ("init".equals(stepId)) {
-						setTitle(dataVO.getName());
-					}
+			@Override
+			protected void onNext(AjaxRequestTarget target, String stepId) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Step={}, DataVO = {}", stepId, ObjectUtil.toString(dataVO));
 				}
 
-				@Override
-				protected void onFinish(AjaxRequestTarget target, String stepId) {
-					//dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
-					dataService.saveOrUpdate(dataVO);
-					UrlUtil.redirectTo(DataViewExecutorDPage.class, dataVO.getName());
+				if ("init".equals(stepId)) {
+					setTitle(dataVO.getName());
 				}
+			}
 
-				@Override
-				protected void onError(AjaxRequestTarget target, String stepId, List<Serializable> errors) {
-					WMessager.show(getString("label.error"), errors, target);
-				}
+			@Override
+			protected void onFinish(AjaxRequestTarget target, String stepId) {
+				//dataSourceService.saveOrUpdate(dataSource, xdsQuery, xdsFields, xdsParams);
+				dataService.saveOrUpdate(dataVO);
+				UrlUtil.redirectTo(DataViewExecutorDPage.class, dataVO.getName());
+			}
 
-				@Override
-				protected void onCancel(AjaxRequestTarget target, String stepId) {
-					UrlUtil.redirectTo(DataViewExecutorDPage.class, dataVO.getName());
-				}
-			}.setTitle(dataVO.getName())
-				.setCancelButtonVisible(dataVO.getName() != null)
+			@Override
+			protected void onError(AjaxRequestTarget target, String stepId, List<Serializable> errors) {
+				WMessager.show(getString("label.error"), errors, target);
+			}
+
+			@Override
+			protected void onCancel(AjaxRequestTarget target, String stepId) {
+				UrlUtil.redirectTo(DataViewExecutorDPage.class, dataVO.getName());
+			}
+		}.setTitle(dataVO.getName())
+			.setCancelButtonVisible(dataVO.getName() != null)
+			.setCancelConfirmationMessage(new Model<>("Cancel?")) //TODO
+			.setFinishConfirmationMessage(new Model<>("Finish?")) //TODO
 		);
 
 		add(new EasyUIBehavior());
