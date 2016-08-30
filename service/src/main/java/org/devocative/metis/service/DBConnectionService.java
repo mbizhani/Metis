@@ -5,6 +5,7 @@ import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.demeter.iservice.ApplicationLifecyclePriority;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
@@ -103,6 +104,22 @@ public class DBConnectionService implements IDBConnectionService {
 				return null;
 			}
 		});
+	}
+
+	// ------------------------------ IApplicationLifecycle implementation
+
+	@Override
+	public void init() {
+	}
+
+	@Override
+	public void shutdown() {
+		closeAllPools();
+	}
+
+	@Override
+	public ApplicationLifecyclePriority getLifecyclePriority() {
+		return ApplicationLifecyclePriority.Medium;
 	}
 
 	// ------------------------------
@@ -221,8 +238,15 @@ public class DBConnectionService implements IDBConnectionService {
 
 	@Override
 	public void closeAllPools() {
-		for (ComboPooledDataSource pool : CONNECTION_POOL_MAP.values()) {
-			pool.close();
+		logger.info("Closing all db connection pools");
+
+		for (Map.Entry<Long, ComboPooledDataSource> entry : CONNECTION_POOL_MAP.entrySet()) {
+			try {
+				entry.getValue().close();
+				logger.info("DB connection pool closed: {}", entry.getKey());
+			} catch (Exception e) {
+				logger.warn("Closing db connection pool problem: {}", entry.getKey(), e);
+			}
 		}
 	}
 

@@ -1,5 +1,6 @@
 package org.devocative.metis.iservice;
 
+import org.devocative.demeter.iservice.IApplicationLifecycle;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.connection.mapping.XSchema;
@@ -9,7 +10,7 @@ import org.devocative.metis.vo.query.QueryRVO;
 import java.util.List;
 import java.util.Map;
 
-public interface IDBConnectionService {
+public interface IDBConnectionService extends IApplicationLifecycle {
 	DBConnection load(Long id);
 
 	List<DBConnection> search(long pageIndex, long pageSize);
