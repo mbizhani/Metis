@@ -341,7 +341,11 @@ public class DataService implements IDataService {
 				if (values != null && values.size() > 0) {
 					switch (fieldVO.getFilterType()) {
 						case Equal:
-							result.put(fieldName, convertQueryParam(fieldVO.getType(), values));
+							if (fieldVO.getInFilterPanelSafely()) {
+								result.put(fieldName, convertQueryParam(fieldVO.getType(), values.get(0)));
+							} else {
+								result.put(fieldName, convertQueryParam(fieldVO.getType(), values));
+							}
 							break;
 
 						case Contain:
@@ -432,11 +436,15 @@ public class DataService implements IDataService {
 	}
 
 	private Object convertQueryParam(XDSFieldType fieldType, List<String> values) {
-		List<Object> convertedValues = new ArrayList<>();
-		for (String value : values) {
-			convertedValues.add(convertQueryParam(fieldType, value));
+		if (values.size() > 1) {
+			List<Object> convertedValues = new ArrayList<>();
+			for (String value : values) {
+				convertedValues.add(convertQueryParam(fieldType, value));
+			}
+			return convertedValues;
+		} else {
+			return convertQueryParam(fieldType, values.get(0));
 		}
-		return convertedValues;
 	}
 
 	private Serializable convertQueryParam(XDSFieldType fieldType, String value) {
