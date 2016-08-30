@@ -19,9 +19,9 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Service("mtsDataViewService")
-public class DataViewService implements IDataViewService, IMissedHitHandler<String, DataView> {
+public class DataViewService implements IDataViewService, IMissedHitHandler<Long, DataView> {
 	private XStream xStream;
-	private ICache<String, DataView> dataViewCache;
+	private ICache<Long, DataView> dataViewCache;
 
 	@Autowired
 	private IPersistorService persistorService;
@@ -45,34 +45,34 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 
 	@Override
 	public DataView load(Long id) {
-		DataView dv = dataViewCache.findByProperty("id", id);
+		return dataViewCache.get(id);
+	}
+
+	@Override
+	public DataView loadByName(String name) {
+		DataView dv = dataViewCache.findByProperty("name", name);
 		if (dv == null) {
 			dv = persistorService
 				.createQueryBuilder()
 				.addFrom(DataView.class, "ent")
 				.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
-				.addWhere("and ent.id = :id")
-				.addParam("id", id)
+				.addWhere("and ent.name = :name")
+				.addParam("name", name)
 				.object();
-			dataViewCache.put(dv.getName(), dv);
+			dataViewCache.put(dv.getId(), dv);
 		}
 		return dv;
 	}
 
-	@Override
-	public DataView loadByName(String name) {
-		return dataViewCache.get(name);
-	}
-
 	// IMissedHitHandler
 	@Override
-	public DataView loadForCache(String key) {
+	public DataView loadForCache(Long key) {
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DataView.class, "ent")
 			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
-			.addWhere("and ent.name = :name")
-			.addParam("name", key)
+			.addWhere("and ent.id = :id")
+			.addParam("id", key)
 			.object();
 	}
 
@@ -129,7 +129,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataView);
 
-		dataViewCache.update(dataView.getName(), dataView);
+		dataViewCache.update(dataView.getId(), dataView);
 	}
 
 	@Override

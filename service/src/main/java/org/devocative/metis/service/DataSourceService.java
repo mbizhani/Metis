@@ -42,12 +42,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service("mtsDataSourceService")
-public class DataSourceService implements IDataSourceService, IMissedHitHandler<String, DataSource> {
+public class DataSourceService implements IDataSourceService, IMissedHitHandler<Long, DataSource> {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceService.class);
 
 	private XStream xstream;
 	private Configuration freeMarkerCfg;
-	private ICache<String, DataSource> dataSourceCache;
+	private ICache<Long, DataSource> dataSourceCache;
 
 	@Autowired
 	private IDBConnectionService dbConnectionService;
@@ -78,34 +78,34 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public DataSource load(Long id) {
-		DataSource ds = dataSourceCache.findByProperty("id", id);
+		return dataSourceCache.get(id);
+	}
+
+	@Override
+	public DataSource loadByName(String name) {
+		DataSource ds = dataSourceCache.findByProperty("name", name);
 		if (ds == null) {
 			ds = persistorService
 				.createQueryBuilder()
 				.addFrom(DataSource.class, "ent")
 				.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
-				.addWhere("and ent.id = :id")
-				.addParam("id", id)
+				.addWhere("and ent.name = :name")
+				.addParam("name", name)
 				.object();
-			dataSourceCache.put(ds.getName(), ds);
+			dataSourceCache.put(ds.getId(), ds);
 		}
 		return ds;
 	}
 
-	@Override
-	public DataSource loadByName(String name) {
-		return dataSourceCache.get(name);
-	}
-
 	// IMissedHitHandler
 	@Override
-	public DataSource loadForCache(String key) {
+	public DataSource loadForCache(Long key) {
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DataSource.class, "ent")
 			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
-			.addWhere("and ent.name = :name")
-			.addParam("name", key)
+			.addWhere("and ent.id = :id")
+			.addParam("id", key)
 			.object();
 	}
 
@@ -205,7 +205,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			persistorService.saveOrUpdate(relation);
 		}
 
-		dataSourceCache.update(dataSource.getName(), dataSource);
+		dataSourceCache.update(dataSource.getId(), dataSource);
 
 		return dataSource;
 	}
@@ -897,7 +897,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					.append(queryQVO.getFilterExpression())
 					.append("\n");
 
-				List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(queryQVO.getFilterExpression());
+				List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(queryQVO.getFilterExpression(), true);
 				if (queryQVO.getInputParams() != null) {
 					for (String param : paramsInQuery) {
 						queryParams.put(param, queryQVO.getInputParams().get(param));

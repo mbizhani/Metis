@@ -132,7 +132,7 @@ public class DataService implements IDataService {
 
 		for (String query : queries) {
 			if (query != null) {
-				List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(query);
+				List<String> paramsInQuery = NamedParameterStatement.findParamsInQuery(query, true);
 
 				for (String param : paramsInQuery) {
 					DataParameterVO parameterVO = new DataParameterVO();
