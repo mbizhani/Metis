@@ -45,6 +45,8 @@ import java.util.regex.Pattern;
 public class DataSourceService implements IDataSourceService, IMissedHitHandler<Long, DataSource> {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceService.class);
 
+	private static final String EMBED_FILTER_EXPRESSION = "%FILTER_EXPR%";
+
 	private XStream xstream;
 	private Configuration freeMarkerCfg;
 	private ICache<Long, DataSource> dataSourceCache;
@@ -269,6 +271,11 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				throw new RuntimeException("Mode SqlAndEql not implemented!"); //TODO*/
 			//break;
 		}
+
+		if (finalQuery.contains(EMBED_FILTER_EXPRESSION)) {
+			finalQuery = finalQuery.replace(EMBED_FILTER_EXPRESSION, "1=1");
+		}
+
 		logger.debug("Process Query: FINAL = {}", finalQuery);
 		return finalQuery;
 	}
@@ -416,10 +423,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public List<Map<String, Object>> execute(SelectQueryQVO queryQVO) {
-		/*logger.info("Executing DataSource: DS=[{}] Usr=[{}]",
-			queryQVO.getDataSourceName(), securityService.getCurrentUser());
-		long start = System.currentTimeMillis();*/
-
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -462,10 +465,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				list.addAll(findParentsToRoot(dataSource, selectQueryQVO, parentIds));
 			}
 		}
-
-		/*logger.info("Executed DataSource: DS=[{}] Usr=[{}] Dur=[{}] Rs#=[{}]",
-			queryQVO.getDataSourceName(), securityService.getCurrentUser(),
-			System.currentTimeMillis() - start, list.size());*/
 
 		return list;
 	}
@@ -517,10 +516,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId) {
-		/*logger.info("Executing OfParent: DS=[{}] Prnt=[{}] Usr=[{}]",
-			queryQVO.getDataSourceName(), parentId, securityService.getCurrentUser());
-		long start = System.currentTimeMillis();*/
-
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -539,7 +534,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		String comment = String.format("DsChld[%s]", dataSource.getName());
 		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
-		List<Map<String, Object>> result = dbConnectionService.executeQuery(
+
+		return dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
 				dbConnId,
@@ -548,20 +544,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			comment,
 			params
 		).toListOfMap();
-
-		/*logger.info("Executed OfParent: DS=[{}] Prnt=[{}] Usr=[{}] Dur=[{}] Rs#=[{}]",
-			queryQVO.getDataSourceName(), parentId, securityService.getCurrentUser(),
-			System.currentTimeMillis() - start, result.size());*/
-
-		return result;
 	}
 
 	@Override
 	public long execute(CountQueryQVO queryQVO) {
-		/*logger.info("Executing Count: DS=[{}] Usr=[{}]",
-			queryQVO.getDataSourceName(), securityService.getCurrentUser());
-		long start = System.currentTimeMillis();*/
-
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -586,20 +572,11 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			builderVO.queryParams
 		).toListOfMap();
 
-		long result = ((BigDecimal) list.get(0).get("cnt")).longValue();
-
-		/*logger.info("Executed Count: DS=[{}] Usr=[{}] Dur=[{}] #=[{}]",
-			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start, result);*/
-
-		return result;
+		return ((BigDecimal) list.get(0).get("cnt")).longValue();
 	}
 
 	@Override
 	public List<Map<String, Object>> execute(AggregateQueryQVO queryQVO) {
-		/*logger.info("Executing Aggregate: DS=[{}] Usr=[{}]",
-			queryQVO.getDataSourceName(), securityService.getCurrentUser());
-		long start = System.currentTimeMillis();*/
-
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -656,9 +633,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				result.add(entry.getValue());
 			}
 		}
-
-		/*logger.info("Executed Aggregate: DS=[{}] Usr=[{}] Dur=[{}]",
-			queryQVO.getDataSourceName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);*/
 
 		return result;
 	}
@@ -890,10 +864,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				throw new RuntimeException("No AbstractQueryQVO!");
 			}
 
-			query.append("where\n\t");
-
+			StringBuilder whereClause = new StringBuilder();
 			if (queryQVO.getFilterExpression() != null) {
-				query
+				whereClause
 					.append(queryQVO.getFilterExpression())
 					.append("\n");
 
@@ -904,28 +877,26 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					}
 				}
 			} else {
-				query.append("1=1\n");
+				whereClause.append("1=1\n");
 			}
 
-			appendFilters(xDataSource, queryQVO.getInputParams());
+			whereClause.append(appendFilters(xDataSource, queryQVO.getInputParams()));
+
+			int idx = query.indexOf(EMBED_FILTER_EXPRESSION);
+			if (idx < 0) {
+				query.append("where\n\t").append(whereClause);
+			} else {
+				query.replace(idx, idx + EMBED_FILTER_EXPRESSION.length(), whereClause.toString());
+			}
+
 			return this;
 		}
 
-		/*public DSQueryBuilder appendWhere(String filter) {
-			if (filter != null) {
-				query.append("where\n\t");
-				if (filter.toLowerCase().startsWith("or") || filter.toLowerCase().startsWith("and")) {
-					query.append("1=1");
-				}
-				query.append(filter);
-			}
-			return this;
-		}*/
-
 		public DSQueryBuilder appendWhere(Map<String, Object> filter) {
 			if (filter != null && filter.size() > 0) {
-				query.append("where\n\t1=1\n");
-				appendFilters(xDataSource, filter);
+				query
+					.append("where\n\t1=1\n")
+					.append(appendFilters(xDataSource, filter));
 			}
 			return this;
 		}
@@ -955,7 +926,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		// ---------------
 
-		private void appendFilters(XDataSource dataSource, Map<String, Object> filters) {
+		private String appendFilters(XDataSource dataSource, Map<String, Object> filters) {
+			StringBuilder filterClauses = new StringBuilder();
+
 			if (filters != null && filters.size() > 0) {
 				for (Map.Entry<String, Object> filter : filters.entrySet()) {
 					XDSField xdsField = dataSource.getField(filter.getKey());
@@ -968,33 +941,33 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 									value = ((KeyValueVO) value).getKey();
 								}
 								if (value instanceof Collection) { //TODO?
-									query.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
+									filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
 								} else {
-									query.append(String.format("\tand %1$s  = :%1$s\n", xdsField.getName()));
+									filterClauses.append(String.format("\tand %1$s  = :%1$s\n", xdsField.getName()));
 								}
 								queryParams.put(xdsField.getName(), value);
 								break;
 
 							case Contain: // Only String
-								query.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
+								filterClauses.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
 								queryParams.put(xdsField.getName(), filter.getValue());
 								break;
 
 							case Range: // Date & Number
 								RangeVO rangeVO = (RangeVO) filter.getValue();
 								if (rangeVO.getLower() != null) {
-									query.append(String.format("\tand %1$s >= :%1$s_l\n", xdsField.getName()));
+									filterClauses.append(String.format("\tand %1$s >= :%1$s_l\n", xdsField.getName()));
 									queryParams.put(xdsField.getName() + "_l", rangeVO.getLower());
 								}
 								if (rangeVO.getUpper() != null) {
-									query.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
+									filterClauses.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
 									queryParams.put(xdsField.getName() + "_u", rangeVO.getUpper());
 								}
 								break;
 
 							case List: // All types (except boolean)
 							case Search:
-								query.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
+								filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
 								List<Serializable> items = new ArrayList<>();
 								List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
 								for (KeyValueVO<Serializable, String> keyValue : list) {
@@ -1012,6 +985,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					}
 				}
 			}
+
+			return filterClauses.toString();
 		}
 	}
 }
