@@ -189,6 +189,16 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		return getInFilterPanel() == null || getInFilterPanel(); //TODO
 	}
 
+	public String getUiName() {
+		String result;
+		if (getTitle() != null) {
+			result = String.format("%s (%s)", getName(), getTitle());
+		} else {
+			result = getName();
+		}
+		return result;
+	}
+
 	// ------------------------------ OBJECT METHODS
 
 	@Override

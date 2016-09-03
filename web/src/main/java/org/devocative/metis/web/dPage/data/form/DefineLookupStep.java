@@ -55,7 +55,7 @@ class DefineLookupStep extends WWizardStepPanel {
 			protected void populateItem(ListItem<DataAbstractFieldVO> item) {
 				DataAbstractFieldVO fieldVO = item.getModelObject();
 
-				item.add(new Label("name", fieldVO.getName()));
+				item.add(new Label("name", fieldVO.getUiName()));
 				item.add(new WSelectionInput("targetDS", new PropertyModel(fieldVO, "targetDS"),
 						dataSourceList, false)
 						.setLabelVisible(false)

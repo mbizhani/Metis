@@ -45,7 +45,7 @@ class ColumnUIStep extends WWizardStepPanel {
 					fieldVO.setInFilterPanel(true);
 				}
 
-				item.add(new Label("name", fieldVO.getName()));
+				item.add(new Label("name", fieldVO.getUiName()));
 				item.add(new Label("type", fieldVO.getType()));
 
 				item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(fieldVO, "inFilterPanel"))
