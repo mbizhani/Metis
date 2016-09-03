@@ -1,7 +1,6 @@
 package org.devocative.metis.iservice;
 
 import org.devocative.metis.vo.DataAbstractFieldVO;
-import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataViewQVO;
@@ -16,7 +15,7 @@ public interface IDataService {
 
 	void updateDataVOByDataSource(DataVO dataVO, String dsName);
 
-	List<DataFieldVO> findFilteringFields(List<DataFieldVO> allFields);
+	List<DataAbstractFieldVO> findFilteringFields(List<DataAbstractFieldVO> allFields);
 
 	List<DataAbstractFieldVO> findLookUpFields(DataVO dataVO);
 
@@ -34,7 +33,7 @@ public interface IDataService {
 
 	Map<String, Object> convertSimpleParamsToFilter(
 		Long dataSourceId,
-		List<DataFieldVO> fields,
+		List<DataAbstractFieldVO> fields,
 		Map<String, List<String>> params,
 		String sentDBConnection);
 }

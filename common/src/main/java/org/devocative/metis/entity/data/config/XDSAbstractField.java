@@ -28,6 +28,9 @@ public abstract class XDSAbstractField implements Serializable {
 	@XStreamAsAttribute
 	protected String targetDSName;
 
+	@XStreamAsAttribute
+	private XDSFieldFilterType filterType;
+
 	// ---------------------------------- ACCESSORS
 
 	public String getName() {
@@ -85,6 +88,15 @@ public abstract class XDSAbstractField implements Serializable {
 
 	public XDSAbstractField setTargetDSName(String targetDSName) {
 		this.targetDSName = targetDSName;
+		return this;
+	}
+
+	public XDSFieldFilterType getFilterType() {
+		return filterType;
+	}
+
+	public XDSAbstractField setFilterType(XDSFieldFilterType filterType) {
+		this.filterType = filterType;
 		return this;
 	}
 

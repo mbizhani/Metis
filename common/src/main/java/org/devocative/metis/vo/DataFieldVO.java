@@ -1,7 +1,10 @@
 package org.devocative.metis.vo;
 
 import org.devocative.adroit.ObjectUtil;
-import org.devocative.metis.entity.data.config.*;
+import org.devocative.metis.entity.data.config.XDSField;
+import org.devocative.metis.entity.data.config.XDSFieldResultType;
+import org.devocative.metis.entity.data.config.XDVAggregatorFunction;
+import org.devocative.metis.entity.data.config.XDVField;
 
 import java.util.List;
 
@@ -31,19 +34,9 @@ public class DataFieldVO extends DataAbstractFieldVO {
 	private String format;
 
 	/**
-	 * XDVField.inFilterPanel
-	 */
-	private Boolean inFilterPanel;
-
-	/**
 	 * XDVField.columnWidth
 	 */
 	private Integer columnWidth;
-
-	/**
-	 * XDSAbstractField.filterType
-	 */
-	private XDSFieldFilterType filterType;
 
 	/**
 	 * XDVField.resultType
@@ -97,28 +90,12 @@ public class DataFieldVO extends DataAbstractFieldVO {
 		this.format = format;
 	}
 
-	public Boolean getInFilterPanel() {
-		return inFilterPanel;
-	}
-
-	public void setInFilterPanel(Boolean inFilterPanel) {
-		this.inFilterPanel = inFilterPanel;
-	}
-
 	public Integer getColumnWidth() {
 		return columnWidth;
 	}
 
 	public void setColumnWidth(Integer columnWidth) {
 		this.columnWidth = columnWidth;
-	}
-
-	public XDSFieldFilterType getFilterType() {
-		return filterType;
-	}
-
-	public void setFilterType(XDSFieldFilterType filterType) {
-		this.filterType = filterType;
 	}
 
 	public XDSFieldResultType getResultType() {
@@ -141,10 +118,6 @@ public class DataFieldVO extends DataAbstractFieldVO {
 
 	public boolean getIsKeyFieldSafely() {
 		return ObjectUtil.isTrue(getIsKeyField());
-	}
-
-	public boolean getInFilterPanelSafely() {
-		return ObjectUtil.isTrue(getInFilterPanel());
 	}
 
 	public boolean getIsSelfRelPointerFieldSafely() {

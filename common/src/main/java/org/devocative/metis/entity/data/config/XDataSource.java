@@ -73,21 +73,45 @@ public class XDataSource implements Serializable {
 	@XStreamOmitField
 	private Map<String, XDSField> fieldMap;
 
+	@XStreamOmitField
+	private Map<String, XDSAbstractField> allFieldMap;
+
 	public XDSField getField(String name) {
 		buildFieldMap();
 		return fieldMap.get(name);
 	}
 
-	public boolean hasField(String name) {
+	public XDSAbstractField getAllField(String name) {
+		buildAllFieldMap();
+		return allFieldMap.get(name);
+	}
+
+	/*public boolean hasField(String name) {
 		buildFieldMap();
 		return fieldMap.containsKey(name);
-	}
+	}*/
 
 	private void buildFieldMap() {
 		if (fieldMap == null) {
 			fieldMap = new HashMap<>();
 			for (XDSField field : fields) {
 				fieldMap.put(field.getName(), field);
+			}
+		}
+	}
+
+	private void buildAllFieldMap() {
+		if (allFieldMap == null) {
+			allFieldMap = new HashMap<>();
+
+			for (XDSField field : fields) {
+				allFieldMap.put(field.getName(), field);
+			}
+
+			if (params != null) {
+				for (XDSParameter param : params) {
+					allFieldMap.put(param.getName(), param);
+				}
 			}
 		}
 	}

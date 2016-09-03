@@ -9,17 +9,19 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WSelectionInput;
+import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 class ParamStep extends WWizardStepPanel {
@@ -60,26 +62,44 @@ class ParamStep extends WWizardStepPanel {
 			protected void populateItem(ListItem<DataParameterVO> item) {
 				DataParameterVO parameterVO = item.getModelObject();
 
-				List<XDSFieldType> xdsFieldTypes = new ArrayList<>();
-				Collections.addAll(xdsFieldTypes, XDSFieldType.values());
-				xdsFieldTypes.remove(XDSFieldType.LookUp);
-				xdsFieldTypes.remove(XDSFieldType.Unknown);
+				List<XDSFieldFilterType> filterTypes = new ArrayList<>();
+				if (parameterVO.getType() != null) {
+					filterTypes.addAll(Arrays.asList(parameterVO.getType().getParamProperFilterTypes()));
+				}
 
-				final WSelectionInput type;
+				final WSelectionInput type, filterType;
+
 				item.add(new Label("name", parameterVO.getName()));
 				item.add(new WTextInput("title", new PropertyModel<String>(parameterVO, "title"))
 					.setLabelVisible(false));
 				item.add(type = new WSelectionInput("type", new PropertyModel<String>(parameterVO, "type"),
-					xdsFieldTypes, false));
+					XDSFieldType.getParameterProperTypes(), false));
+				item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(parameterVO, "filterType"),
+					filterTypes, false));
 				item.add(new CheckBox("required", new PropertyModel<Boolean>(parameterVO, "required")));
 				item.add(new WTextInput("sampleData", new PropertyModel<String>(parameterVO, "sampleData"))
 					.setLabelVisible(false));
+
+				type.addToChoices(new WSelectionInputAjaxUpdatingBehavior() {
+					private static final long serialVersionUID = -4526092343940413152L;
+
+					@Override
+					protected void onUpdate(AjaxRequestTarget target) {
+						XDSFieldType type = (XDSFieldType) getComponent().getDefaultModelObject();
+						filterType.updateChoices(target, Arrays.asList(type.getParamProperFilterTypes()));
+					}
+				});
 
 				type
 					.setLabelVisible(false)
 					.setRequired(true)
 					.setLabel(new Model<>(getString("XDSField.type") + " " + parameterVO.getName()));
 
+				filterType
+					.setLabelVisible(false)
+					.setLabel(new Model<>(getString("XDSField.filterType") + " " + parameterVO.getName()))
+					.setRequired(true)
+					.setOutputMarkupId(true);
 			}
 		});
 

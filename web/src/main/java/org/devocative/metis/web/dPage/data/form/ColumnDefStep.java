@@ -51,7 +51,7 @@ class ColumnDefStep extends WWizardStepPanel {
 				item.add(new CheckBox("required", new PropertyModel<Boolean>(fieldVO, "required"))
 					.setEnabled(enb));
 				item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(fieldVO, "filterType"),
-					Arrays.asList(fieldVO.getType().getProperFilterTypes()), false));
+					Arrays.asList(fieldVO.getType().getFieldProperFilterTypes()), false));
 				item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(fieldVO, "isKeyField"))
 					.setEnabled(enb)
 					.add(new AttributeModifier("group", "isKeyField")));
@@ -68,7 +68,7 @@ class ColumnDefStep extends WWizardStepPanel {
 					@Override
 					protected void onUpdate(AjaxRequestTarget target) {
 						XDSFieldType type = (XDSFieldType) getComponent().getDefaultModelObject();
-						filterType.updateChoices(target, Arrays.asList(type.getProperFilterTypes()));
+						filterType.updateChoices(target, Arrays.asList(type.getFieldProperFilterTypes()));
 					}
 				});
 

@@ -15,7 +15,7 @@ import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
-import org.devocative.metis.vo.DataFieldVO;
+import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.html.WFloatTable;
@@ -44,7 +44,7 @@ public class DataViewFilterPanel extends DPanel {
 	private IDataSourceService dataSourceService;
 
 	// Main Constructor
-	public DataViewFilterPanel(String id, final Long dataSourceId, final Map<String, Object> filter, List<DataFieldVO> fields, List<DataParameterVO> params) {
+	public DataViewFilterPanel(String id, final Long dataSourceId, final Map<String, Object> filter, List<DataAbstractFieldVO> fields) {
 		super(id);
 		this.dataSourceId = dataSourceId;
 
@@ -61,33 +61,12 @@ public class DataViewFilterPanel extends DPanel {
 		floatTable.setEqualWidth(true);
 		add(floatTable);
 
-		floatTable.add(new ListView<DataParameterVO>("params", params) {
-			private static final long serialVersionUID = 4460030356468316049L;
-
-			@Override
-			protected void populateItem(ListItem<DataParameterVO> item) {
-				DataParameterVO parameterVO = item.getModelObject();
-
-				FormComponent paramFormItem = createParamFormComponent(parameterVO);
-
-				RepeatingView view = new RepeatingView("param");
-				if (paramFormItem != null) {
-					paramFormItem
-						.setLabel(new Model<>(parameterVO.getTitleOrName()))
-						.setRequired(parameterVO.getRequiredSafely())
-						.setEnabled(/*!disableFilledFilter || */!filter.containsKey(parameterVO.getName()));
-					view.add(paramFormItem);
-				}
-				item.add(view);
-			}
-		});
-
-		floatTable.add(new ListView<DataFieldVO>("fields", dataService.findFilteringFields(fields)) {
+		floatTable.add(new ListView<DataAbstractFieldVO>("fields", dataService.findFilteringFields(fields)) {
 			private static final long serialVersionUID = -2835258374896015122L;
 
 			@Override
-			protected void populateItem(ListItem<DataFieldVO> item) {
-				DataFieldVO fieldVO = item.getModelObject();
+			protected void populateItem(ListItem<DataAbstractFieldVO> item) {
+				DataAbstractFieldVO fieldVO = item.getModelObject();
 
 				FormComponent fieldFormItem = createFieldFormComponent(fieldVO);
 
@@ -117,7 +96,7 @@ public class DataViewFilterPanel extends DPanel {
 		}
 	}
 
-	private FormComponent createFieldFormComponent(final DataFieldVO fieldVO) {
+	private FormComponent createFieldFormComponent(final DataAbstractFieldVO fieldVO) {
 		FormComponent fieldFormItem = null;
 
 		switch (fieldVO.getType()) {

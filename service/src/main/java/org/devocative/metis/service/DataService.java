@@ -96,10 +96,10 @@ public class DataService implements IDataService {
 	}
 
 	@Override
-	public List<DataFieldVO> findFilteringFields(List<DataFieldVO> allFields) {
-		List<DataFieldVO> result = new ArrayList<>();
+	public List<DataAbstractFieldVO> findFilteringFields(List<DataAbstractFieldVO> allFields) {
+		List<DataAbstractFieldVO> result = new ArrayList<>();
 
-		for (DataFieldVO dataFieldVO : allFields) {
+		for (DataAbstractFieldVO dataFieldVO : allFields) {
 			if (dataFieldVO.getInFilterPanelSafely()) {
 				result.add(dataFieldVO);
 			}
@@ -327,13 +327,13 @@ public class DataService implements IDataService {
 	@Override
 	public Map<String, Object> convertSimpleParamsToFilter(
 		Long dataSourceId,
-		List<DataFieldVO> fields,
+		List<DataAbstractFieldVO> fields,
 		Map<String, List<String>> params,
 		String sentDBConnection) {
 
 		Map<String, Object> result = new HashMap<>();
 
-		for (DataFieldVO fieldVO : fields) {
+		for (DataAbstractFieldVO fieldVO : fields) {
 			String fieldName = fieldVO.getName();
 			List<String> values = params.get(fieldName);
 
@@ -399,7 +399,7 @@ public class DataService implements IDataService {
 				}
 			} catch (Exception e) {
 				logger.warn("Converting sent parameter value={} to filter, field=[{}], dsId=[{}], error=[{}]",
-					values, fieldName, dataSourceId, e.toString());
+					values, fieldName, dataSourceService.load(dataSourceId), e.toString());
 			}
 		}
 

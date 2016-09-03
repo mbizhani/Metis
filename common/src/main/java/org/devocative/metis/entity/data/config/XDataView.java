@@ -28,6 +28,8 @@ public class XDataView implements Serializable {
 
 	private List<XDVField> fields;
 
+	private List<XDVParameter> params;
+
 	private List<XDVDetail> details;
 
 	public String getName() {
@@ -79,6 +81,17 @@ public class XDataView implements Serializable {
 
 	public void setFields(List<XDVField> fields) {
 		this.fields = fields;
+	}
+
+	public List<XDVParameter> getParams() {
+		if (params == null) {
+			params = new ArrayList<>();
+		}
+		return params;
+	}
+
+	public void setParams(List<XDVParameter> params) {
+		this.params = params;
 	}
 
 	public List<XDVDetail> getDetails() {

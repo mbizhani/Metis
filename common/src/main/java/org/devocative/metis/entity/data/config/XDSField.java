@@ -10,9 +10,6 @@ public class XDSField extends XDSAbstractField {
 	private static final long serialVersionUID = -4721484096163722504L;
 
 	@XStreamAsAttribute
-	private XDSFieldFilterType filterType;
-
-	@XStreamAsAttribute
 	@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean isKeyField;
 
@@ -25,15 +22,6 @@ public class XDSField extends XDSAbstractField {
 	private Boolean isSelfRelPointerField;
 
 	// ---------------------------------- ACCESSORS
-
-	public XDSFieldFilterType getFilterType() {
-		return filterType;
-	}
-
-	public XDSField setFilterType(XDSFieldFilterType filterType) {
-		this.filterType = filterType;
-		return this;
-	}
 
 	public Boolean getIsKeyField() {
 		return isKeyField;

@@ -85,9 +85,9 @@ public class DataViewExecutorDPage extends DPage {
 					.toOptionalString();
 			}
 			Map<String, List<String>> webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
-			filter.putAll(dataService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), dataVO.getFields(), webParams, sentDBConnection));
+			filter.putAll(dataService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(), webParams, sentDBConnection));
 
-			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getFields(), dataVO.getParams()));
+			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields()));
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;
 

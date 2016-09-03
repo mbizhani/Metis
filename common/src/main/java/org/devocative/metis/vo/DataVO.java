@@ -32,7 +32,7 @@ public class DataVO implements Serializable {
 	 */
 	private Boolean connectionHasMapping = false;
 
-	// ----
+	// ---------------
 
 	/**
 	 * XDataView.name = DataView.name
@@ -77,13 +77,13 @@ public class DataVO implements Serializable {
 	/**
 	 * XDataView.details
 	 */
-	private List<XDVDetail> details;
+	//TODO private List<XDVDetail> details;
 
-	// ----
+	// ---------------
 
 	private boolean dataSourceEditable = true;
 
-	// --------------------- ACCESSORS
+	// ------------------------------ ACCESSORS
 
 	public Long getDataViewId() {
 		return dataViewId;
@@ -125,7 +125,7 @@ public class DataVO implements Serializable {
 		setConnectionId(connection.getId());
 	}
 
-	// ----
+	// ---------------
 
 	public String getName() {
 		return name;
@@ -200,14 +200,6 @@ public class DataVO implements Serializable {
 		this.params = params;
 	}
 
-	public List<XDVDetail> getDetails() {
-		return details;
-	}
-
-	public void setDetails(List<XDVDetail> details) {
-		this.details = details;
-	}
-
 	public boolean isDataSourceEditable() {
 		return dataSourceEditable;
 	}
@@ -216,7 +208,7 @@ public class DataVO implements Serializable {
 		this.dataSourceEditable = dataSourceEditable;
 	}
 
-	// --------------------- BIZ METHODS
+	// ------------------------------ BIZ METHODS
 
 	public XDVGridSelectionMode getSelectionModeSafely() {
 		return selectionMode != null ? selectionMode : XDVGridSelectionMode.Multiple;
@@ -224,6 +216,13 @@ public class DataVO implements Serializable {
 
 	public XDVGridHeight getGridHeightSafely() {
 		return gridHeight != null ? gridHeight : XDVGridHeight.Short;
+	}
+
+	public List<DataAbstractFieldVO> getAllFields() {
+		List<DataAbstractFieldVO> fieldVOs = new ArrayList<>();
+		fieldVOs.addAll(getParams());
+		fieldVOs.addAll(getFields());
+		return fieldVOs;
 	}
 
 	public DataFieldVO findSelfRelPointerField() {
@@ -282,7 +281,11 @@ public class DataVO implements Serializable {
 			xDataView.getFields().add(fieldVO.toXDVField());
 		}
 
-		xDataView.setDetails(getDetails());
+		for (DataParameterVO parameterVO : getParams()) {
+			xDataView.getParams().add(parameterVO.toXDVParameter());
+		}
+
+		//TODO xDataView.setDetails(getDetails());
 
 		return xDataView;
 	}
@@ -312,6 +315,16 @@ public class DataVO implements Serializable {
 		for (XDVField xdvField : xDataView.getFields()) {
 			if (fieldsMap.containsKey(xdvField.getName())) {
 				fieldsMap.get(xdvField.getName()).fromXDVField(xdvField);
+			}
+		}
+
+		Map<String, DataParameterVO> paramsMap = new HashMap<>();
+		for (DataParameterVO parameterVO : getParams()) {
+			paramsMap.put(parameterVO.getName(), parameterVO);
+		}
+		for (XDVParameter xdvParameter : xDataView.getParams()) {
+			if (paramsMap.containsKey(xdvParameter.getName())) {
+				paramsMap.get(xdvParameter.getName()).fromXDVParameter(xdvParameter);
 			}
 		}
 	}
