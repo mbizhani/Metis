@@ -16,7 +16,6 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
-import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.opt.OSize;
@@ -192,43 +191,6 @@ public class DataViewFilterPanel extends DPanel {
 						}
 					}.setOpenModalLinkVisible(!filter.containsKey(fieldVO.getName()));
 				}
-				break;
-		}
-		return fieldFormItem;
-	}
-
-	private FormComponent createParamFormComponent(DataParameterVO parameterVO) {
-		FormComponent fieldFormItem = null;
-		switch (parameterVO.getType()) {
-
-			case String:
-				fieldFormItem = new WTextInput(parameterVO.getName());
-				break;
-
-			case Integer:
-				fieldFormItem = new WNumberInput(parameterVO.getName(), Long.class)
-					.setThousandSeparator(',');
-				break;
-
-			case Real:
-				fieldFormItem = new WNumberInput(parameterVO.getName(), BigDecimal.class)
-					.setPrecision(2)
-					.setThousandSeparator(',')
-					.setPrecision(3);
-				break;
-
-			case Date:
-			case DateTime:
-				fieldFormItem = new WDateInput(parameterVO.getName())
-					.setTimePartVisible(XDSFieldType.DateTime == parameterVO.getType());
-
-				break;
-
-			case Boolean:
-				fieldFormItem = new WBooleanInput(parameterVO.getName());
-				break;
-
-			case LookUp:
 				break;
 		}
 		return fieldFormItem;

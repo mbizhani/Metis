@@ -1,8 +1,6 @@
 package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
-import org.devocative.metis.IgnoreFalseConverter;
 
 import java.io.Serializable;
 
@@ -13,8 +11,11 @@ public class XDVAbstractField implements Serializable {
 	protected String name;
 
 	@XStreamAsAttribute
-	@XStreamConverter(IgnoreFalseConverter.class)
+	//@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean inFilterPanel;
+
+	@XStreamAsAttribute
+	private Integer filterPanelOrder;
 
 	@XStreamAsAttribute
 	private Long targetDVId;
@@ -41,6 +42,14 @@ public class XDVAbstractField implements Serializable {
 
 	public void setInFilterPanel(Boolean inFilterPanel) {
 		this.inFilterPanel = inFilterPanel;
+	}
+
+	public Integer getFilterPanelOrder() {
+		return filterPanelOrder;
+	}
+
+	public void setFilterPanelOrder(Integer filterPanelOrder) {
+		this.filterPanelOrder = filterPanelOrder;
 	}
 
 	public Long getTargetDVId() {

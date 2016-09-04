@@ -51,7 +51,7 @@ public class DataViewFormDPage extends DPage {
 			.addStep("param", new ParamStep(dataVO))
 			.addStep("columnDef", new ColumnDefStep(dataVO))
 			.addStep("lookup", new DefineLookupStep(dataVO))
-				//.addStep("columnUI", new ColumnUIStep(dataVO)) FILTER UI STEP <= select fields & params in filter and define order
+			.addStep("filterUI", new FilterUIStep(dataVO))
 			.addStep("columnUI", new ColumnUIStep(dataVO));
 
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {

@@ -2,7 +2,6 @@ package org.devocative.metis.web.dPage.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
@@ -47,11 +46,6 @@ class ColumnUIStep extends WWizardStepPanel {
 
 				item.add(new Label("name", fieldVO.getUiName()));
 				item.add(new Label("type", fieldVO.getType()));
-
-				item.add(new CheckBox("inFilterPanel", new PropertyModel<Boolean>(fieldVO, "inFilterPanel"))
-					.setRequired(fieldVO.getRequiredSafely())
-					.setLabel(new Model<>(getString("XDVField.inFilterPanel", null, "inFilterPanel") + " " + fieldVO.getName()))
-					.setEnabled(enb && fieldVO.getType() != XDSFieldType.LookUp));
 
 				List<XDSFieldResultType> resultTypeList = new ArrayList<>();
 				if (!fieldVO.getIsKeyFieldSafely() && !fieldVO.getIsSelfRelPointerFieldSafely()) {

@@ -33,10 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("mtsDataService")
 public class DataService implements IDataService {
@@ -99,11 +96,18 @@ public class DataService implements IDataService {
 	public List<DataAbstractFieldVO> findFilteringFields(List<DataAbstractFieldVO> allFields) {
 		List<DataAbstractFieldVO> result = new ArrayList<>();
 
+		int idx = 0;
 		for (DataAbstractFieldVO dataFieldVO : allFields) {
 			if (dataFieldVO.getInFilterPanelSafely()) {
+				if (dataFieldVO.getFilterPanelOrder() == null) {
+					dataFieldVO.setFilterPanelOrder(idx++);
+				}
 				result.add(dataFieldVO);
 			}
 		}
+
+		Collections.sort(result);
+
 		return result;
 	}
 

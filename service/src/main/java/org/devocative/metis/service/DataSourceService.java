@@ -983,26 +983,27 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					if (filters.containsKey(xdsParameter.getName())) {
 						Object value = filters.get(xdsParameter.getName());
 
-						switch (xdsParameter.getFilterType()) {
-
-							case Equal:
-								if (value instanceof KeyValueVO) {
-									value = ((KeyValueVO) value).getKey();
-								}
-								break;
-							case Contain:
-								break;
-							case Range:
-								throw new RuntimeException("Invalid parameter as range: " + xdsParameter.getName());
-							case List:
-							case Search:
-								List<Serializable> items = new ArrayList<>();
-								List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) value;
-								for (KeyValueVO<Serializable, String> keyValue : list) {
-									items.add(keyValue.getKey());
-								}
-								value = items;
-								break;
+						if (xdsParameter.getFilterType() != null) {
+							switch (xdsParameter.getFilterType()) {
+								case Equal:
+									if (value instanceof KeyValueVO) {
+										value = ((KeyValueVO) value).getKey();
+									}
+									break;
+								case Contain:
+									break;
+								case Range:
+									throw new RuntimeException("Invalid parameter as range: " + xdsParameter.getName());
+								case List:
+								case Search:
+									List<Serializable> items = new ArrayList<>();
+									List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) value;
+									for (KeyValueVO<Serializable, String> keyValue : list) {
+										items.add(keyValue.getKey());
+									}
+									value = items;
+									break;
+							}
 						}
 						queryParams.put(xdsParameter.getName(), value);
 					}

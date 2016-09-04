@@ -8,7 +8,7 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 
 import java.io.Serializable;
 
-public abstract class DataAbstractFieldVO implements Serializable {
+public abstract class DataAbstractFieldVO implements Serializable, Comparable<DataAbstractFieldVO> {
 	private static final long serialVersionUID = 3087772339561606073L;
 
 	/**
@@ -41,6 +41,11 @@ public abstract class DataAbstractFieldVO implements Serializable {
 	 * XDVAbstractField.inFilterPanel
 	 */
 	private Boolean inFilterPanel;
+
+	/**
+	 * XDVAbstractField.filterPanelOrder
+	 */
+	private Integer filterPanelOrder;
 
 	/**
 	 * XDSAbstractField.targetDSId
@@ -117,6 +122,14 @@ public abstract class DataAbstractFieldVO implements Serializable {
 		this.inFilterPanel = inFilterPanel;
 	}
 
+	public Integer getFilterPanelOrder() {
+		return filterPanelOrder;
+	}
+
+	public void setFilterPanelOrder(Integer filterPanelOrder) {
+		this.filterPanelOrder = filterPanelOrder;
+	}
+
 	public Long getTargetDSId() {
 		return targetDSId;
 	}
@@ -186,7 +199,8 @@ public abstract class DataAbstractFieldVO implements Serializable {
 	}
 
 	public boolean getInFilterPanelSafely() {
-		return getInFilterPanel() == null || getInFilterPanel(); //TODO
+		//return getInFilterPanel() == null || getInFilterPanel(); //TODO
+		return ObjectUtil.isTrue(getInFilterPanel());
 	}
 
 	public String getUiName() {
@@ -219,6 +233,15 @@ public abstract class DataAbstractFieldVO implements Serializable {
 
 	@Override
 	public String toString() {
-		return getName() != null ? getName() : "[?]";
+		String result = getUiName();
+		return result != null ? result : "[?]";
+	}
+
+	@Override
+	public int compareTo(DataAbstractFieldVO other) {
+		if (getFilterPanelOrder() != null && other != null && other.getFilterPanelOrder() != null) {
+			return getFilterPanelOrder().compareTo(other.getFilterPanelOrder());
+		}
+		return 0;
 	}
 }

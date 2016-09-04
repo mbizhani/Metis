@@ -20,6 +20,12 @@ public class DataParameterVO extends DataAbstractFieldVO {
 		this.sampleData = sampleData;
 	}
 
+	@Override
+	public boolean getInFilterPanelSafely() {
+		return getInFilterPanel() == null || getInFilterPanel(); //TODO
+//		return ObjectUtil.isTrue(getInFilterPanel());
+	}
+
 	public XDSParameter toXDSParameter() {
 		XDSParameter xdsParameter = new XDSParameter();
 		ObjectUtil.merge(xdsParameter, this, true);
