@@ -40,10 +40,6 @@ class ColumnUIStep extends WWizardStepPanel {
 				DataFieldVO fieldVO = item.getModelObject();
 				boolean enb = !XDSFieldType.Unknown.equals(fieldVO.getType());
 
-				if (fieldVO.getType() == XDSFieldType.LookUp) {
-					fieldVO.setInFilterPanel(true);
-				}
-
 				item.add(new Label("name", fieldVO.getUiName()));
 				item.add(new Label("type", fieldVO.getType()));
 

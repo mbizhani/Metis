@@ -426,7 +426,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
-		DSQueryBuilder queryBuilder = new DSQueryBuilder(xDataSource, queryQVO)
+		DSQueryBuilder queryBuilder = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
 			.appendSelect(queryQVO.getSelectFields())
 			.appendFrom()
 			.appendWhere()
@@ -437,7 +437,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		String comment = String.format("DsExc[%s]", dataSource.getName());
 
 		if (xDataSource.getQuery().getBefore() != null) {
-			dbConnectionService.execute(dbConnId, xDataSource.getQuery().getBefore(), "B4" + comment, queryQVO.getInputParams());
+			dbConnectionService.execute(dbConnId, xDataSource.getQuery().getBefore(), "B4" + comment, queryBuilder.getQueryParams());
 		}
 
 		List<Map<String, Object>> list = dbConnectionService.executeQuery(
@@ -526,7 +526,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.setFilterExpression(dataSource.getSelfRelPointerField() + " = :parentId")
 			.setInputParams(params);
 
-		DSQueryBuilder builder = new DSQueryBuilder(xDataSource, queryQVO)
+		DSQueryBuilder builder = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
 			.appendSelect(queryQVO.getSelectFields())
 			.appendFrom()
 			.appendWhere()
@@ -551,7 +551,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
-		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO)
+		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
 			.appendSelect(Collections.singletonList("count(1) as cnt"))
 			.appendFrom()
 			.appendWhere();
@@ -587,7 +587,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 		}
 
-		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO)
+		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
 			.appendSelect(select)
 			.appendFrom()
 			.appendWhere();
@@ -740,7 +740,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		queryQVO.setFilterExpression(dataSource.getKeyField() + " in (:ids)");
 
-		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO)
+		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
 			.appendSelect(queryQVO.getSelectFields())
 			.appendFrom()
 			.appendWhere()
@@ -803,16 +803,18 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		private XDataSource xDataSource;
 		private AbstractQueryQVO queryQVO;
+		private String selfRelationField;
 
 		// ---------------
 
 		public DSQueryBuilder(XDataSource xDataSource) {
-			this(xDataSource, null);
+			this(xDataSource, null, null);
 		}
 
-		public DSQueryBuilder(XDataSource xDataSource, AbstractQueryQVO queryQVO) {
+		public DSQueryBuilder(XDataSource xDataSource, AbstractQueryQVO queryQVO, String selfRelationField) {
 			this.xDataSource = xDataSource;
 			this.queryQVO = queryQVO;
+			this.selfRelationField = selfRelationField;
 		}
 
 		// ---------------
@@ -881,6 +883,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 
 			whereClause.append(appendFilters(xDataSource, queryQVO.getInputParams()));
+
+			if (selfRelationField != null && queryQVO.getFilterExpression() == null && queryQVO.getInputParams().size() == 0) {
+				whereClause.append(" and ").append(selfRelationField).append(" is null");
+			}
 
 			int idx = query.indexOf(EMBED_FILTER_EXPRESSION);
 			if (idx < 0) {

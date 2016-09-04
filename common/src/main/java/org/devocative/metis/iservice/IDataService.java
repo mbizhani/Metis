@@ -13,7 +13,7 @@ import java.util.Map;
 public interface IDataService {
 	DataVO loadDataVO(String dataViewName);
 
-	void updateDataVOByDataSource(DataVO dataVO, String dsName);
+	DataVO createAnotherDataView(String dsName);
 
 	List<DataAbstractFieldVO> findFilteringFields(List<DataAbstractFieldVO> allFields);
 

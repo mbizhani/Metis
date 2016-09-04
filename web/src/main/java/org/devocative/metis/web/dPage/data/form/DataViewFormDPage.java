@@ -35,11 +35,14 @@ public class DataViewFormDPage extends DPage {
 		if (params.size() > 0) {
 			dataVO = dataService.loadDataVO(params.get(0));
 		} else {
-			dataVO = new DataVO();
 			String dsName = getWebRequest().getRequestParameters().getParameterValue("dsName").toOptionalString();
 			if (dsName != null) {
-				dataService.updateDataVOByDataSource(dataVO, dsName);
+				dataVO = dataService.createAnotherDataView(dsName);
 			}
+		}
+
+		if (dataVO == null) {
+			dataVO = new DataVO();
 		}
 
 		Form form = new Form("form");

@@ -87,9 +87,15 @@ public class DataService implements IDataService {
 	}
 
 	@Override
-	public void updateDataVOByDataSource(DataVO dataVO, String dsName) {
-		DataSource dataSource = dataSourceService.loadByName(dsName);
-		updateDataVOByDataSource(dataVO, dataSource.getId());
+	public DataVO createAnotherDataView(String dsName) {
+		DataVO result = loadDataVO(dsName);
+		if (result != null) {
+			result.setDataViewId(null);
+			result.setName(null);
+			result.setTitle(null);
+			result.setDataSourceEditable(false);
+		}
+		return result;
 	}
 
 	@Override
