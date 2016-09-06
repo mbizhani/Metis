@@ -8,12 +8,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class QueryRVO implements Serializable {
+public class DbQueryRVO implements Serializable {
 	private static final long serialVersionUID = -1129436995334750688L;
 
 	private List<String> header = new ArrayList<>();
 
 	private List<List<Object>> rows = new ArrayList<>();
+
+	// ---------------
+
+	private QueryExecInfoRVO queryExecInfo = new QueryExecInfoRVO();
+
+	// ------------------------------
 
 	public List<String> getHeader() {
 		return header;
@@ -31,26 +37,40 @@ public class QueryRVO implements Serializable {
 		return rows;
 	}
 
-	public List<Map<String, Object>> toListOfMap() {
-		List<Map<String, Object>> result = new ArrayList<>();
+	// ---------------
+
+	public QueryExecInfoRVO getQueryExecInfo() {
+		return queryExecInfo;
+	}
+
+	// ------------------------------
+
+	public DsQueryRVO<List<Map<String, Object>>> toListOfMap() {
+		List<Map<String, Object>> list = new ArrayList<>();
 		for (List<Object> row : rows) {
 			Map<String, Object> rowAsMap = new HashMap<>();
 			for (int i = 0; i < header.size(); i++) {
 				rowAsMap.put(header.get(i), row.get(i));
 			}
-			result.add(rowAsMap);
+			list.add(rowAsMap);
 		}
+
+		DsQueryRVO<List<Map<String, Object>>> result = new DsQueryRVO<>(list);
+		result.setQueryExecInfo(queryExecInfo);
 		return result;
 	}
 
-	public List<KeyValueVO<Serializable, String>> toListOfKeyValues() {
-		List<KeyValueVO<Serializable, String>> result = new ArrayList<>();
+	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> toListOfKeyValues() {
+		List<KeyValueVO<Serializable, String>> list = new ArrayList<>();
 		for (List<Object> row : rows) {
 			KeyValueVO<Serializable, String> rowAsKeyValue = new KeyValueVO<>();
 			rowAsKeyValue.setKey((Serializable) row.get(0));
 			rowAsKeyValue.setValue(row.get(1) != null ? row.get(1).toString() : "");
-			result.add(rowAsKeyValue);
+			list.add(rowAsKeyValue);
 		}
+
+		DsQueryRVO<List<KeyValueVO<Serializable, String>>> result = new DsQueryRVO<>(list);
+		result.setQueryExecInfo(queryExecInfo);
 		return result;
 	}
 }

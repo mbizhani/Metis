@@ -1,6 +1,9 @@
 package org.devocative.metis.vo.async;
 
+import org.devocative.metis.vo.query.QueryExecInfoRVO;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +14,10 @@ public class DataViewRVO implements Serializable {
 	private List<Map<String, Object>> footer;
 	private Long count;
 	private String parentId;
+
+	private List<QueryExecInfoRVO> queryExecInfoList = new ArrayList<>();
+
+	// ------------------------------
 
 	public List<Map<String, Object>> getList() {
 		return list;
@@ -46,5 +53,15 @@ public class DataViewRVO implements Serializable {
 	public DataViewRVO setParentId(String parentId) {
 		this.parentId = parentId;
 		return this;
+	}
+
+	public List<QueryExecInfoRVO> getQueryExecInfoList() {
+		return queryExecInfoList;
+	}
+
+	// ------------------------------
+
+	public void addQueryExecInfo(QueryExecInfoRVO queryExecInfo) {
+		queryExecInfoList.add(queryExecInfo);
 	}
 }

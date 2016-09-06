@@ -10,7 +10,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.iservice.IDBConnectionService;
-import org.devocative.metis.vo.query.QueryRVO;
+import org.devocative.metis.vo.query.DbQueryRVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WPanel;
 import org.devocative.wickomp.form.code.OCode;
@@ -47,7 +47,7 @@ public class QueryEditorPanel extends WPanel {
 				header.clear();
 				rows.clear();
 
-				QueryRVO resultVO = dbConnectionService.executeQuery(dbConnId, editor.getModelObject(), "QryEdtr", params, 1L, 10L);
+				DbQueryRVO resultVO = dbConnectionService.executeQuery(dbConnId, editor.getModelObject(), "QryEdtr", params, 1L, 10L);
 				header.addAll(resultVO.getHeader());
 				rows.addAll(resultVO.getRows());
 				target.add(resultTable);

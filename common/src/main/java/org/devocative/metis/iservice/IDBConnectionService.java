@@ -5,7 +5,7 @@ import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.vo.DataFieldVO;
-import org.devocative.metis.vo.query.QueryRVO;
+import org.devocative.metis.vo.query.DbQueryRVO;
 
 import java.util.List;
 import java.util.Map;
@@ -25,13 +25,13 @@ public interface IDBConnectionService extends IApplicationLifecycle {
 
 	List<DataFieldVO> findFields(Long id, String sql, Map<String, Object> params);
 
-	QueryRVO executeQuery(
+	DbQueryRVO executeQuery(
 		Long dbConnId,
 		String query,
 		String comment,
 		Map<String, Object> params);
 
-	QueryRVO executeQuery(
+	DbQueryRVO executeQuery(
 		Long dbConnId,
 		String query,
 		String comment,
@@ -39,7 +39,7 @@ public interface IDBConnectionService extends IApplicationLifecycle {
 		Long pageSize);
 
 	// Main Method
-	QueryRVO executeQuery(
+	DbQueryRVO executeQuery(
 		Long dbConnId,
 		String query,
 		String comment,

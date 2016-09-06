@@ -5,10 +5,7 @@ import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.vo.filter.DataSourceFVO;
-import org.devocative.metis.vo.query.AggregateQueryQVO;
-import org.devocative.metis.vo.query.CountQueryQVO;
-import org.devocative.metis.vo.query.EQLMetaDataVO;
-import org.devocative.metis.vo.query.SelectQueryQVO;
+import org.devocative.metis.vo.query.*;
 
 import java.io.Serializable;
 import java.util.List;
@@ -38,13 +35,13 @@ public interface IDataSourceService {
 
 	EQLMetaDataVO processEntityQuery(Long dbConnId, String query);
 
-	List<Map<String, Object>> execute(SelectQueryQVO queryQVO);
+	DsQueryRVO<List<Map<String, Object>>> execute(SelectQueryQVO queryQVO);
 
-	List<KeyValueVO<Serializable, String>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, Map<String, Object> filter);
+	DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, Map<String, Object> filter);
 
-	List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId);
+	DsQueryRVO<List<Map<String, Object>>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId);
 
-	long execute(CountQueryQVO queryQVO);
+	DsQueryRVO<Long> execute(CountQueryQVO queryQVO);
 
-	List<Map<String, Object>> execute(AggregateQueryQVO queryQVO);
+	DsQueryRVO<List<Map<String, Object>>> execute(AggregateQueryQVO queryQVO);
 }

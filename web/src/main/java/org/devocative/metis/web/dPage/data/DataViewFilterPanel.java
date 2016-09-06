@@ -158,7 +158,7 @@ public class DataViewFilterPanel extends DPanel {
 							fieldVO.getTargetDSId(),
 							sentDBConnection,
 							null
-						);
+						).getResult();
 					}
 
 					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, true);

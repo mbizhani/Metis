@@ -422,7 +422,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	// ---------------
 
 	@Override
-	public List<Map<String, Object>> execute(SelectQueryQVO queryQVO) {
+	public DsQueryRVO<List<Map<String, Object>>> execute(SelectQueryQVO queryQVO) {
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -440,7 +440,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			dbConnectionService.execute(dbConnId, xDataSource.getQuery().getBefore(), "B4" + comment, queryBuilder.getQueryParams());
 		}
 
-		List<Map<String, Object>> list = dbConnectionService.executeQuery(
+		DsQueryRVO<List<Map<String, Object>>> list = dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
 				dbConnId,
@@ -453,7 +453,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		).toListOfMap();
 
 		if (dataSource.getSelfRelPointerField() != null) {
-			List<Object> parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list);
+			List<Object> parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list.getResult());
 
 			if (parentIds.size() > 0) {
 				SelectQueryQVO selectQueryQVO = new SelectQueryQVO(
@@ -462,7 +462,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				selectQueryQVO
 					.setSortFields(queryQVO.getSortFields())
 					.setSentDBConnection(queryQVO.getSentDBConnection());
-				list.addAll(findParentsToRoot(dataSource, selectQueryQVO, parentIds));
+				list.getResult().addAll(findParentsToRoot(dataSource, selectQueryQVO, parentIds));
 			}
 		}
 
@@ -470,7 +470,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public List<KeyValueVO<Serializable, String>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, Map<String, Object> filter) {
+	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, Map<String, Object> filter) {
 		DataSource dataSource = load(dataSourceId);
 		DataSource targetDataSource = load(targetDataSourceId);
 
@@ -491,7 +491,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
 		String comment = String.format("DsLkUp[%s > %s]", dataSource.getName(), targetDataSource.getName());
-		List<KeyValueVO<Serializable, String>> result;
+		DsQueryRVO<List<KeyValueVO<Serializable, String>>> result;
 		try {
 			result = dbConnectionService.executeQuery(
 				dbConnId,
@@ -507,15 +507,16 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		} catch (Exception e) {
 			logger.error(String.format("LookUp exec error: source=%s, target=%s",
 				dataSource.getName(), targetDataSource.getName()), e);
-			result = new ArrayList<>();
-			result.add(new KeyValueVO<Serializable, String>("--Error--", "--Error--"));
+			List<KeyValueVO<Serializable, String>> list = new ArrayList<>();
+			list.add(new KeyValueVO<Serializable, String>("--Error--", "--Error--"));
+			result = new DsQueryRVO<>(list);
 		}
 
 		return result;
 	}
 
 	@Override
-	public List<Map<String, Object>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId) {
+	public DsQueryRVO<List<Map<String, Object>>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId) {
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -547,7 +548,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public long execute(CountQueryQVO queryQVO) {
+	public DsQueryRVO<Long> execute(CountQueryQVO queryQVO) {
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -562,7 +563,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		String comment = String.format("DsCnt[%s]", dataSource.getName());
 
-		List<Map<String, Object>> list = dbConnectionService.executeQuery(
+		DsQueryRVO<List<Map<String, Object>>> list = dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
 				dbConnId,
@@ -572,11 +573,14 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			builderVO.queryParams
 		).toListOfMap();
 
-		return ((BigDecimal) list.get(0).get("cnt")).longValue();
+		return new DsQueryRVO<>(
+			((BigDecimal) list.getResult().get(0).get("cnt")).longValue(),
+			list.getQueryExecInfo()
+		);
 	}
 
 	@Override
-	public List<Map<String, Object>> execute(AggregateQueryQVO queryQVO) {
+	public DsQueryRVO<List<Map<String, Object>>> execute(AggregateQueryQVO queryQVO) {
 		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -598,7 +602,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		String comment = String.format("DsAgr[%s]", dataSource.getName());
 
-		Map<String, Object> row = dbConnectionService.executeQuery(
+		DsQueryRVO<List<Map<String, Object>>> list = dbConnectionService.executeQuery(
 			dbConnId,
 			processQuery(
 				dbConnId,
@@ -606,14 +610,14 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				xDataSource.getQuery().getMode()),
 			comment,
 			builderVO.queryParams
-		).toListOfMap()
-			.get(0);
+		).toListOfMap();
 
 		Map<String, Map<String, Object>> map = new LinkedHashMap<>();
 		for (XDVAggregatorFunction function : XDVAggregatorFunction.values()) {
 			map.put(function.name().toLowerCase(), new HashMap<String, Object>());
 		}
 
+		Map<String, Object> row = list.getResult().get(0);
 		for (Map.Entry<String, Object> entry : row.entrySet()) {
 			String[] parts = entry.getKey().split("___");
 			String func = parts[0];
@@ -621,7 +625,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			map.get(func).put(field, entry.getValue());
 		}
 
-		List<Map<String, Object>> result = new ArrayList<>();
+		List<Map<String, Object>> finalList = new ArrayList<>();
 		for (Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
 			if (entry.getValue().size() > 0) {
 				if (dataSource.getKeyField() != null) {
@@ -630,11 +634,11 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				if (dataSource.getTitleField() != null) {
 					entry.getValue().put(dataSource.getTitleField(), entry.getKey());
 				}
-				result.add(entry.getValue());
+				finalList.add(entry.getValue());
 			}
 		}
 
-		return result;
+		return new DsQueryRVO<>(finalList, list.getQueryExecInfo());
 	}
 
 	// -------------------------- PRIVATE METHODS
@@ -766,7 +770,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					xDataSource.getQuery().getMode()),
 				comment,
 				queryParams
-			).toListOfMap();
+			).toListOfMap().getResult(); //TODO
 
 			result.addAll(list);
 

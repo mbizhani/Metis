@@ -25,7 +25,7 @@ import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.vo.DataFieldVO;
-import org.devocative.metis.vo.query.QueryRVO;
+import org.devocative.metis.vo.query.DbQueryRVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -253,7 +253,7 @@ public class DBConnectionService implements IDBConnectionService {
 	// ---------------
 
 	@Override
-	public QueryRVO executeQuery(
+	public DbQueryRVO executeQuery(
 		Long dbConnId,
 		String query,
 		String comment,
@@ -263,7 +263,7 @@ public class DBConnectionService implements IDBConnectionService {
 	}
 
 	@Override
-	public QueryRVO executeQuery(
+	public DbQueryRVO executeQuery(
 		Long dbConnId,
 		String query,
 		String comment,
@@ -274,13 +274,16 @@ public class DBConnectionService implements IDBConnectionService {
 
 	// Main Method
 	@Override
-	public QueryRVO executeQuery(
+	public DbQueryRVO executeQuery(
 		Long dbConnId,
 		String query,
 		String comment,
 		Map<String, Object> params,
 		Long pageIndex,
 		Long pageSize) {
+
+		NamedParameterStatement nps;
+		DbQueryRVO result = new DbQueryRVO();
 
 		long start = System.currentTimeMillis();
 		logger.info("Executing Query: Cmnt=[{}] User=[{}] Conn=[{}]",
@@ -289,7 +292,7 @@ public class DBConnectionService implements IDBConnectionService {
 		try (Connection connection = getConnection(dbConnId)) {
 			query = String.format("/*%s*/ %s", comment, query);
 
-			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
+			nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
 			nps
 				.setDateClassReplacement(Timestamp.class)
 				.setPageIndex(pageIndex)
@@ -303,7 +306,6 @@ public class DBConnectionService implements IDBConnectionService {
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
 
-			QueryRVO result = new QueryRVO();
 			for (int i = 1; i <= metaData.getColumnCount(); i++) {
 				result.addHeader(metaData.getColumnName(i).toLowerCase());
 			}
@@ -333,13 +335,21 @@ public class DBConnectionService implements IDBConnectionService {
 
 			logger.info("Executed Query: Cmnt=[{}] User=[{}] Conn=[{}] Dur=[{}] Res#=[{}]",
 				comment, securityService.getCurrentUser(), load(dbConnId).getName(),
-				System.currentTimeMillis() - start, result.getRows().size());
+				result.getQueryExecInfo().getDuration(), result.getRows().size());
 
-			return result;
 		} catch (SQLException e) {
 			logger.error("executeQuery: " + comment, e);
+			result.getQueryExecInfo().setException(e.getMessage());
+
+			//TODO remove throwing
 			throw new MetisException(MetisErrorCode.SQLExecution, e);
 		}
+
+		result.getQueryExecInfo().setFinalSQL(nps.getFinalIndexedQuery());
+		result.getQueryExecInfo().setFinalParams(nps.getFinalParams());
+		result.getQueryExecInfo().setDuration(System.currentTimeMillis() - start);
+
+		return result;
 	}
 
 	@Override

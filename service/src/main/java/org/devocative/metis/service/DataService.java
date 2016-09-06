@@ -22,10 +22,7 @@ import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
-import org.devocative.metis.vo.query.AggregateQueryQVO;
-import org.devocative.metis.vo.query.CountQueryQVO;
-import org.devocative.metis.vo.query.ODataQVO;
-import org.devocative.metis.vo.query.SelectQueryQVO;
+import org.devocative.metis.vo.query.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -239,6 +236,10 @@ public class DataService implements IDataService {
 
 		List<String> selectFields = getSelectedFields(xDataView);
 
+		DataViewRVO result = new DataViewRVO();
+
+		// --------------- SELECT
+
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
 		selectQVO
 			.setPageIndex(request.getPageIndex())
@@ -246,15 +247,22 @@ public class DataService implements IDataService {
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
 			.setSentDBConnection(request.getSentDBConnection());
-		List<Map<String, Object>> list = dataSourceService.execute(selectQVO);
+		DsQueryRVO<List<Map<String, Object>>> listRVO = dataSourceService.execute(selectQVO);
+		result.setList(listRVO.getResult());
+		result.addQueryExecInfo(listRVO.getQueryExecInfo());
+
+		// --------------- COUNT
 
 		CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceName());
 		countQVO
 			.setInputParams(request.getFilter())
 			.setSentDBConnection(request.getSentDBConnection());
-		long cnt = dataSourceService.execute(countQVO);
+		DsQueryRVO<Long> countRVO = dataSourceService.execute(countQVO);
+		result.setCount(countRVO.getResult());
+		result.addQueryExecInfo(countRVO.getQueryExecInfo());
 
-		List<Map<String, Object>> footer = null;
+		// --------------- FOOTER (AGG)
+
 		Map<String, List<XDVAggregatorFunction>> agrFields = new HashMap<>();
 		for (XDVField xdvField : xDataView.getFields()) {
 			if (xdvField.getFooter() != null && xdvField.getFooter().size() > 0) {
@@ -266,17 +274,15 @@ public class DataService implements IDataService {
 			agrQVO
 				.setInputParams(request.getFilter())
 				.setSentDBConnection(request.getSentDBConnection());
-			footer = dataSourceService.execute(agrQVO);
+			DsQueryRVO<List<Map<String, Object>>> footerRVO = dataSourceService.execute(agrQVO);
+			result.setFooter(footerRVO.getResult());
+			result.addQueryExecInfo(footerRVO.getQueryExecInfo());
 		}
-
-		DataViewRVO result = new DataViewRVO();
-		result.setList(list);
-		result.setFooter(footer);
-		result.setCount(cnt);
 
 		logger.info("Executed DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}] Res#=[{}] Cnt=[{}] Ftr=[{}]",
 			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(),
-			System.currentTimeMillis() - start, list.size(), cnt, footer != null ? footer.size() : null);
+			System.currentTimeMillis() - start, result.getList().size(), result.getCount(),
+			result.getFooter() != null ? result.getFooter().size() : null);
 
 		return result;
 	}
@@ -297,7 +303,7 @@ public class DataService implements IDataService {
 			.setSortFields(request.getSortFieldList())
 			.setSentDBConnection(request.getSentDBConnection());
 
-		List<Map<String, Object>> list = dataSourceService.executeOfParent(selectQVO, request.getParentId());
+		List<Map<String, Object>> list = dataSourceService.executeOfParent(selectQVO, request.getParentId()).getResult();
 
 		DataViewRVO result = new DataViewRVO();
 		result.setList(list);
@@ -314,24 +320,36 @@ public class DataService implements IDataService {
 		logger.info("Executing OData: DV=[{}] Usr=[{}]", request.getName(), securityService.getCurrentUser());
 		long start = System.currentTimeMillis();
 
-		DataView dataView = dataViewService.loadByName(request.getName());
-		XDataView xDataView = dataViewService.getXDataView(dataView);
+		try {
+			DataView dataView = dataViewService.loadByName(request.getName());
+			XDataView xDataView = dataViewService.getXDataView(dataView);
 
-		List<String> selectFields = getSelectedFields(xDataView);
+			List<String> selectFields = getSelectedFields(xDataView);
 
-		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
-		selectQVO
-			.setPageIndex(request.getPageIndex())
-			.setPageSize(request.getPageSize())
-			.setFilterExpression(request.getFilterExpression())
-			.setInputParams(request.getInputParams());
+			Map<String, Object> inputParams = new HashMap<>();
+			if (request.getInputParams() != null) {
+				for (Map.Entry<String, Object> entry : request.getInputParams().entrySet()) {
+					inputParams.put(entry.getKey().toLowerCase(), entry.getValue());
+				}
+			}
 
-		List<Map<String, Object>> list = dataSourceService.execute(selectQVO);
+			SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
+			selectQVO
+				.setPageIndex(request.getPageIndex())
+				.setPageSize(request.getPageSize())
+				.setFilterExpression(request.getFilterExpression())
+				.setInputParams(inputParams);
 
-		logger.info("Executed OData: DV=[{}] Usr=[{}] Dur=[{}]",
-			request.getName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
+			List<Map<String, Object>> list = dataSourceService.execute(selectQVO).getResult();
 
-		return list;
+			logger.info("Executed OData: DV=[{}] Usr=[{}] Dur=[{}]",
+				request.getName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
+
+			return list;
+		} catch (RuntimeException e) {
+			logger.error("Execute OData Error: DV=" + request.getName(), e);
+			throw e;
+		}
 	}
 
 	@Override
@@ -383,7 +401,7 @@ public class DataService implements IDataService {
 								fieldVO.getTargetDSId(),
 								sentDBConnection,
 								lookUpFilter
-							);
+							).getResult();
 							result.put(fieldName, filtered);
 							break;
 					}
@@ -403,7 +421,7 @@ public class DataService implements IDataService {
 						fieldVO.getTargetDSId(),
 						sentDBConnection,
 						filterTargetDS
-					);
+					).getResult();
 					result.put(fieldName, filtered);
 
 				}
