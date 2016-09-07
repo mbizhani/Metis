@@ -55,9 +55,7 @@ public class DbQueryRVO implements Serializable {
 			list.add(rowAsMap);
 		}
 
-		DsQueryRVO<List<Map<String, Object>>> result = new DsQueryRVO<>(list);
-		result.setQueryExecInfo(queryExecInfo);
-		return result;
+		return new DsQueryRVO<>(list, queryExecInfo);
 	}
 
 	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> toListOfKeyValues() {
@@ -69,8 +67,6 @@ public class DbQueryRVO implements Serializable {
 			list.add(rowAsKeyValue);
 		}
 
-		DsQueryRVO<List<KeyValueVO<Serializable, String>>> result = new DsQueryRVO<>(list);
-		result.setQueryExecInfo(queryExecInfo);
-		return result;
+		return new DsQueryRVO<>(list, queryExecInfo);
 	}
 }

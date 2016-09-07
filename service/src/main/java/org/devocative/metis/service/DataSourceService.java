@@ -436,8 +436,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		String comment = String.format("DsExc[%s]", dataSource.getName());
 
+		QueryExecInfoRVO beforeExecInfo = null;
 		if (xDataSource.getQuery().getBefore() != null) {
-			dbConnectionService.execute(dbConnId, xDataSource.getQuery().getBefore(), "B4" + comment, queryBuilder.getQueryParams());
+			beforeExecInfo = dbConnectionService.execute(dbConnId, xDataSource.getQuery().getBefore(), "B4" + comment, queryBuilder.getQueryParams());
 		}
 
 		DsQueryRVO<List<Map<String, Object>>> list = dbConnectionService.executeQuery(
@@ -451,6 +452,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			queryQVO.getPageIndex(),
 			queryQVO.getPageSize()
 		).toListOfMap();
+
+		if (beforeExecInfo != null) {
+			list.addQueryExecInfo(0, beforeExecInfo);
+		}
 
 		if (dataSource.getSelfRelPointerField() != null) {
 			List<Object> parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list.getResult());
@@ -575,7 +580,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		return new DsQueryRVO<>(
 			((BigDecimal) list.getResult().get(0).get("cnt")).longValue(),
-			list.getQueryExecInfo()
+			list.getQueryExecInfoList()
 		);
 	}
 
@@ -638,7 +643,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 		}
 
-		return new DsQueryRVO<>(finalList, list.getQueryExecInfo());
+		return new DsQueryRVO<>(finalList, list.getQueryExecInfoList());
 	}
 
 	// -------------------------- PRIVATE METHODS

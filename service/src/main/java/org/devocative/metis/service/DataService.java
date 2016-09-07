@@ -249,7 +249,7 @@ public class DataService implements IDataService {
 			.setSentDBConnection(request.getSentDBConnection());
 		DsQueryRVO<List<Map<String, Object>>> listRVO = dataSourceService.execute(selectQVO);
 		result.setList(listRVO.getResult());
-		result.addQueryExecInfo(listRVO.getQueryExecInfo());
+		result.addQueryExecInfo(listRVO.getQueryExecInfoList());
 
 		// --------------- COUNT
 
@@ -259,7 +259,7 @@ public class DataService implements IDataService {
 			.setSentDBConnection(request.getSentDBConnection());
 		DsQueryRVO<Long> countRVO = dataSourceService.execute(countQVO);
 		result.setCount(countRVO.getResult());
-		result.addQueryExecInfo(countRVO.getQueryExecInfo());
+		result.addQueryExecInfo(countRVO.getQueryExecInfoList());
 
 		// --------------- FOOTER (AGG)
 
@@ -276,7 +276,7 @@ public class DataService implements IDataService {
 				.setSentDBConnection(request.getSentDBConnection());
 			DsQueryRVO<List<Map<String, Object>>> footerRVO = dataSourceService.execute(agrQVO);
 			result.setFooter(footerRVO.getResult());
-			result.addQueryExecInfo(footerRVO.getQueryExecInfo());
+			result.addQueryExecInfo(footerRVO.getQueryExecInfoList());
 		}
 
 		logger.info("Executed DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}] Res#=[{}] Cnt=[{}] Ftr=[{}]",

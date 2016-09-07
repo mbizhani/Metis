@@ -6,6 +6,7 @@ import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.query.DbQueryRVO;
+import org.devocative.metis.vo.query.QueryExecInfoRVO;
 
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public interface IDBConnectionService extends IApplicationLifecycle {
 
 	void closeAllPools();
 
-	void execute(Long dbConnId,
+	QueryExecInfoRVO execute(Long dbConnId,
 				 String query,
 				 String comment,
 				 Map<String, Object> params);

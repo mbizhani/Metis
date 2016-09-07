@@ -7,14 +7,17 @@ import org.apache.wicket.model.Model;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.MetisConfigKey;
+import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
+import org.devocative.metis.vo.query.QueryExecInfoRVO;
 import org.devocative.metis.web.MetisDModule;
 import org.devocative.metis.web.MetisIcon;
+import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.async.AsyncBehavior;
 import org.devocative.wickomp.async.IAsyncResponseHandler;
@@ -28,6 +31,8 @@ import org.devocative.wickomp.grid.column.OHiddenColumn;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
+import org.devocative.wickomp.html.WAjaxLink;
+import org.devocative.wickomp.html.window.WModalWindow;
 import org.devocative.wickomp.opt.OSize;
 
 import java.io.Serializable;
@@ -47,6 +52,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private String sentDBConnection;
 
+	private List<QueryExecInfoRVO> queryExecInfoList;
+	private WModalWindow modalWindow;
+
 	// ------------------------------
 
 	public DataViewGridPanel(String id, DataVO dataVO, Map<String, Object> filter) {
@@ -55,6 +63,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		this.filter = filter;
 
 		add(asyncBehavior = new AsyncBehavior(this));
+		add(modalWindow = new WModalWindow("modal"));
 
 		OColumnList<Map<String, Object>> columns = createColumns(dataVO);
 
@@ -100,7 +109,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setWidth(OSize.percent(100))
 		;
 
-		if (!getWebRequest().getRequestParameters().getParameterValue("window").isEmpty()) {
+		if (!getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty()) {
 			oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
 			//setEditButtonVisible(false);
 		}
@@ -111,6 +120,17 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
 				.toOptionalString();
 		}
+
+		add(new WAjaxLink("debug") {
+			private static final long serialVersionUID = 3303989238841000829L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				modalWindow.setContent(new QueryExecInfoListPanel(modalWindow.getContentId(), queryExecInfoList));
+				modalWindow.show(target);
+			}
+		}.setVisible(getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty()) //TODO privilege
+		);
 	}
 
 	// ------------------------------
@@ -136,6 +156,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Serializable result) {
 		DataViewRVO dataViewRVO = (DataViewRVO) result;
 
+		queryExecInfoList = dataViewRVO.getQueryExecInfoList();
+
 		if (MetisDModule.EXEC_DATA_VIEW.equals(handlerId)) {
 			grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount(), dataViewRVO.getFooter());
 		} else if (MetisDModule.EXEC_DATA_VIEW_CHILDREN.equals(handlerId)) {
@@ -145,6 +167,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	@Override
 	public void onAsyncError(String handlerId, IPartialPageRequestHandler handler, Exception error) {
+		if (error instanceof MetisException) {
+			queryExecInfoList = ((MetisException) error).getExecInfoList();
+		}
+
 		grid.pushError(handler, error);
 	}
 
@@ -195,7 +221,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private OColumnList<Map<String, Object>> createColumns(DataVO dataVO) {
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 		for (DataFieldVO fieldVO : dataVO.getFields()) {
-			OColumn<Map<String, Object>> column = null;
+			OColumn<Map<String, Object>> column;
 			if (XDSFieldResultType.Shown.equals(fieldVO.getResultType())) {
 				column = new OPropertyColumn<>(new Model<>(fieldVO.getTitleOrName()), fieldVO.getName());
 				column.setSortable(true);

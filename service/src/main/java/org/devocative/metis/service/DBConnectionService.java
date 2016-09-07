@@ -26,6 +26,7 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.query.DbQueryRVO;
+import org.devocative.metis.vo.query.QueryExecInfoRVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -282,7 +283,7 @@ public class DBConnectionService implements IDBConnectionService {
 		Long pageIndex,
 		Long pageSize) {
 
-		NamedParameterStatement nps;
+		NamedParameterStatement nps = null;
 		DbQueryRVO result = new DbQueryRVO();
 
 		long start = System.currentTimeMillis();
@@ -337,28 +338,30 @@ public class DBConnectionService implements IDBConnectionService {
 				comment, securityService.getCurrentUser(), load(dbConnId).getName(),
 				result.getQueryExecInfo().getDuration(), result.getRows().size());
 
+			result.getQueryExecInfo().fromNamedParameterStatement(nps);
+			result.getQueryExecInfo().setDuration(System.currentTimeMillis() - start);
+
+			return result;
 		} catch (SQLException e) {
 			logger.error("executeQuery: " + comment, e);
-			result.getQueryExecInfo().setException(e.getMessage());
-
-			//TODO remove throwing
-			throw new MetisException(MetisErrorCode.SQLExecution, e);
+			result.getQueryExecInfo().setException(e);
+			result.getQueryExecInfo().fromNamedParameterStatement(nps);
+			throw new MetisException(MetisErrorCode.SQLExecution, e)
+				.setExecInfoList(result.getQueryExecInfo());
 		}
-
-		result.getQueryExecInfo().setFinalSQL(nps.getFinalIndexedQuery());
-		result.getQueryExecInfo().setFinalParams(nps.getFinalParams());
-		result.getQueryExecInfo().setDuration(System.currentTimeMillis() - start);
-
-		return result;
 	}
 
 	@Override
-	public void execute(Long dbConnId,
+	public QueryExecInfoRVO execute(Long dbConnId,
 						String query,
 						String comment,
 						Map<String, Object> params) {
+		long start = System.currentTimeMillis();
+		NamedParameterStatement nps = null;
+		QueryExecInfoRVO execInfo = new QueryExecInfoRVO();
+
 		try (Connection connection = getConnection(dbConnId)) {
-			NamedParameterStatement nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
+			nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
 			nps
 				.setDateClassReplacement(Timestamp.class)
 				.setIgnoreExtraPassedParam(true);
@@ -368,11 +371,18 @@ public class DBConnectionService implements IDBConnectionService {
 			}
 
 			nps.executeQuery();
+
+			execInfo.fromNamedParameterStatement(nps);
+			execInfo.setDuration(System.currentTimeMillis() - start);
+
+			return execInfo;
 		} catch (SQLException e) {
 			logger.error("executeQuery: " + comment, e);
-			throw new MetisException(MetisErrorCode.SQLExecution, e);
+			execInfo.setException(e);
+			execInfo.fromNamedParameterStatement(nps);
+			throw new MetisException(MetisErrorCode.SQLExecution, e)
+				.setExecInfoList(execInfo);
 		}
-
 	}
 
 	// ---------------

@@ -17,6 +17,7 @@ import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
+import org.devocative.metis.web.MetisWebParam;
 import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
 import org.devocative.wickomp.WebUtil;
 import org.slf4j.Logger;
@@ -69,7 +70,7 @@ public class DataViewExecutorDPage extends DPage {
 		add(new Label("dvTitle", title).add(new AttributeModifier("style", color)));
 		add(new Label("dvName", dataVO.getName()).add(new AttributeModifier("style", color)));
 		add(new ExternalLink("edit", String.format("%s/%s", UrlUtil.createUri(DataViewFormDPage.class, true), dataVO.getName()))
-				.setVisible(getWebRequest().getRequestParameters().getParameterValue("window").isEmpty() && hasDataVO)
+				.setVisible(getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty() && hasDataVO)
 		);
 
 		Form<Map<String, Object>> form = new Form<>("form");

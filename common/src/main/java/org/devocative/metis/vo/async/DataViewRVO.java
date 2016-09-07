@@ -64,4 +64,8 @@ public class DataViewRVO implements Serializable {
 	public void addQueryExecInfo(QueryExecInfoRVO queryExecInfo) {
 		queryExecInfoList.add(queryExecInfo);
 	}
+
+	public void addQueryExecInfo(List<QueryExecInfoRVO> queryExecInfoList) {
+		this.queryExecInfoList.addAll(queryExecInfoList);
+	}
 }

@@ -1,5 +1,7 @@
 package org.devocative.metis.vo.query;
 
+import org.devocative.adroit.sql.NamedParameterStatement;
+
 import java.io.Serializable;
 import java.util.Map;
 
@@ -20,16 +22,8 @@ public class QueryExecInfoRVO implements Serializable {
 		return finalSQL;
 	}
 
-	public void setFinalSQL(String finalSQL) {
-		this.finalSQL = finalSQL;
-	}
-
 	public Map<Integer, Object> getFinalParams() {
 		return finalParams;
-	}
-
-	public void setFinalParams(Map<Integer, Object> finalParams) {
-		this.finalParams = finalParams;
 	}
 
 	public Long getDuration() {
@@ -44,7 +38,16 @@ public class QueryExecInfoRVO implements Serializable {
 		return exception;
 	}
 
-	public void setException(String exception) {
-		this.exception = exception;
+	public void setException(Exception exception) {
+		this.exception = exception.getMessage();
+	}
+
+	// ------------------------------
+
+	public void fromNamedParameterStatement(NamedParameterStatement nps) {
+		if (nps != null) {
+			finalSQL = nps.getFinalIndexedQuery();
+			finalParams = nps.getFinalParams();
+		}
 	}
 }
