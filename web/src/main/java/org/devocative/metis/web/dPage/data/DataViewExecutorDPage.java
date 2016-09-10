@@ -9,17 +9,14 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
-import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
-import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
-import org.devocative.wickomp.WebUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,16 +75,6 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
-			String sentDBConnection = null;
-			if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
-				sentDBConnection = getWebRequest()
-					.getRequestParameters()
-					.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
-					.toOptionalString();
-			}
-			Map<String, List<String>> webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
-			filter.putAll(dataService.convertSimpleParamsToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(), webParams, sentDBConnection));
-
 			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields()));
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;

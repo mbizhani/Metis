@@ -16,6 +16,7 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
+import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.opt.OSize;
@@ -42,6 +43,8 @@ public class DataViewFilterPanel extends DPanel {
 	@Inject
 	private IDataSourceService dataSourceService;
 
+	private Map<String, List<String>> webParams;
+
 	// Main Constructor
 	public DataViewFilterPanel(String id, final Long dataSourceId, final Map<String, Object> filter, List<DataAbstractFieldVO> fields) {
 		super(id);
@@ -51,10 +54,15 @@ public class DataViewFilterPanel extends DPanel {
 
 		this.filter = filter;
 
-		/*disableFilledFilter = getWebRequest()
-			.getQueryParameters()
-			.getParameterValue("search")
-			.toBoolean(true);*/
+		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
+			sentDBConnection = getWebRequest()
+				.getRequestParameters()
+				.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
+				.toOptionalString();
+		}
+
+		webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
+		filter.putAll(dataService.convertSimpleParamsToFilter(dataSourceId, fields, webParams, sentDBConnection));
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		floatTable.setEqualWidth(true);
@@ -86,13 +94,6 @@ public class DataViewFilterPanel extends DPanel {
 				item.add(view);
 			}
 		});
-
-		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
-			sentDBConnection = getWebRequest()
-				.getRequestParameters()
-				.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
-				.toOptionalString();
-		}
 	}
 
 	private FormComponent createFieldFormComponent(final DataAbstractFieldVO fieldVO) {
@@ -152,6 +153,13 @@ public class DataViewFilterPanel extends DPanel {
 					List<KeyValueVO<Serializable, String>> lookUpList;
 					if (filter.containsKey(fieldVO.getName())) {
 						lookUpList = (List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName());
+
+						/*
+						if the lookup is filtered by passing targetDSFilter, the result should not be selected
+						*/
+						if (fieldVO.getTargetDSFilter() != null && !webParams.containsKey(fieldVO.getName().toLowerCase())) {
+							filter.remove(fieldVO.getName());
+						}
 					} else {
 						lookUpList = dataSourceService.executeLookUp(
 							dataSourceId,

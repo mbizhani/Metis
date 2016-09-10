@@ -412,7 +412,7 @@ public class DataService implements IDataService {
 						RangeVO rangeVO = new RangeVO<>(lower, upper);
 						result.put(fieldName, rangeVO);
 					}
-				} else if (fieldVO.getTargetDSFilter() != null) {
+				} else if (fieldVO.getTargetDSFilter() != null && fieldVO.getType() == XDSFieldType.LookUp) {
 					DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
 					XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
 					Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
@@ -423,7 +423,6 @@ public class DataService implements IDataService {
 						filterTargetDS
 					).getResult();
 					result.put(fieldName, filtered);
-
 				}
 			} catch (Exception e) {
 				logger.warn("Converting sent parameter value={} to filter, field=[{}], dsId=[{}], error=[{}]",

@@ -172,6 +172,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				rel.setDeleted(false);
 
 				newRelations.add(rel);
+			} else {
+				xdsField.setTargetDSId(null);
+				xdsField.setTargetDSName(null);
 			}
 		}
 
@@ -187,6 +190,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				rel.setSourcePointerField(xdsParameter.getName());
 				rel.setDeleted(false);
 				newRelations.add(rel);
+			} else {
+				xdsParameter.setTargetDSName(null);
+				xdsParameter.setTargetDSId(null);
 			}
 		}
 
