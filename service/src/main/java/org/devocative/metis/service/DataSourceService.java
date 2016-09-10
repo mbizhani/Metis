@@ -425,6 +425,22 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		return metaDataVO;
 	}
 
+	@Override
+	public String processDynamicQuery(String queryCode, XDSQuery xdsQuery, Map<String, Object> params) {
+		if (ObjectUtil.isTrue(xdsQuery.getDynamic())) {
+			StringWriter out = new StringWriter();
+			try {
+				Template template = new Template(queryCode, xdsQuery.getText(), freeMarkerCfg); //TODO cache template
+				template.process(params, out);
+				return out.toString();
+			} catch (Exception e) {
+				logger.warn("processDynamicQuery", e);
+				throw new MetisException(MetisErrorCode.DynamicQuery);
+			}
+		}
+		return xdsQuery.getText();
+	}
+
 	// ---------------
 
 	@Override
@@ -713,21 +729,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		DBConnection defaultConnection = dbConnectionService.getDefaultConnectionOfCurrentUser();
 		return defaultConnection != null ? defaultConnection.getId() : dataSource.getConnectionId();
-	}
-
-	private String processDynamicQuery(String queryCode, XDSQuery xdsQuery, Map<String, Object> params) {
-		if (ObjectUtil.isTrue(xdsQuery.getDynamic())) {
-			StringWriter out = new StringWriter();
-			try {
-				Template template = new Template(queryCode, xdsQuery.getText(), freeMarkerCfg); //TODO cache template
-				template.process(params, out);
-				return out.toString();
-			} catch (Exception e) {
-				logger.warn("processDynamicQuery", e);
-				throw new MetisException(MetisErrorCode.DynamicQuery);
-			}
-		}
-		return xdsQuery.getText();
 	}
 
 	private XEntity findXEntity(Map<String, XEntity> map, String alias) {

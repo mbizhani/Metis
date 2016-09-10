@@ -168,16 +168,35 @@ public class DataService implements IDataService {
 			params.put(paramVO.getName(), paramVO.getSampleData());
 		}
 
-		String sql = dataSourceService.processQuery(
-			dataVO.getConnectionId(),
-			dataVO.getQuery().getText(),
-			dataVO.getQuery().getMode()
-		);
+		try {
+			// first try to process the query without dynamic processing if enabled in the query
+			String sql = dataSourceService.processQuery(
+				dataVO.getConnectionId(),
+				dataVO.getQuery().getText(),
+				dataVO.getQuery().getMode()
+			);
 
-		fieldsFromDB = dbConnectionService.findFields(
-			dataVO.getConnectionId(),
-			sql,
-			params);
+			fieldsFromDB = dbConnectionService.findFields(
+				dataVO.getConnectionId(),
+				sql,
+				params);
+		} catch (RuntimeException e) {
+			if (ObjectUtil.isTrue(dataVO.getQuery().getDynamic())) {
+				// second try to process the query with dynamic processing if enabled in the query
+				String sql = dataSourceService.processQuery(
+					dataVO.getConnectionId(),
+					dataSourceService.processDynamicQuery("testQuery", dataVO.getQuery(), params),
+					dataVO.getQuery().getMode()
+				);
+
+				fieldsFromDB = dbConnectionService.findFields(
+					dataVO.getConnectionId(),
+					sql,
+					params);
+			} else {
+				throw e;
+			}
+		}
 
 		List<String> nameClash = new ArrayList<>();
 		for (DataParameterVO paramVO : dataVO.getParams()) {
