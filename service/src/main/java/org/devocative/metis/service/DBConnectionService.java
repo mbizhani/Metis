@@ -202,7 +202,8 @@ public class DBConnectionService implements IDBConnectionService {
 			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, getSchemaForDB(dbConnId));
 			nps.setFetchSize(1);
 			nps.setParameters(params)
-				.setIgnoreExtraPassedParam(true); //TODO
+				.setIgnoreExtraPassedParam(true) //TODO
+				.setIgnoreMissedParam(true); //TODO
 
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
@@ -298,7 +299,8 @@ public class DBConnectionService implements IDBConnectionService {
 				.setDateClassReplacement(Timestamp.class)
 				.setPageIndex(pageIndex)
 				.setPageSize(pageSize)
-				.setIgnoreExtraPassedParam(true); //TODO
+				.setIgnoreExtraPassedParam(true) //TODO
+				.setIgnoreMissedParam(true); //TODO
 
 			if (params != null) {
 				nps.setParameters(params);
@@ -353,9 +355,9 @@ public class DBConnectionService implements IDBConnectionService {
 
 	@Override
 	public QueryExecInfoRVO execute(Long dbConnId,
-						String query,
-						String comment,
-						Map<String, Object> params) {
+									String query,
+									String comment,
+									Map<String, Object> params) {
 		long start = System.currentTimeMillis();
 		NamedParameterStatement nps = null;
 		QueryExecInfoRVO execInfo = new QueryExecInfoRVO();
@@ -364,7 +366,8 @@ public class DBConnectionService implements IDBConnectionService {
 			nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
 			nps
 				.setDateClassReplacement(Timestamp.class)
-				.setIgnoreExtraPassedParam(true);
+				.setIgnoreExtraPassedParam(true) //TODO
+				.setIgnoreMissedParam(true); //TODO
 
 			if (params != null) {
 				nps.setParameters(params);

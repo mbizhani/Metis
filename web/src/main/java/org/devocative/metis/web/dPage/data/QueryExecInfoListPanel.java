@@ -31,7 +31,7 @@ public class QueryExecInfoListPanel extends DPanel {
 					protected void populateItem(ListItem<KeyValueVO<Integer, Object>> item) {
 						KeyValueVO<Integer, Object> entry = item.getModelObject();
 						item.add(new Label("paramIndex", entry.getKey()));
-						item.add(new Label("paramValue", entry.getValue().toString()));
+						item.add(new Label("paramValue", String.valueOf(entry.getValue())));
 					}
 				});
 
