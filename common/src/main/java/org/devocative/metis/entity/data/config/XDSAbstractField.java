@@ -29,9 +29,12 @@ public abstract class XDSAbstractField implements Serializable {
 	protected String targetDSName;
 
 	@XStreamAsAttribute
+	private Boolean targetDSMultipleSelection;
+
+	@XStreamAsAttribute
 	private XDSFieldFilterType filterType;
 
-	// ---------------------------------- ACCESSORS
+	// ------------------------------ ACCESSORS
 
 	public String getName() {
 		return name;
@@ -91,6 +94,14 @@ public abstract class XDSAbstractField implements Serializable {
 		return this;
 	}
 
+	public Boolean getTargetDSMultipleSelection() {
+		return targetDSMultipleSelection;
+	}
+
+	public void setTargetDSMultipleSelection(Boolean targetDSMultipleSelection) {
+		this.targetDSMultipleSelection = targetDSMultipleSelection;
+	}
+
 	public XDSFieldFilterType getFilterType() {
 		return filterType;
 	}
@@ -100,7 +111,7 @@ public abstract class XDSAbstractField implements Serializable {
 		return this;
 	}
 
-	// ---------------------------------- OBJECT METHODS
+	// ------------------------------ OBJECT METHODS
 
 	@Override
 	public boolean equals(Object o) {

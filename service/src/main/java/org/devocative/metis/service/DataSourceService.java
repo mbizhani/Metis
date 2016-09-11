@@ -175,6 +175,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			} else {
 				xdsField.setTargetDSId(null);
 				xdsField.setTargetDSName(null);
+				xdsField.setTargetDSMultipleSelection(null);
 			}
 		}
 
@@ -191,8 +192,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				rel.setDeleted(false);
 				newRelations.add(rel);
 			} else {
-				xdsParameter.setTargetDSName(null);
 				xdsParameter.setTargetDSId(null);
+				xdsParameter.setTargetDSName(null);
+				xdsParameter.setTargetDSMultipleSelection(null);
 			}
 		}
 
@@ -668,7 +670,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		return new DsQueryRVO<>(finalList, list.getQueryExecInfoList());
 	}
 
-	// -------------------------- PRIVATE METHODS
+	// ------------------------------ PRIVATE METHODS
 
 	private void checkDuplicateDataSource(String name) {
 		long count = persistorService
@@ -989,13 +991,19 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 							case List: // All types (except boolean)
 							case Search:
-								filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
-								List<Serializable> items = new ArrayList<>();
-								List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
-								for (KeyValueVO<Serializable, String> keyValue : list) {
-									items.add(keyValue.getKey());
+								if (filter.getValue() instanceof List) {
+									filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
+									List<Serializable> items = new ArrayList<>();
+									List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
+									for (KeyValueVO<Serializable, String> keyValue : list) {
+										items.add(keyValue.getKey());
+									}
+									queryParams.put(xdsField.getName(), items);
+								} else {
+									filterClauses.append(String.format("\tand %1$s = :%1$s\n", xdsField.getName()));
+									KeyValueVO<Serializable, String> keyValueVO = (KeyValueVO<Serializable, String>) filter.getValue();
+									queryParams.put(xdsField.getName(), keyValueVO.getKey());
 								}
-								queryParams.put(xdsField.getName(), items);
 								break;
 						}
 					}
@@ -1018,12 +1026,16 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 									throw new RuntimeException("Invalid parameter as range: " + xdsParameter.getName());
 								case List:
 								case Search:
-									List<Serializable> items = new ArrayList<>();
-									List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) value;
-									for (KeyValueVO<Serializable, String> keyValue : list) {
-										items.add(keyValue.getKey());
+									if (value instanceof List) {
+										List<Serializable> items = new ArrayList<>();
+										List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) value;
+										for (KeyValueVO<Serializable, String> keyValue : list) {
+											items.add(keyValue.getKey());
+										}
+										value = items;
+									} else {
+										value = ((KeyValueVO<Serializable, String>) value).getKey();
 									}
-									value = items;
 									break;
 							}
 						}

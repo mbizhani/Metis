@@ -149,6 +149,8 @@ public class DataViewFilterPanel extends DPanel {
 				break;
 
 			case LookUp:
+				final boolean multiple = fieldVO.getTargetDSMultipleSelection() == null || fieldVO.getTargetDSMultipleSelection();
+
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
 					List<KeyValueVO<Serializable, String>> lookUpList;
 					if (filter.containsKey(fieldVO.getName())) {
@@ -169,7 +171,7 @@ public class DataViewFilterPanel extends DPanel {
 						).getResult();
 					}
 
-					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, true);
+					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, multiple);
 				} else {
 					fieldFormItem = new WClientSearchableListInput<KeyValueVO<String, String>>(fieldVO.getName()) {
 						private static final long serialVersionUID = 9122156586999811309L;
@@ -185,7 +187,7 @@ public class DataViewFilterPanel extends DPanel {
 								selectionPanelId,
 								Collections.singletonList(targetDSName))
 								.setSelectionJSCallback(getJSCallback())
-								.setMultiSelect(true);
+								.setMultiSelect(multiple);
 						}
 
 						@Override

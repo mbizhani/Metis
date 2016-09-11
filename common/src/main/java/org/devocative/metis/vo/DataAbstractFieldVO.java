@@ -58,6 +58,11 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 	private String targetDSName;
 
 	/**
+	 * XDSAbstractField.targetDSMultipleSelection
+	 */
+	private Boolean targetDSMultipleSelection;
+
+	/**
 	 * XDVField.targetDVId
 	 */
 	private Long targetDVId;
@@ -152,6 +157,14 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 
 	public void setTargetDSName(String targetDSName) {
 		this.targetDSName = targetDSName;
+	}
+
+	public Boolean getTargetDSMultipleSelection() {
+		return targetDSMultipleSelection;
+	}
+
+	public void setTargetDSMultipleSelection(Boolean targetDSMultipleSelection) {
+		this.targetDSMultipleSelection = targetDSMultipleSelection;
 	}
 
 	public String getTargetDVName() {

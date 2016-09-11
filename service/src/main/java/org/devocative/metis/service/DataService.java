@@ -120,12 +120,22 @@ public class DataService implements IDataService {
 
 		for (DataParameterVO parameterVO : dataVO.getParams()) {
 			if (parameterVO.getType() == XDSFieldType.LookUp) {
+
+				if (parameterVO.getTargetDSMultipleSelection() == null) {
+					parameterVO.setTargetDSMultipleSelection(true);
+				}
+
 				result.add(parameterVO);
 			}
 		}
 
 		for (DataFieldVO fieldVO : dataVO.getFields()) {
 			if (fieldVO.getType() == XDSFieldType.LookUp) {
+
+				if (fieldVO.getTargetDSMultipleSelection() == null) {
+					fieldVO.setTargetDSMultipleSelection(true);
+				}
+
 				result.add(fieldVO);
 			}
 		}

@@ -13,6 +13,7 @@ import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.wickomp.form.WBooleanInput;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
@@ -60,9 +61,14 @@ class DefineLookupStep extends WWizardStepPanel {
 						dataSourceList, false)
 						.setLabelVisible(false)
 						.setRequired(true)
-						.setLabel(new Model<>(fieldVO.getName()))
+						.setLabel(new Model<>(getString("DataSource") + " " + fieldVO.getName()))
 						.setEnabled(dataVO.isDataSourceEditable())
 				);
+
+				item.add(new WBooleanInput("targetDSMultipleSelection", new PropertyModel<Boolean>(fieldVO, "targetDSMultipleSelection"))
+					.setLabelVisible(false)
+					.setRequired(true)
+					.setLabel(new Model<>("Multiple Selection " + fieldVO.getName()))); //TODO
 
 				item.add(new WTextInput("targetDSFilter", new PropertyModel<String>(fieldVO, "targetDSFilter"))
 						.setLabelVisible(false)
