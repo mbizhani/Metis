@@ -117,7 +117,7 @@ public class DataSourceListDPage extends DPage {
 		oGrid
 			.setColumns(columnList)
 			.setMultiSort(false)
-			.setHeight(OSize.fixed(350))
+			.setHeight(OSize.fixed(500))
 			.setWidth(OSize.percent(100));
 
 		add(grid = new WDataGrid<>("grid", oGrid, new IGridDataSource<DataSource>() {

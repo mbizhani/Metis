@@ -135,6 +135,7 @@ public class DBConnectionService implements IDBConnectionService {
 		return persistorService
 			.createQueryBuilder()
 			.addFrom(DBConnection.class, "ent")
+			.setOrderBy("ent.name")
 			.list((pageIndex - 1) * pageSize, pageSize);
 	}
 
