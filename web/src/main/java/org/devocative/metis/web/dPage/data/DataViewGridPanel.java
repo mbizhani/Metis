@@ -4,6 +4,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.StringValueConversionException;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.MetisConfigKey;
@@ -131,6 +132,20 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 		}.setVisible(getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty()) //TODO privilege
 		);
+
+		Boolean multiSelect;
+		try {
+			multiSelect = getWebRequest()
+				.getRequestParameters()
+				.getParameterValue(MetisWebParam.MULTI_SELECT)
+				.toOptionalBoolean();
+		} catch (StringValueConversionException e) {
+			multiSelect = null;
+		}
+
+		if (multiSelect != null) {
+			oBaseGrid.setSingleSelect(!multiSelect);
+		}
 	}
 
 	// ------------------------------
