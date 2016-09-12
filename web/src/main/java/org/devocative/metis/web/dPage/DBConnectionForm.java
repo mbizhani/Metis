@@ -249,7 +249,7 @@ public class DBConnectionForm extends DPage {
 	}
 
 	private Model getMapModel(String resource) {
-		HashMap map = new HashMap<>();
+		HashMap<String, String> map = new HashMap<>();
 		map.put("label", getString(resource));
 		return new Model(map);
 	}

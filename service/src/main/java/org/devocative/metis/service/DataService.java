@@ -195,7 +195,7 @@ public class DataService implements IDataService {
 				// second try to process the query with dynamic processing if enabled in the query
 				String sql = dataSourceService.processQuery(
 					dataVO.getConnectionId(),
-					dataSourceService.processDynamicQuery("testQuery", dataVO.getQuery(), params),
+					dataSourceService.processDynamicQuery("updateFieldsByQuery", dataVO.getQuery().getText(), params),
 					dataVO.getQuery().getMode()
 				);
 

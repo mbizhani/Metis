@@ -428,19 +428,16 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public String processDynamicQuery(String queryCode, XDSQuery xdsQuery, Map<String, Object> params) {
-		if (ObjectUtil.isTrue(xdsQuery.getDynamic())) {
-			StringWriter out = new StringWriter();
-			try {
-				Template template = new Template(queryCode, xdsQuery.getText(), freeMarkerCfg); //TODO cache template
-				template.process(params, out);
-				return out.toString();
-			} catch (Exception e) {
-				logger.warn("processDynamicQuery", e);
-				throw new MetisException(MetisErrorCode.DynamicQuery);
-			}
+	public String processDynamicQuery(String queryCode, String text, Map<String, Object> params) {
+		StringWriter out = new StringWriter();
+		try {
+			Template template = new Template(queryCode, text, freeMarkerCfg); //TODO cache template
+			template.process(params, out);
+			return out.toString();
+		} catch (Exception e) {
+			logger.warn("processDynamicQuery", e);
+			throw new MetisException(MetisErrorCode.DynamicQuery);
 		}
-		return xdsQuery.getText();
 	}
 
 	// ---------------
@@ -469,7 +466,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			dbConnId,
 			processQuery(
 				dbConnId,
-				queryBuilder.getQuery().toString(),
+				queryBuilder.getQuery(),
 				xDataSource.getQuery().getMode()),
 			comment,
 			queryBuilder.getQueryParams(),
@@ -509,14 +506,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		select.add(targetDataSource.getKeyField());
 		select.add(targetDataSource.getTitleField() != null ? targetDataSource.getTitleField() : targetDataSource.getKeyField());
 
-		Map<String, String> sort = new HashMap<>();
-		sort.put(select.get(1), "asc");
-
 		DSQueryBuilder builder = new DSQueryBuilder(targetXDataSource)
 			.appendSelect(select)
 			.appendFrom()
-			.appendWhere(filter)
-			.appendSort(sort);
+			.appendWhere(filter);
 
 		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
 		String comment = String.format("DsLkUp[%s > %s]", dataSource.getName(), targetDataSource.getName());
@@ -526,7 +519,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				dbConnId,
 				processQuery(
 					dbConnId,
-					builder.getQuery().toString(),
+					builder.getQuery(),
 					targetXDataSource.getQuery().getMode()),
 				comment,
 				builder.getQueryParams(),
@@ -569,7 +562,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			dbConnId,
 			processQuery(
 				dbConnId,
-				builder.getQuery().toString(),
+				builder.getQuery(),
 				xDataSource.getQuery().getMode()),
 			comment,
 			params
@@ -586,7 +579,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.appendFrom()
 			.appendWhere();
 
-		StringBuilder main = builderVO.getQuery();
+		String main = builderVO.getQuery();
 
 		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
 
@@ -596,7 +589,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			dbConnId,
 			processQuery(
 				dbConnId,
-				main.toString(),
+				main,
 				xDataSource.getQuery().getMode()),
 			comment,
 			builderVO.queryParams
@@ -625,7 +618,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.appendFrom()
 			.appendWhere();
 
-		StringBuilder main = builderVO.getQuery();
+		String main = builderVO.getQuery();
 
 		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
 
@@ -635,7 +628,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			dbConnId,
 			processQuery(
 				dbConnId,
-				main.toString(),
+				main,
 				xDataSource.getQuery().getMode()),
 			comment,
 			builderVO.queryParams
@@ -768,7 +761,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		String comment = String.format("DsPar[%s]", dataSource.getName());
 
-		String query = builderVO.getQuery().toString();
+		String query = builderVO.getQuery();
 		Set<Object> visitedParents = new HashSet<>();
 		List<Map<String, Object>> result = new ArrayList<>();
 
@@ -837,8 +830,12 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		// ---------------
 
-		public StringBuilder getQuery() {
-			return query;
+		public String getQuery() {
+			if (ObjectUtil.isTrue(xDataSource.getQuery().getDynamic())) {
+				return processDynamicQuery(xDataSource.getName(), query.toString(), queryParams);
+			} else {
+				return query.toString();
+			}
 		}
 
 		public Map<String, Object> getQueryParams() {
@@ -865,16 +862,17 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		}
 
 		public DSQueryBuilder appendFrom() {
-			Map<String, Object> params;
+			/*Map<String, Object> params;
 			if (queryQVO != null && queryQVO.getInputParams() != null) {
 				params = queryQVO.getInputParams();
 			} else {
 				params = new HashMap<>();
-			}
+			}*/
 
 			query
 				.append("from (\n")
-				.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), params))
+					//.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), params))
+				.append(xDataSource.getQuery().getText())
 				.append("\n)\n");
 			return this;
 		}

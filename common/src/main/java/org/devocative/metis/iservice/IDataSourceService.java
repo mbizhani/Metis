@@ -2,7 +2,6 @@ package org.devocative.metis.iservice;
 
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.data.DataSource;
-import org.devocative.metis.entity.data.config.XDSQuery;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDataSource;
 import org.devocative.metis.vo.filter.DataSourceFVO;
@@ -36,7 +35,7 @@ public interface IDataSourceService {
 
 	EQLMetaDataVO processEntityQuery(Long dbConnId, String query);
 
-	String processDynamicQuery(String queryCode, XDSQuery xdsQuery, Map<String, Object> params);
+	String processDynamicQuery(String queryCode, String text, Map<String, Object> params);
 
 	DsQueryRVO<List<Map<String, Object>>> execute(SelectQueryQVO queryQVO);
 
