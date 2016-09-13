@@ -5,6 +5,8 @@ import com.thoughtworks.xstream.core.util.QuickWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import org.devocative.adroit.CalendarUtil;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
@@ -15,6 +17,7 @@ import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
@@ -950,6 +953,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		private String appendFilters(XDataSource dataSource, Map<String, Object> filters) {
 			StringBuilder filterClauses = new StringBuilder();
+			boolean equalOnUpper = ConfigUtil.getBoolean(MetisConfigKey.UseEqualOnUpperBound);
 
 			if (filters != null && filters.size() > 0) {
 				for (Map.Entry<String, Object> filter : filters.entrySet()) {
@@ -982,8 +986,20 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 									queryParams.put(xdsField.getName() + "_l", rangeVO.getLower());
 								}
 								if (rangeVO.getUpper() != null) {
-									filterClauses.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
-									queryParams.put(xdsField.getName() + "_u", rangeVO.getUpper());
+									if (equalOnUpper && xdsField.getType() != XDSFieldType.Date) {
+										filterClauses.append(String.format("\tand %1$s <= :%1$s_u\n", xdsField.getName()));
+									} else {
+										filterClauses.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
+									}
+
+									Object upper;
+									if (equalOnUpper && xdsField.getType() == XDSFieldType.Date) {
+										Date upperDt = (Date) rangeVO.getUpper();
+										upper = CalendarUtil.add(upperDt, Calendar.DATE, 1);
+									} else {
+										upper = rangeVO.getUpper();
+									}
+									queryParams.put(xdsField.getName() + "_u", upper);
 								}
 								break;
 

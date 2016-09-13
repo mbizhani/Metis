@@ -2,10 +2,12 @@ package org.devocative.metis;
 
 import org.devocative.adroit.IConfigKey;
 
+import java.util.Arrays;
 import java.util.List;
 
 public enum MetisConfigKey implements IConfigKey {
-	DBConnParamName("mts.dv.conn.param.name")
+	DBConnParamName("mts.dv.conn.param.name"),
+	UseEqualOnUpperBound("mts.range.equal.upper", false, Arrays.asList(true, false))
 	;
 	private String key;
 	private boolean validate = false;
