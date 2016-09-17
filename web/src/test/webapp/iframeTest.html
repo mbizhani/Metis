@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+	<title>Test IFrame</title>
+
+	<script type="application/javascript">
+		var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+		var eventer = window[eventMethod];
+		var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+		// Listen to message from child window
+		eventer(messageEvent, function (e) {
+			console.log('parent received message:  ', e.data);
+		}, false);
+	</script>
+</head>
+<body>
+Hello IFrame
+<hr/>
+<iframe src="http://localhost:8080/ctx/dvc/mts/dvExec/ostanHa?printable=1&window=1&$return=st_name&$multiselect=1"
+		style="width: 90%; height: 600px; border: 1px solid red;"></iframe>
+</body>
+</html>

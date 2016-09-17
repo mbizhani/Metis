@@ -35,6 +35,8 @@ import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.window.WModalWindow;
 import org.devocative.wickomp.opt.OSize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -44,6 +46,8 @@ import java.util.Map;
 
 public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSource<Map<String, Object>>, IAsyncResponseHandler {
 	private static final long serialVersionUID = 6957270102281915596L;
+
+	private static final Logger logger = LoggerFactory.getLogger(DataViewGridPanel.class);
 
 	private DataVO dataVO;
 	private Map<String, Object> filter;
@@ -93,6 +97,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 		grid.setEnabled(false);
 
+		String returnField = getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.RETURN_FIELD).toOptionalString();
+		if (returnField != null) {
+			logger.info("DataView [{}], changing return field to [{}]", dataVO.getName(), returnField);
+		}
+
 		oBaseGrid
 			.setShowFooter(true)
 			.setColumns(columns)
@@ -106,6 +115,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				MetisIcon.EXPORT_EXCEL,
 				String.format("%s-export.xlsx", dataVO.getName()),
 				10000))*/
+			.setReturnField(returnField)
 			.setHeight(OSize.fixed(dataVO.getGridHeightSafely().getHeight()))
 			.setWidth(OSize.percent(100))
 		;
