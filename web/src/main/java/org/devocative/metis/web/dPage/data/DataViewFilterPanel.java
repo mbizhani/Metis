@@ -16,6 +16,7 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
+import org.devocative.wickomp.WDefaults;
 import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.html.WFloatTable;
@@ -24,6 +25,7 @@ import org.devocative.wickomp.opt.OSize;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -163,12 +165,20 @@ public class DataViewFilterPanel extends DPanel {
 							filter.remove(fieldVO.getName());
 						}
 					} else {
-						lookUpList = dataSourceService.executeLookUp(
-							dataSourceId,
-							fieldVO.getTargetDSId(),
-							sentDBConnection,
-							null
-						).getResult();
+						try {
+							lookUpList = dataSourceService.executeLookUp(
+								dataSourceId,
+								fieldVO.getTargetDSId(),
+								sentDBConnection,
+								null
+							).getResult();
+						} catch (Exception e) {
+							String err = WDefaults.getExceptionToMessageHandler().handleMessage(this, e);
+							error(String.format("%s: %s", fieldVO.getTitle(), err));
+
+							lookUpList = new ArrayList<>();
+							lookUpList.add(new KeyValueVO<Serializable, String>("?", "-- Err: " + err));
+						}
 					}
 
 					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, multiple);

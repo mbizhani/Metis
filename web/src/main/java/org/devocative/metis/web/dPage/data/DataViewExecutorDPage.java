@@ -18,10 +18,12 @@ import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
 import org.devocative.wickomp.WebUtil;
+import org.devocative.wickomp.html.WMessager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,5 +124,15 @@ public class DataViewExecutorDPage extends DPage {
 		String scriptForLoading = String.format("$('#%s').click(function(e){$('#%s').datagrid('loading');});",
 			searchBut.getMarkupId(), mainGrid.getGridHtmlId());
 		WebUtil.writeJQueryCall(scriptForLoading, false);
+
+		final List<Serializable> errors = WebUtil.collectAs(this, true);
+
+		if (errors.size() > 0) {
+			String st = WMessager.getScript(
+				getString("label.error", null, "Error"),
+				WMessager.getHtml(errors));
+
+			WebUtil.writeJQueryCall(st, true);
+		}
 	}
 }

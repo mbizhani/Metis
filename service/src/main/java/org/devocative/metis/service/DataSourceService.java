@@ -516,28 +516,17 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
 		String comment = String.format("DsLkUp[%s > %s]", dataSource.getName(), targetDataSource.getName());
-		DsQueryRVO<List<KeyValueVO<Serializable, String>>> result;
-		try {
-			result = dbConnectionService.executeQuery(
+		return dbConnectionService.executeQuery(
+			dbConnId,
+			processQuery(
 				dbConnId,
-				processQuery(
-					dbConnId,
-					builder.getQuery(),
-					targetXDataSource.getQuery().getMode()),
-				comment,
-				builder.getQueryParams(),
-				1L,
-				50L
-			).toListOfKeyValues();
-		} catch (Exception e) {
-			logger.error(String.format("LookUp exec error: source=%s, target=%s",
-				dataSource.getName(), targetDataSource.getName()), e);
-			List<KeyValueVO<Serializable, String>> list = new ArrayList<>();
-			list.add(new KeyValueVO<Serializable, String>("--Error--", "--Error--"));
-			result = new DsQueryRVO<>(list);
-		}
-
-		return result;
+				builder.getQuery(),
+				targetXDataSource.getQuery().getMode()),
+			comment,
+			builder.getQueryParams(),
+			1L,
+			50L
+		).toListOfKeyValues();
 	}
 
 	@Override
