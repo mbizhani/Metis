@@ -175,6 +175,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		grid.loadData(target);
 	}
 
+	public String getGridHtmlId() {
+		return grid.getMarkupId();
+	}
+
 	// ------------------------------ IAsyncResponseHandler
 
 	@Override
