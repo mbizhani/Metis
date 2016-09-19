@@ -21,6 +21,8 @@ import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.opt.OSize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -32,6 +34,8 @@ import java.util.Map;
 
 public class DataViewFilterPanel extends DPanel {
 	private static final long serialVersionUID = -8467382200091757194L;
+
+	private static final Logger logger = LoggerFactory.getLogger(DataViewFilterPanel.class);
 
 	private Map<String, Object> filter;
 	//private boolean disableFilledFilter;
@@ -64,7 +68,13 @@ public class DataViewFilterPanel extends DPanel {
 		}
 
 		webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
-		filter.putAll(dataService.convertSimpleParamsToFilter(dataSourceId, fields, webParams, sentDBConnection));
+		try {
+			filter.putAll(dataService.convertSimpleParamsToFilter(dataSourceId, fields, webParams, sentDBConnection));
+		} catch (Exception e) {
+			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter()", e);
+
+			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
+		}
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		floatTable.setEqualWidth(true);
@@ -173,6 +183,8 @@ public class DataViewFilterPanel extends DPanel {
 								null
 							).getResult();
 						} catch (Exception e) {
+							logger.error("DataViewFilterPanel -> createFieldFormComponent() for lookUp", e);
+
 							String err = WDefaults.getExceptionToMessageHandler().handleMessage(this, e);
 							error(String.format("%s: %s", fieldVO.getTitle(), err));
 
