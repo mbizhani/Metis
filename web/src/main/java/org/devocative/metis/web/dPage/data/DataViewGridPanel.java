@@ -262,16 +262,24 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				if (!fieldVO.getIsKeyFieldSafely() && !fieldVO.getIsSelfRelPointerFieldSafely()) {
 					switch (fieldVO.getType()) {
 						case Integer:
-							column.setFormatter(ONumberFormatter.integer());
+							column
+								.setFormatter(ONumberFormatter.integer())
+								.setStyle("direction:ltr");
 							break;
 						case Real:
-							column.setFormatter(ONumberFormatter.real());
+							column
+								.setFormatter(ONumberFormatter.real())
+								.setStyle("direction:ltr");
 							break;
 						case Date:
-							column.setFormatter(ODateFormatter.prDate());
+							column
+								.setFormatter(ODateFormatter.prDate())
+								.setStyle("direction:ltr");
 							break;
 						case DateTime:
-							column.setFormatter(ODateFormatter.prDateTime());
+							column
+								.setFormatter(ODateFormatter.prDateTime())
+								.setStyle("direction:ltr");
 							break;
 						case Boolean:
 							column.setFormatter(OBooleanFormatter.bool());
