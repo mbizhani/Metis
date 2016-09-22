@@ -3,8 +3,7 @@ package org.devocative.metis.service;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.core.util.QuickWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
+import freemarker.template.*;
 import org.devocative.adroit.CalendarUtil;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
@@ -52,6 +51,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	private XStream xstream;
 	private Configuration freeMarkerCfg;
+	private CaseInsensitiveVariable instance;
 	private ICache<Long, DataSource> dataSourceCache;
 
 	@Autowired
@@ -74,6 +74,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		xstream.processAnnotations(XDataSource.class);
 
 		freeMarkerCfg = new Configuration(Configuration.VERSION_2_3_23);
+		instance = new CaseInsensitiveVariable();
 
 		dataSourceCache = cacheService.create("MTS_DATA_SOURCE", 50);
 		dataSourceCache.setMissedHitHandler(this);
@@ -435,7 +436,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		StringWriter out = new StringWriter();
 		try {
 			Template template = new Template(queryCode, text, freeMarkerCfg); //TODO cache template
-			template.process(params, out);
+			template.process(params, out, instance);
 			return out.toString();
 		} catch (Exception e) {
 			logger.warn("processDynamicQuery", e);
@@ -1048,6 +1049,31 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 
 			return filterClauses.toString();
+		}
+	}
+
+	private class CaseInsensitiveVariable implements ObjectWrapper {
+		@Override
+		public TemplateModel wrap(Object o) throws TemplateModelException {
+			if (o != null) {
+				if (o instanceof Map) {
+					Map<String, Object> oldMap = (Map<String, Object>) o;
+					Map<String, Object> newMap = new HashMap<>();
+					for (Map.Entry<String, Object> entry : oldMap.entrySet()) {
+						newMap.put(entry.getKey().toLowerCase(), entry.getValue());
+					}
+
+					return new SimpleHash((Map) newMap, null) {
+						private static final long serialVersionUID = 4486615324575062296L;
+
+						public TemplateModel get(String key) throws TemplateModelException {
+							System.out.println("key = " + key);
+							return super.get(key.toLowerCase());
+						}
+					};
+				}
+			}
+			return null;
 		}
 	}
 }
