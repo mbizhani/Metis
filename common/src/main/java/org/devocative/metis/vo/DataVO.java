@@ -50,6 +50,11 @@ public class DataVO implements Serializable {
 	private String dataSourceName;
 
 	/**
+	 * XDataSource.caseSensitiveFilter
+	 */
+	private Boolean caseSensitiveFilter;
+
+	/**
 	 * XDataSource.query
 	 */
 	private XDSQuery query;
@@ -149,6 +154,14 @@ public class DataVO implements Serializable {
 
 	public void setDataSourceName(String dataSourceName) {
 		this.dataSourceName = dataSourceName;
+	}
+
+	public Boolean getCaseSensitiveFilter() {
+		return caseSensitiveFilter;
+	}
+
+	public void setCaseSensitiveFilter(Boolean caseSensitiveFilter) {
+		this.caseSensitiveFilter = caseSensitiveFilter;
 	}
 
 	public XDSQuery getQuery() {

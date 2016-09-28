@@ -19,6 +19,9 @@ public class XDataSource implements Serializable {
 	@XStreamAsAttribute
 	private String name;
 
+	@XStreamAsAttribute
+	private Boolean caseSensitiveFilter;
+
 	private XDSQuery query;
 
 	private List<XDSField> fields;
@@ -33,6 +36,14 @@ public class XDataSource implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public Boolean getCaseSensitiveFilter() {
+		return caseSensitiveFilter;
+	}
+
+	public void setCaseSensitiveFilter(Boolean caseSensitiveFilter) {
+		this.caseSensitiveFilter = caseSensitiveFilter;
 	}
 
 	public XDSQuery getQuery() {
