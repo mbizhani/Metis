@@ -166,7 +166,13 @@ public class DataViewFilterPanel extends DPanel {
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
 					List<KeyValueVO<Serializable, String>> lookUpList;
 					if (filter.containsKey(fieldVO.getName())) {
-						lookUpList = (List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName());
+						if (multiple) {
+							lookUpList = (List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName());
+						} else {
+							KeyValueVO<Serializable, String> single = (KeyValueVO<Serializable, String>) filter.get(fieldVO.getName());
+							lookUpList = new ArrayList<>();
+							lookUpList.add(single);
+						}
 
 						/*
 						if the lookup is filtered by passing targetDSFilter, the result should not be selected
@@ -223,6 +229,8 @@ public class DataViewFilterPanel extends DPanel {
 						}
 					}.setOpenModalLinkVisible(!filter.containsKey(fieldVO.getName()));
 				}
+				break;
+			case Unknown:
 				break;
 		}
 		return fieldFormItem;

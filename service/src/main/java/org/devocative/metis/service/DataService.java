@@ -431,7 +431,13 @@ public class DataService implements IDataService {
 								sentDBConnection,
 								lookUpFilter
 							).getResult();
-							result.put(fieldName, filtered);
+
+							boolean multiple = fieldVO.getTargetDSMultipleSelection() == null || fieldVO.getTargetDSMultipleSelection();
+							if (multiple) {
+								result.put(fieldName, filtered);
+							} else if (filtered.size() > 0) {
+								result.put(fieldName, filtered.get(0));
+							}
 							break;
 					}
 				} else if (params.containsKey(fieldName + "_u") || params.containsKey(fieldName + "_l")) {
