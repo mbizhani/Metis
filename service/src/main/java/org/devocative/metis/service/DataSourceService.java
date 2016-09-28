@@ -344,51 +344,58 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			String rightColumn = null;
 
 			boolean validJoin = true;
-			if (joinCondMatcher.group(2) != null && joinCondMatcher.group(4) != null) {
-				//throw new MetisException(MetisErrorCode.EqlInvalidJoin, joinCondMatcher.group(0));
-				metaDataVO.addError(MetisErrorCode.EqlInvalidJoin, joinCondMatcher.group(0));
-				validJoin = false;
-			} else if (joinCondMatcher.group(2) == null && joinCondMatcher.group(4) == null) { // one PK is FK to another one
-				leftAlias = joinCondMatcher.group(1);
-				leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
-				rightAlias = joinCondMatcher.group(3);
-				rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
-			} else if (joinCondMatcher.group(2) != null) {
-				String[] split = joinCondMatcher.group(1).split("\\.");
-				leftAlias = split[0].trim();
-				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, leftAlias).findProperty(split[1].trim());
-
-				checkJoinProperty(xAProp, joinCondMatcher.group(1));
-
-				if (xAProp instanceof XMany2One) {
-					XMany2One xMany2One = (XMany2One) xAProp;
-					leftColumn = xMany2One.getColumn();
-					rightAlias = joinCondMatcher.group(3);
-					rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
-				} else { // XOne2Many
-					XOne2Many xOne2Many = (XOne2Many) xAProp;
+			try {
+				if (joinCondMatcher.group(2) != null && joinCondMatcher.group(4) != null) {
+					throw new MetisException(MetisErrorCode.EqlInvalidJoin, joinCondMatcher.group(0));
+					//metaDataVO.addError(MetisErrorCode.EqlInvalidJoin, joinCondMatcher.group(0));
+					//validJoin = false;
+				} else if (joinCondMatcher.group(2) == null && joinCondMatcher.group(4) == null) { // one PK is FK to another one
+					leftAlias = joinCondMatcher.group(1);
 					leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
 					rightAlias = joinCondMatcher.group(3);
-					rightColumn = xOne2Many.getManySideColumn();
-				}
-			} else { //joinCondMatcher.group(4) != null
-				String[] split = joinCondMatcher.group(3).split("\\.");
-				rightAlias = split[0].trim();
-				XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, rightAlias).findProperty(split[1].trim());
-
-				checkJoinProperty(xAProp, joinCondMatcher.group(3));
-
-				if (xAProp instanceof XMany2One) {
-					XMany2One xMany2One = (XMany2One) xAProp;
-					rightColumn = xMany2One.getColumn();
-					leftAlias = joinCondMatcher.group(1);
-					leftColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
-				} else { // XOne2Many
-					XOne2Many xOne2Many = (XOne2Many) xAProp;
 					rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
-					leftAlias = joinCondMatcher.group(1);
-					leftColumn = xOne2Many.getManySideColumn();
+				} else if (joinCondMatcher.group(2) != null) {
+					String[] split = joinCondMatcher.group(1).split("\\.");
+					leftAlias = split[0].trim();
+					XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, leftAlias).findProperty(split[1].trim());
+
+					checkJoinProperty(xAProp, joinCondMatcher.group(1));
+
+					if (xAProp instanceof XMany2One) {
+						XMany2One xMany2One = (XMany2One) xAProp;
+						leftColumn = xMany2One.getColumn();
+						rightAlias = joinCondMatcher.group(3);
+						rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
+					} else { // XOne2Many
+						XOne2Many xOne2Many = (XOne2Many) xAProp;
+						leftColumn = findXEntity(aliasToXEntityMap, leftAlias).getId().getColumn();
+						rightAlias = joinCondMatcher.group(3);
+						rightColumn = xOne2Many.getManySideColumn();
+					}
+				} else { //joinCondMatcher.group(4) != null
+					String[] split = joinCondMatcher.group(3).split("\\.");
+					rightAlias = split[0].trim();
+					XAbstractProperty xAProp = findXEntity(aliasToXEntityMap, rightAlias).findProperty(split[1].trim());
+
+					checkJoinProperty(xAProp, joinCondMatcher.group(3));
+
+					if (xAProp instanceof XMany2One) {
+						XMany2One xMany2One = (XMany2One) xAProp;
+						rightColumn = xMany2One.getColumn();
+						leftAlias = joinCondMatcher.group(1);
+						leftColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
+					} else { // XOne2Many
+						XOne2Many xOne2Many = (XOne2Many) xAProp;
+						rightColumn = findXEntity(aliasToXEntityMap, rightAlias).getId().getColumn();
+						leftAlias = joinCondMatcher.group(1);
+						leftColumn = xOne2Many.getManySideColumn();
+					}
 				}
+			} catch (MetisException e) {
+				if (!MetisErrorCode.UnknownAlias.equals(e.getErrorCode())) {
+					metaDataVO.addError((MetisErrorCode) e.getErrorCode(), e.getErrorParameter());
+				}
+				validJoin = false;
 			}
 
 			// Using ~ char instead of . to be ignored in the column replacement (next paragraph),
@@ -965,7 +972,11 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 								break;
 
 							case Contain: // Only String
-								filterClauses.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
+								if (xDataSource.getCaseSensitiveFilter() == null || !xDataSource.getCaseSensitiveFilter()) {
+									filterClauses.append(String.format("\tand lower(%1$s) like lower(:%1$s)\n", xdsField.getName()));
+								} else {
+									filterClauses.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
+								}
 								queryParams.put(xdsField.getName(), filter.getValue());
 								break;
 
