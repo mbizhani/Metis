@@ -17,7 +17,6 @@ import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
-import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.html.WMessager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +85,7 @@ public class DataViewExecutorDPage extends DPage {
 				protected void onSubmit(AjaxRequestTarget target) {
 					logger.debug("filter = {}", filter);
 					mainGrid.loadData(target);
+					target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
 				}
 			});
 			searchBut.setOutputMarkupId(true);
@@ -119,10 +119,6 @@ public class DataViewExecutorDPage extends DPage {
 	@Override
 	protected void onAfterRender() {
 		super.onAfterRender();
-
-		String scriptForLoading = String.format("$('#%s').click(function(e){$('#%s').datagrid('loading');});",
-			searchBut.getMarkupId(), mainGrid.getGridHtmlId());
-		WebUtil.writeJQueryCall(scriptForLoading, false);
 
 		WMessager.writeErrorsInAfterRender(this);
 	}
