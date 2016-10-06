@@ -43,13 +43,15 @@ public class DataViewFilterPanel extends DPanel {
 
 	private String sentDBConnection;
 
+	private Map<String, List<String>> webParams;
+
 	@Inject
 	private IDataService dataService;
 
 	@Inject
 	private IDataSourceService dataSourceService;
 
-	private Map<String, List<String>> webParams;
+	// ------------------------------
 
 	// Main Constructor
 	public DataViewFilterPanel(String id, final Long dataSourceId, final Map<String, Object> filter, List<DataAbstractFieldVO> fields) {
@@ -107,6 +109,8 @@ public class DataViewFilterPanel extends DPanel {
 			}
 		});
 	}
+
+	// ------------------------------
 
 	private FormComponent createFieldFormComponent(final DataAbstractFieldVO fieldVO) {
 		FormComponent fieldFormItem = null;

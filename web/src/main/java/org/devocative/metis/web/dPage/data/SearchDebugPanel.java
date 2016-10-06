@@ -3,17 +3,33 @@ package org.devocative.metis.web.dPage.data;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.request.Url;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
 
 import java.util.List;
 
-public class QueryExecInfoListPanel extends DPanel {
+public class SearchDebugPanel extends DPanel {
 	private static final long serialVersionUID = -5678280342452888775L;
 
-	public QueryExecInfoListPanel(String id, List<QueryExecInfoRVO> queryExecInfoList) {
+	public SearchDebugPanel(String id, List<QueryExecInfoRVO> queryExecInfoList) {
 		super(id);
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("| ");
+
+		for (Url.QueryParameter parameter : getWebRequest().getClientUrl().getQueryParameters()) {
+			if (!parameter.getValue().isEmpty()) {
+				String name = parameter.getName();
+				if (name.startsWith("amp;")) {
+					name = name.substring(4);
+				}
+				builder.append(name).append(" = ").append(parameter.getValue()).append(" | ");
+			}
+		}
+
+		add(new Label("sentURL", builder.toString()));
 
 		add(new ListView<QueryExecInfoRVO>("list", queryExecInfoList) {
 			private static final long serialVersionUID = 8291860105472506977L;

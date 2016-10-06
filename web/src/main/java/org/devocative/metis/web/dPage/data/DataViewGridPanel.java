@@ -2,6 +2,8 @@ package org.devocative.metis.web.dPage.data;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.StringValueConversionException;
@@ -35,6 +37,7 @@ import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.window.WModalWindow;
 import org.devocative.wickomp.opt.OSize;
+import org.devocative.wickomp.wrcs.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,11 +140,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				modalWindow.setContent(new QueryExecInfoListPanel(modalWindow.getContentId(), queryExecInfoList));
+				modalWindow.setContent(new SearchDebugPanel(modalWindow.getContentId(), queryExecInfoList));
 				modalWindow.show(target);
 			}
-		}.setVisible(getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty()) //TODO privilege
-		);
+		}.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)));
 
 		Boolean multiSelect;
 		try {
@@ -243,6 +245,15 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	@Override
 	public IModel<Map<String, Object>> model(Map<String, Object> object) {
 		return new WModel<>(object);
+	}
+
+	// ------------------------------
+
+	@Override
+	public void renderHead(IHeaderResponse response) {
+		if (ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)) {
+			response.render(JavaScriptHeaderItem.forScript(String.format("%s = true;", Resource.WICKOMP_DEBUG_ENABLED_JS), "MetisEnableJsDebug"));
+		}
 	}
 
 	// ------------------------------

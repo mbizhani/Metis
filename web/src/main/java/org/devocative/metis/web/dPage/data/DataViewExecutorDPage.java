@@ -33,7 +33,6 @@ public class DataViewExecutorDPage extends DPage {
 
 	private DataVO dataVO;
 	private DataViewGridPanel mainGrid;
-	private DAjaxButton searchBut;
 	private Map<String, Object> filter = new HashMap<>();
 
 	@Inject
@@ -78,7 +77,7 @@ public class DataViewExecutorDPage extends DPage {
 
 		if (hasDataVO) {
 			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields()));
-			form.add(searchBut = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;
 
 				@Override
@@ -88,7 +87,6 @@ public class DataViewExecutorDPage extends DPage {
 					target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
 				}
 			});
-			searchBut.setOutputMarkupId(true);
 			add(mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter));
 		} else {
 			form.add(new WebComponent("filterPanel"));

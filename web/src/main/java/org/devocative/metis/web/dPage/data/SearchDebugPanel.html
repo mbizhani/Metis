@@ -1,0 +1,37 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+	<div style="direction: ltr; text-align: left">
+		<table>
+			<tr>
+				<th>URL</th>
+				<td wicket:id="sentURL"></td>
+			</tr>
+		</table>
+		<table>
+			<tr>
+				<th>SQL</th>
+				<th>Params</th>
+				<th>Dur</th>
+			</tr>
+			<tr wicket:id="list">
+				<td><textarea wicket:id="sql" readonly cols="90" rows="10"></textarea></td>
+
+				<td align="center" valign="top">
+					<table style="direction: ltr" border="1" cellspacing="0" cellpadding="3">
+						<tr>
+							<th>P</th>
+							<th>V</th>
+						</tr>
+						<tr wicket:id="param">
+							<td wicket:id="paramIndex"></td>
+							<td wicket:id="paramValue"></td>
+						</tr>
+					</table>
+				</td>
+
+				<td align="center" valign="top" wicket:id="duration"></td>
+			</tr>
+		</table>
+	</div>
+</wicket:panel>
+</html>
