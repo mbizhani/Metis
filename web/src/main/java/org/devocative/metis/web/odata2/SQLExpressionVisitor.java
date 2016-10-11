@@ -2,6 +2,7 @@ package org.devocative.metis.web.odata2;
 
 import org.apache.olingo.odata2.api.edm.*;
 import org.apache.olingo.odata2.api.uri.expression.*;
+import org.apache.olingo.odata2.core.edm.Uint7;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,8 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 	private static final List<EdmSimpleType> INTEGER = Arrays.asList(
 		EdmSimpleTypeKind.Int16.getEdmSimpleTypeInstance(),
 		EdmSimpleTypeKind.Int32.getEdmSimpleTypeInstance(),
-		EdmSimpleTypeKind.Int64.getEdmSimpleTypeInstance()
+		EdmSimpleTypeKind.Int64.getEdmSimpleTypeInstance(),
+		Uint7.getInstance()
 	);
 
 	private static final List<EdmSimpleType> REAL = Arrays.asList(
@@ -75,9 +77,11 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public Object visitBinary(BinaryExpression binaryExpression, BinaryOperator operator, Object leftSide, Object rightSide) {
 		String sqlOpr;
+		boolean isOperator = true;
 
 		switch (operator) {
 
+			// ----- Logical Operators
 			case OR:
 				sqlOpr = "or";
 				break;
@@ -85,8 +89,13 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 				sqlOpr = "and";
 				break;
 
+			// ----- Relational Operator
 			case EQ:
-				sqlOpr = "=";
+				if (isNullLiteral(binaryExpression.getRightOperand())) {
+					sqlOpr = "is";
+				} else {
+					sqlOpr = "=";
+				}
 				break;
 			case NE:
 				sqlOpr = "<>";
@@ -104,6 +113,24 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 				sqlOpr = "<";
 				break;
 
+			// ----- Arithmetic Operators
+			case ADD:
+				sqlOpr = "+";
+				break;
+			case SUB:
+				sqlOpr = "-";
+				break;
+			case MUL:
+				sqlOpr = "*";
+				break;
+			case DIV:
+				sqlOpr = "/";
+				break;
+			case MODULO:
+				isOperator = false;
+				sqlOpr = "mod";
+				break;
+
 			default:
 				logger.error("Unsupported operator: opr=[{}] expr=[{}]", operator.toUriLiteral(), binaryExpression.getUriLiteral());
 				throw new RuntimeException("Unsupported operator: " + operator.toUriLiteral());
@@ -112,12 +139,26 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 		String left = createOperand(binaryExpression.getLeftOperand(), leftSide);
 		String right = createOperand(binaryExpression.getRightOperand(), rightSide);
 
-		return left + " " + sqlOpr + " " + right;
+		if (isOperator) {
+			return String.format("(%s %s %s)", left, sqlOpr, right);
+		} else {
+			return String.format("%s(%s,%s)", sqlOpr, left, right);
+		}
 	}
 
 	@Override
 	public Object visitUnary(UnaryExpression unaryExpression, UnaryOperator operator, Object operand) {
-		return null;
+		String sqlOpr = "";
+
+		switch (operator) {
+			case MINUS:
+				sqlOpr = "-";
+				break;
+			case NOT:
+				sqlOpr = "not";
+				break;
+		}
+		return String.format("%s(%s)", sqlOpr, createOperand(unaryExpression.getOperand(), operand));
 	}
 
 	@Override
@@ -154,6 +195,8 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 				result = Boolean.valueOf(strValue);
 			} else if (STRING.contains(edmLiteral.getType())) {
 				result = strValue;
+			} else if (EdmSimpleTypeKind.Null.getEdmSimpleTypeInstance().equals(edmLiteral.getType())) {
+				result = "null";
 			} else {
 				logger.error("Unknown literal type: type=[{}] lit=[{}]", edmLiteral.getType(), literal.getUriLiteral());
 				result = strValue;
@@ -192,20 +235,44 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 
 		switch (expression.getKind()) {
 
-			case LITERAL:
-				paramsValue.put("p_" + paramIndex, value);
-				result = ":p_" + paramIndex++;
+			/*case FILTER:
 				break;
+			case METHOD:
+				break;
+			case MEMBER:
+				break;
+			case ORDER:
+				break;
+			case ORDERBY:
+				break;*/
+			case LITERAL:
+				if (isNullLiteral(expression)) {
+					result = "null";
+				} else {
+					paramsValue.put("p_" + paramIndex, value);
+					result = ":p_" + paramIndex++;
+				}
+				break;
+			case BINARY:
+			case UNARY:
 			case PROPERTY:
 				result = value.toString();
 				break;
-
 			default:
 				logger.error("Not supported operand: type=[{}] expr=[{}]", expression.getKind(), expression.getUriLiteral());
-				throw new RuntimeException("Not supported operand: " + expression.getUriLiteral());
+				throw new RuntimeException(String.format("Not supported operand: type=[%s] expr=[%s]",
+					expression.getKind(), expression.getUriLiteral()));
 		}
 
 		return result;
+	}
+
+	private boolean isNullLiteral(CommonExpression expression) {
+		if (expression instanceof LiteralExpression) {
+			LiteralExpression literalExpression = (LiteralExpression) expression;
+			return EdmSimpleTypeKind.Null.getEdmSimpleTypeInstance().equals(literalExpression.getEdmType());
+		}
+		return false;
 	}
 
 }

@@ -1078,7 +1078,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 						private static final long serialVersionUID = 4486615324575062296L;
 
 						public TemplateModel get(String key) throws TemplateModelException {
-							System.out.println("key = " + key);
 							return super.get(key.toLowerCase());
 						}
 					};

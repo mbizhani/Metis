@@ -366,6 +366,7 @@ public class DataService implements IDataService {
 			selectQVO
 				.setPageIndex(request.getPageIndex())
 				.setPageSize(request.getPageSize())
+				.setSortFields(request.getOrderBy())
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams);
 

@@ -6,6 +6,7 @@ import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
+import org.apache.olingo.odata2.api.uri.expression.OrderExpression;
 import org.apache.olingo.odata2.api.uri.info.GetComplexPropertyUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,10 +57,28 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		logger.info("OData: DataList: DataView=[{}] User=[{}]",
 			entitySet.getEntityType().getName(), securityService.getCurrentUser());
 
-		// TODO using OData top and skip if available
+		Integer top = 2000;
+		Integer skip = 0;
+
+		if (uriInfo.getSkip() != null) {
+			skip = uriInfo.getSkip();
+		}
+
+		if (uriInfo.getTop() != null) {
+			top = uriInfo.getTop();
+		}
+
 		ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName())
-			.setPageIndex(1)
-			.setPageSize(2000);
+			.setPageIndex(skip + 1)
+			.setPageSize(top - skip);
+
+		if (uriInfo.getOrderBy() != null) {
+			Map<String, String> orderBy = new LinkedHashMap<>();
+			for (OrderExpression orderExpression : uriInfo.getOrderBy().getOrders()) {
+				orderBy.put(orderExpression.getExpression().getUriLiteral(), orderExpression.getSortOrder().toString());
+			}
+			dataQVO.setOrderBy(orderBy);
+		}
 
 		Map<String, Object> inputParams = new HashMap<>();
 
@@ -71,9 +91,11 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 			dataQVO.setFilterExpression(accept.toString());
 		}
 
+		/*
 		if (uriInfo.getCustomQueryOptions() != null) {
 			inputParams.putAll(uriInfo.getCustomQueryOptions());
 		}
+		*/
 
 		dataQVO.setInputParams(inputParams);
 

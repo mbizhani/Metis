@@ -8,6 +8,8 @@ public class ODataQVO {
 	private String filterExpression;
 	private Map<String, Object> inputParams;
 
+	private Map<String, String> orderBy;
+
 	private long pageIndex;
 	private long pageSize;
 
@@ -38,6 +40,15 @@ public class ODataQVO {
 
 	public ODataQVO setInputParams(Map<String, Object> inputParams) {
 		this.inputParams = inputParams;
+		return this;
+	}
+
+	public Map<String, String> getOrderBy() {
+		return orderBy;
+	}
+
+	public ODataQVO setOrderBy(Map<String, String> orderBy) {
+		this.orderBy = orderBy;
 		return this;
 	}
 
