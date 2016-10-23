@@ -78,8 +78,7 @@ class ColumnUIStep extends WWizardStepPanel {
 					}
 				});
 
-				boolean showFooter = !dataVO.isDataSourceEditable() &&
-					fieldVO.getType().isNumerical() &&
+				boolean showFooter = fieldVO.getType().isNumerical() &&
 					!fieldVO.getIsKeyFieldSafely() &&
 					!fieldVO.getIsSelfRelPointerFieldSafely();
 

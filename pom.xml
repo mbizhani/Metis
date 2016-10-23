@@ -48,24 +48,22 @@
 	</scm>
 
 	<properties>
-		<demeter.version>1.0-SNAPSHOT</demeter.version>
-
-		<spring.version>4.2.5.RELEASE</spring.version>
-
-		<servlet.version>3.0.1</servlet.version>
-
-		<jetty.version>9.2.15.v20160210</jetty.version>
-		<jetty.context>/ctx</jetty.context>
-		<jetty.port>8080</jetty.port>
-
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<compiler.version>3.5.1</compiler.version>
 		<lang.level>1.7</lang.level>
-		<release.version>2.5.3</release.version>
-		<source.version>3.0.0</source.version>
-		<javadoc.version>2.10.3</javadoc.version>
-		<gpg.version>1.6</gpg.version>
-		<jar.version>2.6</jar.version>
+		<jetty.port>8080</jetty.port>
+		<jetty.context>/ctx</jetty.context>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<d.demeter.ver>1.0-SNAPSHOT</d.demeter.ver>
+		<d.spring.ver>4.3.3.RELEASE</d.spring.ver>
+		<d.servlet.ver>3.1.0</d.servlet.ver>
+
+		<p.jetty.ver>9.2.15.v20160210</p.jetty.ver>
+		<p.compiler.ver>3.5.1</p.compiler.ver>
+		<p.release.ver>2.5.3</p.release.ver>
+		<p.source.ver>3.0.0</p.source.ver>
+		<p.javadoc.ver>2.10.3</p.javadoc.ver>
+		<p.gpg.ver>1.6</p.gpg.ver>
+		<p.jar.ver>2.6</p.jar.ver>
 
 		<project.owner>Mehdi Bizhani</project.owner>
 	</properties>
@@ -79,7 +77,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${compiler.version}</version>
+				<version>${p.compiler.ver}</version>
 				<configuration>
 					<source>${lang.level}</source>
 					<target>${lang.level}</target>
@@ -93,7 +91,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>${source.version}</version>
+				<version>${p.source.ver}</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -108,7 +106,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>${jar.version}</version>
+				<version>${p.jar.ver}</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -125,7 +123,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
-				<version>${release.version}</version>
+				<version>${p.release.ver}</version>
 				<configuration>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<useReleaseProfile>false</useReleaseProfile>
@@ -138,6 +136,7 @@
 	</build>
 
 	<profiles>
+
 		<profile>
 			<id>release</id>
 			<build>
@@ -146,7 +145,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>${javadoc.version}</version>
+						<version>${p.javadoc.ver}</version>
 						<executions>
 							<execution>
 								<id>attach-javadocs</id>
@@ -161,7 +160,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>${gpg.version}</version>
+						<version>${p.gpg.ver}</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
@@ -176,6 +175,21 @@
 				</plugins>
 			</build>
 		</profile>
+
+		<profile>
+			<id>localRelease</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>localNexus</id>
+					<url>http://localnexus:8081/nexus/content/repositories/DMSnapshot/</url>
+				</snapshotRepository>
+				<repository>
+					<id>localNexus</id>
+					<url>http://localnexus:8081/nexus/content/repositories/DMRelease/</url>
+				</repository>
+			</distributionManagement>
+		</profile>
+
 	</profiles>
 
 	<distributionManagement>
