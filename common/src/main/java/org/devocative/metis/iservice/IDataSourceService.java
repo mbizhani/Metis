@@ -35,7 +35,7 @@ public interface IDataSourceService {
 
 	EQLMetaDataVO processEntityQuery(Long dbConnId, String query);
 
-	String processDynamicQuery(String queryCode, String text, Map<String, Object> params);
+	String processDynamicQuery(String text, Map<String, Object> params);
 
 	DsQueryRVO<List<Map<String, Object>>> execute(SelectQueryQVO queryQVO);
 

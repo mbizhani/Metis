@@ -3,7 +3,6 @@ package org.devocative.metis.service;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.core.util.QuickWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
-import freemarker.template.*;
 import org.devocative.adroit.CalendarUtil;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
@@ -16,6 +15,8 @@ import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.demeter.iservice.template.IStringTemplateService;
+import org.devocative.demeter.iservice.template.TemplateEngineType;
 import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -50,8 +51,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	private static final String EMBED_FILTER_EXPRESSION = "%FILTER_EXPR%";
 
 	private XStream xstream;
-	private Configuration freeMarkerCfg;
-	private CaseInsensitiveVariable instance;
 	private ICache<Long, DataSource> dataSourceCache;
 
 	@Autowired
@@ -66,15 +65,15 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	@Autowired
 	private ISecurityService securityService;
 
+	@Autowired
+	private IStringTemplateService stringTemplateService;
+
 	// ------------------------------
 
 	@PostConstruct
 	public void initDataSourceService() {
 		xstream = new XStream();
 		xstream.processAnnotations(XDataSource.class);
-
-		freeMarkerCfg = new Configuration(Configuration.VERSION_2_3_23);
-		instance = new CaseInsensitiveVariable();
 
 		dataSourceCache = cacheService.create("MTS_DATA_SOURCE", 50);
 		dataSourceCache.setMissedHitHandler(this);
@@ -439,16 +438,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public String processDynamicQuery(String queryCode, String text, Map<String, Object> params) {
-		StringWriter out = new StringWriter();
-		try {
-			Template template = new Template(queryCode, text, freeMarkerCfg); //TODO cache template
-			template.process(params, out, instance);
-			return out.toString();
-		} catch (Exception e) {
-			logger.warn("processDynamicQuery", e);
-			throw new MetisException(MetisErrorCode.DynamicQuery);
-		}
+	public String processDynamicQuery(String text, Map<String, Object> params) {
+		return stringTemplateService.create(text, TemplateEngineType.FreeMarker).process(params);
 	}
 
 	// ---------------
@@ -832,7 +823,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		public String getQuery() {
 			if (ObjectUtil.isTrue(xDataSource.getQuery().getDynamic())) {
-				return processDynamicQuery(xDataSource.getName(), query.toString(), queryParams);
+				return processDynamicQuery(query.toString(), queryParams);
 			} else {
 				return query.toString();
 			}
@@ -1060,30 +1051,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 
 			return filterClauses.toString();
-		}
-	}
-
-	private class CaseInsensitiveVariable implements ObjectWrapper {
-		@Override
-		public TemplateModel wrap(Object o) throws TemplateModelException {
-			if (o != null) {
-				if (o instanceof Map) {
-					Map<String, Object> oldMap = (Map<String, Object>) o;
-					Map<String, Object> newMap = new HashMap<>();
-					for (Map.Entry<String, Object> entry : oldMap.entrySet()) {
-						newMap.put(entry.getKey().toLowerCase(), entry.getValue());
-					}
-
-					return new SimpleHash((Map) newMap, null) {
-						private static final long serialVersionUID = 4486615324575062296L;
-
-						public TemplateModel get(String key) throws TemplateModelException {
-							return super.get(key.toLowerCase());
-						}
-					};
-				}
-			}
-			return null;
 		}
 	}
 }
