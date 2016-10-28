@@ -140,8 +140,18 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		;
 
 		if (!getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty()) {
-			oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
-			//setEditButtonVisible(false);
+			if (dataVO.getSelectionValidationJS() == null) {
+				oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
+			} else {
+				StringBuilder builder = new StringBuilder();
+				builder.append("function(rows){")
+					.append("for(var r=0;r<rows.length;r++){")
+					.append("var row = rows[r];")
+					.append(String.format("if(%1$sSelValidJS(row.row)){alert(%1$sSelValidJS(row.row));return;}", dataVO.getName()))
+					.append("}")
+					.append("parent.postMessage(JSON.stringify(rows),'*');}");
+				oBaseGrid.setSelectionJSHandler(builder.toString());
+			}
 		}
 
 		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
@@ -269,6 +279,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	public void renderHead(IHeaderResponse response) {
 		if (ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)) {
 			response.render(JavaScriptHeaderItem.forScript(String.format("%s = true;", Resource.WICKOMP_DEBUG_ENABLED_JS), "MetisEnableJsDebug"));
+		}
+
+		if (dataVO.getSelectionValidationJS() != null) {
+			String func = String.format("function %sSelValidJS(row){%s}", dataVO.getName(), dataVO.getSelectionValidationJS());
+			response.render(JavaScriptHeaderItem.forScript(func, dataVO.getName()));
 		}
 	}
 

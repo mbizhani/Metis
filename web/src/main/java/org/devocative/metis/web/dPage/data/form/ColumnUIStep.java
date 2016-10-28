@@ -2,6 +2,7 @@ package org.devocative.metis.web.dPage.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
@@ -32,6 +33,9 @@ class ColumnUIStep extends WWizardStepPanel {
 
 	@Override
 	protected void onInit() {
+
+		add(new TextArea<>("selectionValidationJS", new PropertyModel<String>(dataVO, "selectionValidationJS")));
+
 		add(new ListView<DataFieldVO>("fields", dataVO.getFields()) {
 			private static final long serialVersionUID = 7157602000394481452L;
 

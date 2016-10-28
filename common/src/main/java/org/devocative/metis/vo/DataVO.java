@@ -70,6 +70,11 @@ public class DataVO implements Serializable {
 	private XDVGridHeight gridHeight;
 
 	/**
+	 * XDataView.selectionValidationJS
+	 */
+	private String selectionValidationJS;
+
+	/**
 	 * merge of XDataView.fields & XDataSource.fields
 	 */
 	private List<DataFieldVO> fields;
@@ -196,6 +201,14 @@ public class DataVO implements Serializable {
 		this.gridHeight = gridHeight;
 	}
 
+	public String getSelectionValidationJS() {
+		return selectionValidationJS;
+	}
+
+	public void setSelectionValidationJS(String selectionValidationJS) {
+		this.selectionValidationJS = selectionValidationJS;
+	}
+
 	public List<DataFieldVO> getFields() {
 		if (fields == null) {
 			fields = new ArrayList<>();
@@ -304,6 +317,7 @@ public class DataVO implements Serializable {
 		xDataView.setSelectionMode(getSelectionMode());
 		xDataView.setGridHeight(getGridHeight());
 		xDataView.setLinks(getLinksToDV());
+		xDataView.setSelectionValidationJS(getSelectionValidationJS());
 
 		for (DataFieldVO fieldVO : getFields()) {
 			xDataView.getFields().add(fieldVO.toXDVField());
@@ -336,6 +350,7 @@ public class DataVO implements Serializable {
 		setSelectionMode(xDataView.getSelectionMode());
 		setGridHeight(xDataView.getGridHeight());
 		setLinksToDV(xDataView.getLinks());
+		setSelectionValidationJS(xDataView.getSelectionValidationJS());
 
 		Map<String, DataFieldVO> fieldsMap = new HashMap<>();
 		for (DataFieldVO fieldVO : getFields()) {

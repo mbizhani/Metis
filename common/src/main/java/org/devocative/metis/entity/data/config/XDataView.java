@@ -11,6 +11,8 @@ import java.util.List;
 public class XDataView implements Serializable {
 	private static final long serialVersionUID = 8271286562496660889L;
 
+	// ---------------
+
 	@XStreamAsAttribute
 	private String name;
 
@@ -26,6 +28,11 @@ public class XDataView implements Serializable {
 	@XStreamAsAttribute
 	private XDVGridHeight gridHeight;
 
+	// ---------------
+
+	private String selectionValidationJS;
+
+	// ---------------
 	private List<XDVField> fields;
 
 	private List<XDVParameter> params;
@@ -72,6 +79,14 @@ public class XDataView implements Serializable {
 
 	public void setGridHeight(XDVGridHeight gridHeight) {
 		this.gridHeight = gridHeight;
+	}
+
+	public String getSelectionValidationJS() {
+		return selectionValidationJS;
+	}
+
+	public void setSelectionValidationJS(String selectionValidationJS) {
+		this.selectionValidationJS = selectionValidationJS;
 	}
 
 	public List<XDVField> getFields() {
