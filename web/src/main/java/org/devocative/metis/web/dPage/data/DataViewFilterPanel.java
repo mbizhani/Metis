@@ -7,6 +7,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.StringValue;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPanel;
@@ -16,6 +17,7 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
+import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WDefaults;
 import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.*;
@@ -38,11 +40,12 @@ public class DataViewFilterPanel extends DPanel {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewFilterPanel.class);
 
 	private Map<String, Object> filter;
-	//private boolean disableFilledFilter;
 	private Long dataSourceId;
 	private String sentDBConnection;
 	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
+	private List<String> disabledFilterInputs;
+	private List<String> invisibleFilterInputs;
 
 	@Inject
 	private IDataService dataService;
@@ -78,6 +81,9 @@ public class DataViewFilterPanel extends DPanel {
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
 		}
 
+		disabledFilterInputs = listOf(MetisWebParam.DISABLED_FILTER_INPUT);
+		invisibleFilterInputs = listOf(MetisWebParam.INVISIBLE_FILTER_INPUT);
+
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		floatTable.setEqualWidth(true);
 		add(floatTable);
@@ -100,12 +106,15 @@ public class DataViewFilterPanel extends DPanel {
 					if (fieldVO.getType().equals(XDSFieldType.LookUp)) {
 						fieldFormItem.setRequired(fieldVO.getRequiredSafely() || filter.containsKey(fieldVO.getName()));
 					} else {
-						fieldFormItem.setEnabled(/*!disableFilledFilter || */!filter.containsKey(fieldVO.getName()));
+						fieldFormItem.setEnabled(!filter.containsKey(fieldVO.getName()));
 					}
+
+					fieldFormItem.setEnabled(!disabledFilterInputs.contains(fieldVO.getName().toLowerCase()));
 
 					view.add(fieldFormItem);
 				}
 				item.add(view);
+				item.setVisible(!invisibleFilterInputs.contains(fieldVO.getName().toLowerCase()));
 			}
 		});
 	}
@@ -251,5 +260,20 @@ public class DataViewFilterPanel extends DPanel {
 				break;
 		}
 		return fieldFormItem;
+	}
+
+	private List<String> listOf(String param) {
+		List<String> result = new ArrayList<>();
+
+		List<StringValue> parameterValues = getWebRequest().getRequestParameters().getParameterValues(param);
+		if (parameterValues != null && parameterValues.size() > 0) {
+			for (StringValue parameterValue : parameterValues) {
+				if (!parameterValue.isEmpty()) {
+					result.add(parameterValue.toString().toLowerCase());
+				}
+			}
+		}
+
+		return result;
 	}
 }
