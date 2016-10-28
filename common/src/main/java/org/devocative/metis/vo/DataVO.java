@@ -80,6 +80,11 @@ public class DataVO implements Serializable {
 	private List<DataParameterVO> params;
 
 	/**
+	 * XDataView.linksToDV
+	 */
+	private List<XDVLink> linksToDV;
+
+	/**
 	 * XDataView.details
 	 */
 	//TODO private List<XDVDetail> details;
@@ -213,6 +218,15 @@ public class DataVO implements Serializable {
 		this.params = params;
 	}
 
+	public List<XDVLink> getLinksToDV() {
+		return linksToDV;
+	}
+
+	public DataVO setLinksToDV(List<XDVLink> linksToDV) {
+		this.linksToDV = linksToDV;
+		return this;
+	}
+
 	public boolean isDataSourceEditable() {
 		return dataSourceEditable;
 	}
@@ -289,6 +303,7 @@ public class DataVO implements Serializable {
 		xDataView.setDataSourceName(isDataSourceEditable() ? getName() : getDataSourceName());
 		xDataView.setSelectionMode(getSelectionMode());
 		xDataView.setGridHeight(getGridHeight());
+		xDataView.setLinks(getLinksToDV());
 
 		for (DataFieldVO fieldVO : getFields()) {
 			xDataView.getFields().add(fieldVO.toXDVField());
@@ -320,6 +335,7 @@ public class DataVO implements Serializable {
 		setName(xDataView.getName());
 		setSelectionMode(xDataView.getSelectionMode());
 		setGridHeight(xDataView.getGridHeight());
+		setLinksToDV(xDataView.getLinks());
 
 		Map<String, DataFieldVO> fieldsMap = new HashMap<>();
 		for (DataFieldVO fieldVO : getFields()) {

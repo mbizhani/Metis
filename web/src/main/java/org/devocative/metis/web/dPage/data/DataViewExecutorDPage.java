@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ public class DataViewExecutorDPage extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewExecutorDPage.class);
 
 	private DataVO dataVO;
+	private DataViewFilterPanel filterPanel;
 	private DataViewGridPanel mainGrid;
 	private Map<String, Object> filter = new HashMap<>();
 
@@ -40,6 +42,11 @@ public class DataViewExecutorDPage extends DPage {
 
 	// ------------------------------
 
+	public DataViewExecutorDPage(String id, String dataViewName) {
+		this(id, Arrays.asList(dataViewName));
+	}
+
+	// Main Constructor
 	public DataViewExecutorDPage(String id, List<String> params) {
 		super(id, params);
 
@@ -76,7 +83,7 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
-			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields()));
+			form.add(filterPanel = new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields()));
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;
 
@@ -109,6 +116,11 @@ public class DataViewExecutorDPage extends DPage {
 		if (mainGrid != null) {
 			mainGrid.setMultiSelect(multiSelect);
 		}
+		return this;
+	}
+
+	public DataViewExecutorDPage setWebParams(Map<String, List<String>> params) {
+		filterPanel.setWebParams(params);
 		return this;
 	}
 

@@ -40,9 +40,8 @@ public class DataViewFilterPanel extends DPanel {
 	private Map<String, Object> filter;
 	//private boolean disableFilledFilter;
 	private Long dataSourceId;
-
 	private String sentDBConnection;
-
+	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
 
 	@Inject
@@ -56,11 +55,12 @@ public class DataViewFilterPanel extends DPanel {
 	// Main Constructor
 	public DataViewFilterPanel(String id, final Long dataSourceId, final Map<String, Object> filter, List<DataAbstractFieldVO> fields) {
 		super(id);
+
 		this.dataSourceId = dataSourceId;
+		this.filter = filter;
+		this.fields = fields;
 
 		setDefaultModel(new CompoundPropertyModel<>(filter));
-
-		this.filter = filter;
 
 		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
 			sentDBConnection = getWebRequest()
@@ -108,6 +108,19 @@ public class DataViewFilterPanel extends DPanel {
 				item.add(view);
 			}
 		});
+	}
+
+	// ------------------------------
+
+	public DataViewFilterPanel setWebParams(Map<String, List<String>> params) {
+		try {
+			filter.putAll(dataService.convertSimpleParamsToFilter(dataSourceId, fields, params, sentDBConnection));
+		} catch (Exception e) {
+			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter()", e);
+
+			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
+		}
+		return this;
 	}
 
 	// ------------------------------

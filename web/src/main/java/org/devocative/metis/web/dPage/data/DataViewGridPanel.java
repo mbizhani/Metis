@@ -8,11 +8,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.StringValueConversionException;
 import org.devocative.adroit.ConfigUtil;
+import org.devocative.demeter.iservice.template.IStringTemplateService;
+import org.devocative.demeter.iservice.template.TemplateEngineType;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisException;
+import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
+import org.devocative.metis.entity.data.config.XDVLink;
+import org.devocative.metis.iservice.IDataViewService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataViewQVO;
@@ -22,6 +27,7 @@ import org.devocative.metis.web.MetisDModule;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WModel;
+import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.async.AsyncBehavior;
 import org.devocative.wickomp.async.IAsyncResponseHandler;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
@@ -32,15 +38,19 @@ import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OHiddenColumn;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
+import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.WAjaxLink;
+import org.devocative.wickomp.html.WMessager;
+import org.devocative.wickomp.html.icon.IconFont;
 import org.devocative.wickomp.html.window.WModalWindow;
 import org.devocative.wickomp.opt.OSize;
 import org.devocative.wickomp.wrcs.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,6 +61,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private static final long serialVersionUID = 6957270102281915596L;
 
 	private static final Logger logger = LoggerFactory.getLogger(DataViewGridPanel.class);
+
+	@Inject
+	private IDataViewService dataViewService;
+
+	@Inject
+	private IStringTemplateService stringTemplateService;
 
 	private DataVO dataVO;
 	private Map<String, Object> filter;
@@ -258,8 +274,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	// ------------------------------
 
-	private OColumnList<Map<String, Object>> createColumns(DataVO dataVO) {
+	private OColumnList<Map<String, Object>> createColumns(final DataVO dataVO) {
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
+
 		for (DataFieldVO fieldVO : dataVO.getFields()) {
 			OColumn<Map<String, Object>> column;
 			if (XDSFieldResultType.Shown.equals(fieldVO.getResultType())) {
@@ -304,6 +321,40 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			} else if (XDSFieldResultType.Hidden.equals(fieldVO.getResultType())) {
 				column = new OHiddenColumn<>(fieldVO.getName());
 				columns.add(column);
+			}
+		}
+
+		if (dataVO.getLinksToDV() != null) {
+			for (final XDVLink xdvLink : dataVO.getLinksToDV()) {
+				final DataView dataView = dataViewService.load(xdvLink.getTargetDVId());
+
+				IconFont iconFont = MetisIcon.SEARCH.copyTo().setTooltip(new Model<>(dataView.getTitle()));
+
+				columns.add(new OAjaxLinkColumn<Map<String, Object>>(new Model<String>(), iconFont) {
+					private static final long serialVersionUID = 4824658945146230957L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target, IModel<Map<String, Object>> rowData) {
+						try {
+							String webParams = stringTemplateService.create(xdvLink.getSentData(), TemplateEngineType.FreeMarker)
+								.process(rowData.getObject());
+
+							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), webParams);
+
+							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
+							dPage.setWebParams(WebUtil.toMap(webParams, true, false));
+
+							modalWindow.setContent(dPage);
+							modalWindow.getOptions()
+								.setMaximizable(false)
+								.setFit(true);
+							modalWindow.show(target);
+						} catch (Exception e) {
+							logger.error("Cross-Report: {} -> {}", dataVO.getName(), dataView.getName(), e);
+							WMessager.show("Error", e.getMessage(), target);
+						}
+					}
+				});
 			}
 		}
 

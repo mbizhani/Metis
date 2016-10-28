@@ -30,7 +30,9 @@ public class XDataView implements Serializable {
 
 	private List<XDVParameter> params;
 
-	private List<XDVDetail> details;
+	private List<XDVLink> links;
+
+	// ------------------------------
 
 	public String getName() {
 		return name;
@@ -94,11 +96,11 @@ public class XDataView implements Serializable {
 		this.params = params;
 	}
 
-	public List<XDVDetail> getDetails() {
-		return details;
+	public List<XDVLink> getLinks() {
+		return links;
 	}
 
-	public void setDetails(List<XDVDetail> details) {
-		this.details = details;
+	public void setLinks(List<XDVLink> links) {
+		this.links = links;
 	}
 }

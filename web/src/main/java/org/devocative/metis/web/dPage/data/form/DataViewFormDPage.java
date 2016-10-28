@@ -55,7 +55,8 @@ public class DataViewFormDPage extends DPage {
 			.addStep("columnDef", new ColumnDefStep(dataVO))
 			.addStep("lookup", new DefineLookupStep(dataVO))
 			.addStep("filterUI", new FilterUIStep(dataVO))
-			.addStep("columnUI", new ColumnUIStep(dataVO));
+			.addStep("columnUI", new ColumnUIStep(dataVO))
+			.addStep("linksToDVS", new LinksToDataViewStep(dataVO));
 
 		form.add(new WWizardPanel("wizard", oWizard, WWizardPanel.ButtonBarPlace.TOP) {
 			private static final long serialVersionUID = -4534169573929180621L;

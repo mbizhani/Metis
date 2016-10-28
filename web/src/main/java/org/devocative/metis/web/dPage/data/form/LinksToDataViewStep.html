@@ -1,0 +1,40 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+	<button wicket:id="add">+</button>
+	<table class="dmt-simple" cellpadding="5">
+		<thead>
+		<tr>
+			<td>
+				<!--<wicket:message key="XDVLink.title"/>-->
+				Title
+			</td>
+			<td>
+				<!--<wicket:message key="XDVLink.targetDV"/>-->
+				targetDV
+			</td>
+			<td>
+				<!--<wicket:message key="XDVLink.sentData"/>-->
+				sentData
+			</td>
+
+			<td></td>
+		</tr>
+		</thead>
+
+		<tbody wicket:id="rows">
+		<tr wicket:id="row">
+			<td>
+				<div wicket:id="title"></div>
+			</td>
+			<td>
+				<div wicket:id="targetDV"></div>
+			</td>
+			<td><textarea wicket:id="sentData" cols="50" rows="3" style="direction: ltr"></textarea></td>
+			<td>
+				<button wicket:id="remove">-</button>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</wicket:panel>
+</html>
