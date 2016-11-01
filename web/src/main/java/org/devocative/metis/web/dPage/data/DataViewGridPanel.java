@@ -12,6 +12,7 @@ import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.demeter.iservice.template.TemplateEngineType;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.MetisConfigKey;
+import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
@@ -86,8 +87,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		this.dataVO = dataVO;
 		this.filter = filter;
 
-		add(asyncBehavior = new AsyncBehavior(this));
-		add(modalWindow = new WModalWindow("modal"));
+		asyncBehavior = new AsyncBehavior(this);
+		modalWindow = new WModalWindow("modal");
+
+		add(asyncBehavior);
+		add(modalWindow);
 
 		OColumnList<Map<String, Object>> columns = createColumns(dataVO);
 
@@ -102,7 +106,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
-			add(grid = new WDataGrid<>("grid", gridOptions, this));
+			grid = new WDataGrid<>("grid", gridOptions, this);
 		} else {
 			OTreeGrid<Map<String, Object>> gridOptions = new OTreeGrid<>();
 			gridOptions
@@ -111,9 +115,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
-			add(grid = new WTreeGrid<>("grid", gridOptions, this));
+			grid = new WTreeGrid<>("grid", gridOptions, this);
 		}
 
+		add(grid);
 		grid.setEnabled(false);
 
 		String returnField = getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.RETURN_FIELD).toOptionalString();
@@ -147,7 +152,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				builder.append("function(rows){")
 					.append("for(var r=0;r<rows.length;r++){")
 					.append("var row = rows[r];")
-					.append(String.format("if(%1$sSelValidJS(row.row)){alert(%1$sSelValidJS(row.row));return;}", dataVO.getName()))
+					.append(String.format("if(%1$sSelValidJS(row.row)){$.messager.alert('', %1$sSelValidJS(row.row));return;}", dataVO.getName()))
 					.append("}")
 					.append("parent.postMessage(JSON.stringify(rows),'*');}");
 				oBaseGrid.setSelectionJSHandler(builder.toString());
@@ -327,6 +332,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						case Boolean:
 							column.setFormatter(OBooleanFormatter.bool());
 							break;
+						default:
+							throw new MetisException(MetisErrorCode.InvalidDataViewState,
+								String.format("Invalid column type for filter: DV=%s, field=%s, type=%s",
+									dataVO.getName(), fieldVO.getName(), fieldVO.getType()));
 					}
 				}
 
@@ -388,7 +397,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private Map<String, String> getSortFieldsMap(List<WSortField> sortFieldList) {
 		Map<String, String> sortFieldsMap = null;
-		if (sortFieldList != null && sortFieldList.size() > 0) {
+		if (sortFieldList != null && !sortFieldList.isEmpty()) {
 			sortFieldsMap = new HashMap<>();
 			for (WSortField sortField : sortFieldList) {
 				sortFieldsMap.put(sortField.getField(), sortField.getOrder());
