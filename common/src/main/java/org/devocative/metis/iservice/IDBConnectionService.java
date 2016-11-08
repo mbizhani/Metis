@@ -6,6 +6,7 @@ import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.query.DbQueryRVO;
+import org.devocative.metis.vo.query.PaginationQVO;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
 
 import java.util.List;
@@ -36,8 +37,7 @@ public interface IDBConnectionService extends IApplicationLifecycle {
 		Long dbConnId,
 		String query,
 		String comment,
-		Long pageIndex,
-		Long pageSize);
+		PaginationQVO pagination);
 
 	// Main Method
 	DbQueryRVO executeQuery(
@@ -45,8 +45,7 @@ public interface IDBConnectionService extends IApplicationLifecycle {
 		String query,
 		String comment,
 		Map<String, Object> params,
-		Long pageIndex,
-		Long pageSize);
+		PaginationQVO pagination);
 
 	void closeAllPools();
 

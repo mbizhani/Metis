@@ -26,6 +26,7 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.query.DbQueryRVO;
+import org.devocative.metis.vo.query.PaginationQVO;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -262,7 +263,7 @@ public class DBConnectionService implements IDBConnectionService {
 		String comment,
 		Map<String, Object> params) {
 
-		return executeQuery(dbConnId, query, comment, params, null, null);
+		return executeQuery(dbConnId, query, comment, params, null);
 	}
 
 	@Override
@@ -270,9 +271,8 @@ public class DBConnectionService implements IDBConnectionService {
 		Long dbConnId,
 		String query,
 		String comment,
-		Long pageIndex,
-		Long pageSize) {
-		return executeQuery(dbConnId, query, comment, null, pageIndex, pageSize);
+		PaginationQVO pagination) {
+		return executeQuery(dbConnId, query, comment, null, pagination);
 	}
 
 	// Main Method
@@ -282,8 +282,7 @@ public class DBConnectionService implements IDBConnectionService {
 		String query,
 		String comment,
 		Map<String, Object> params,
-		Long pageIndex,
-		Long pageSize) {
+		PaginationQVO pagination) {
 
 		NamedParameterStatement nps = null;
 		DbQueryRVO result = new DbQueryRVO();
@@ -298,10 +297,14 @@ public class DBConnectionService implements IDBConnectionService {
 			nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
 			nps
 				.setDateClassReplacement(Timestamp.class)
-				.setPageIndex(pageIndex)
-				.setPageSize(pageSize)
 				.setIgnoreExtraPassedParam(true) //TODO
 				.setIgnoreMissedParam(true); //TODO
+
+			if (pagination != null) {
+				nps
+					.setFirstResult(pagination.getFirstResult())
+					.setMaxResults(pagination.getMaxResults());
+			}
 
 			if (params != null) {
 				nps.setParameters(params);

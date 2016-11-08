@@ -69,8 +69,8 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		}
 
 		ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName())
-			.setPageIndex(skip + 1)
-			.setPageSize(top - skip);
+			.setFirstResult(skip + 1)
+			.setMaxResults(top - skip);
 
 		if (uriInfo.getOrderBy() != null) {
 			Map<String, String> orderBy = new LinkedHashMap<>();

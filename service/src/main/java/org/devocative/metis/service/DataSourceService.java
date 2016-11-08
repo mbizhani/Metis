@@ -472,8 +472,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				xDataSource.getQuery().getMode()),
 			comment,
 			queryBuilder.getQueryParams(),
-			queryQVO.getPageIndex(),
-			queryQVO.getPageSize()
+			queryQVO.getPagination()
 		).toListOfMap();
 
 		if (beforeExecInfo != null) {
@@ -523,8 +522,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				targetXDataSource.getQuery().getMode()),
 			comment,
 			builder.getQueryParams(),
-			1L,
-			50L
+			PaginationQVO.byPage(1L, 50L)
 		).toListOfKeyValues();
 	}
 

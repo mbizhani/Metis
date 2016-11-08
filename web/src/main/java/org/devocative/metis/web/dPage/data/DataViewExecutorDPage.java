@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class DataViewExecutorDPage extends DPage {
 	// ------------------------------
 
 	public DataViewExecutorDPage(String id, String dataViewName) {
-		this(id, Arrays.asList(dataViewName));
+		this(id, Collections.singletonList(dataViewName));
 	}
 
 	// Main Constructor

@@ -10,8 +10,8 @@ public class ODataQVO {
 
 	private Map<String, String> orderBy;
 
-	private long pageIndex;
-	private long pageSize;
+	private long firstResult;
+	private long maxResults;
 
 	// ------------------------------
 
@@ -52,21 +52,21 @@ public class ODataQVO {
 		return this;
 	}
 
-	public long getPageIndex() {
-		return pageIndex;
+	public long getFirstResult() {
+		return firstResult;
 	}
 
-	public ODataQVO setPageIndex(long pageIndex) {
-		this.pageIndex = pageIndex;
+	public ODataQVO setFirstResult(long firstResult) {
+		this.firstResult = firstResult;
 		return this;
 	}
 
-	public long getPageSize() {
-		return pageSize;
+	public long getMaxResults() {
+		return maxResults;
 	}
 
-	public ODataQVO setPageSize(long pageSize) {
-		this.pageSize = pageSize;
+	public ODataQVO setMaxResults(long maxResults) {
+		this.maxResults = maxResults;
 		return this;
 	}
 }

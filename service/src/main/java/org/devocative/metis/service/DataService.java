@@ -271,8 +271,7 @@ public class DataService implements IDataService {
 
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
 		selectQVO
-			.setPageIndex(request.getPageIndex())
-			.setPageSize(request.getPageSize())
+			.setPagination(PaginationQVO.byPage(request.getPageIndex(), request.getPageSize()))
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
 			.setSentDBConnection(request.getSentDBConnection());
@@ -364,8 +363,7 @@ public class DataService implements IDataService {
 
 			SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
 			selectQVO
-				.setPageIndex(request.getPageIndex())
-				.setPageSize(request.getPageSize())
+				.setPagination(PaginationQVO.byResult(request.getFirstResult(), request.getMaxResults()))
 				.setSortFields(request.getOrderBy())
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams);

@@ -6,8 +6,7 @@ import java.util.Map;
 public class SelectQueryQVO extends AbstractQueryQVO {
 	private List<String> selectFields;
 	private Map<String, String> sortFields;
-	private Long pageIndex;
-	private Long pageSize;
+	private PaginationQVO pagination;
 
 	// ------------------------------
 
@@ -31,21 +30,12 @@ public class SelectQueryQVO extends AbstractQueryQVO {
 		return this;
 	}
 
-	public Long getPageIndex() {
-		return pageIndex;
+	public PaginationQVO getPagination() {
+		return pagination;
 	}
 
-	public SelectQueryQVO setPageIndex(Long pageIndex) {
-		this.pageIndex = pageIndex;
-		return this;
-	}
-
-	public Long getPageSize() {
-		return pageSize;
-	}
-
-	public SelectQueryQVO setPageSize(Long pageSize) {
-		this.pageSize = pageSize;
+	public SelectQueryQVO setPagination(PaginationQVO pagination) {
+		this.pagination = pagination;
 		return this;
 	}
 }

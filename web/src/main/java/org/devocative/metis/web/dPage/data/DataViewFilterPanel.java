@@ -29,10 +29,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DataViewFilterPanel extends DPanel {
 	private static final long serialVersionUID = -8467382200091757194L;
@@ -72,7 +69,28 @@ public class DataViewFilterPanel extends DPanel {
 				.toOptionalString();
 		}
 
-		webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
+		if (ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues) == null) {
+			webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
+		} else {
+			List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
+			webParams = new HashMap<>();
+			Map<String, List<String>> map = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
+			for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+				List<String> replacement = new ArrayList<>();
+				for (String val : entry.getValue()) {
+					if (!ignoredValues.contains(val)) {
+						replacement.add(val);
+					} else {
+						logger.warn("URL Parameter [{}]=[{}] ignored!", entry.getKey(), val);
+					}
+				}
+
+				if (!replacement.isEmpty()) {
+					webParams.put(entry.getKey(), replacement);
+				}
+			}
+		}
+
 		try {
 			filter.putAll(dataService.convertSimpleParamsToFilter(dataSourceId, fields, webParams, sentDBConnection));
 		} catch (Exception e) {

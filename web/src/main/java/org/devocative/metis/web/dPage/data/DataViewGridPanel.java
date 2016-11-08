@@ -12,7 +12,6 @@ import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.demeter.iservice.template.TemplateEngineType;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.MetisConfigKey;
-import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
@@ -53,10 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSource<Map<String, Object>>, IAsyncResponseHandler {
 	private static final long serialVersionUID = 6957270102281915596L;
@@ -332,10 +328,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						case Boolean:
 							column.setFormatter(OBooleanFormatter.bool());
 							break;
-						default:
+						/*default:
 							throw new MetisException(MetisErrorCode.InvalidDataViewState,
 								String.format("Invalid column type for filter: DV=%s, field=%s, type=%s",
-									dataVO.getName(), fieldVO.getName(), fieldVO.getType()));
+									dataVO.getName(), fieldVO.getName(), fieldVO.getType()));*/
 					}
 				}
 
@@ -354,14 +350,34 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 				IconFont iconFont = MetisIcon.SEARCH.copyTo().setTooltip(new Model<>(dataView.getTitle()));
 
-				columns.add(new OAjaxLinkColumn<Map<String, Object>>(new Model<String>(), iconFont) {
+				columns.add(new OAjaxLinkColumn<Map<String, Object>>(new Model<>(xdvLink.getTitle()), iconFont) {
 					private static final long serialVersionUID = 4824658945146230957L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target, IModel<Map<String, Object>> rowData) {
 						try {
-							String webParams = stringTemplateService.create(xdvLink.getSentData(), TemplateEngineType.FreeMarker)
-								.process(rowData.getObject());
+							List<String> ignoredValues = ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues) == null ?
+								new ArrayList<String>() :
+								Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
+
+							Map<String, List<String>> map = WebUtil.toMap(getWebRequest().getRequestParameters(), false, false);
+							Map<String, String> newMap = new HashMap<>();
+							for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+								if (ignoredValues.isEmpty() || !ignoredValues.contains(entry.getValue().get(0))) {
+									newMap.put(entry.getKey(), entry.getValue().get(0));
+								} else {
+									logger.warn("Cross-Report parameter [{}]=[{}] ignored!",
+										entry.getKey(), entry.getValue().get(0));
+								}
+							}
+
+							Map<String, Object> params = new HashMap<>();
+							params.put("row", rowData.getObject());
+							params.put("params", newMap);
+
+							String webParams = stringTemplateService
+								.create(xdvLink.getSentData(), TemplateEngineType.FreeMarker)
+								.process(params);
 
 							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), webParams);
 
@@ -369,7 +385,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							dPage.setWebParams(WebUtil.toMap(webParams, true, false));
 
 							modalWindow.setContent(dPage);
-							modalWindow.getOptions()
+							modalWindow
+								.getOptions()
 								.setMaximizable(false)
 								.setFit(true);
 							modalWindow.show(target);
