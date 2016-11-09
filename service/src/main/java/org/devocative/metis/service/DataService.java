@@ -441,8 +441,16 @@ public class DataService implements IDataService {
 					}
 				} else if (params.containsKey(fieldName + "_u") || params.containsKey(fieldName + "_l")) {
 					if (fieldVO.getFilterType().equals(XDSFieldFilterType.Range)) {
-						Serializable lower = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_l").get(0));
-						Serializable upper = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_u").get(0));
+						Serializable lower = null;
+						if (params.containsKey(fieldName + "_l")) {
+							lower = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_l").get(0));
+						}
+
+						Serializable upper = null;
+						if (params.containsKey(fieldName + "_u")) {
+							upper = convertQueryParam(fieldVO.getType(), params.get(fieldName + "_u").get(0));
+						}
+
 						RangeVO rangeVO = new RangeVO<>(lower, upper);
 						result.put(fieldName, rangeVO);
 					}
@@ -526,11 +534,11 @@ public class DataService implements IDataService {
 					break;
 
 				case Date:
-					result = CalendarUtil.toGregorian(value, "yyyyMMdd");
+					result = CalendarUtil.parseDate(value, "yyyyMMdd");
 					break;
 
 				case DateTime:
-					result = CalendarUtil.toGregorian(value, "yyyyMMddHHmmss");
+					result = CalendarUtil.parseDate(value, "yyyyMMddHHmmss");
 					break;
 
 				case Boolean:

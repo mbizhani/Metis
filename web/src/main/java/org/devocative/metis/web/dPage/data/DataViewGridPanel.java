@@ -8,6 +8,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.StringValueConversionException;
 import org.devocative.adroit.ConfigUtil;
+import org.devocative.demeter.iservice.template.IStringTemplate;
 import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.demeter.iservice.template.TemplateEngineType;
 import org.devocative.demeter.web.DPanel;
@@ -374,10 +375,14 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							Map<String, Object> params = new HashMap<>();
 							params.put("row", rowData.getObject());
 							params.put("params", newMap);
+							params.put("filter", filter);
 
-							String webParams = stringTemplateService
-								.create(xdvLink.getSentData(), TemplateEngineType.FreeMarker)
-								.process(params);
+							IStringTemplate stringTemplate = stringTemplateService
+								.create(xdvLink.getSentData(), TemplateEngineType.FreeMarker);
+
+							stringTemplate.registerToStringConverter(Date.class, DateToStringConverter.INSTANCE);
+
+							String webParams = stringTemplate.process(params, true);
 
 							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), webParams);
 
