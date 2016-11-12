@@ -33,7 +33,6 @@ public class DataViewExecutorDPage extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewExecutorDPage.class);
 
 	private DataVO dataVO;
-	private DataViewFilterPanel filterPanel;
 	private DataViewGridPanel mainGrid;
 	private Map<String, Object> filter = new HashMap<>();
 
@@ -83,7 +82,7 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
-			form.add(filterPanel = new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields()));
+			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields()));
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;
 
@@ -119,8 +118,8 @@ public class DataViewExecutorDPage extends DPage {
 		return this;
 	}
 
-	public DataViewExecutorDPage setWebParams(Map<String, List<String>> params) {
-		filterPanel.setWebParams(params);
+	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
+		this.filter.putAll(filter);
 		return this;
 	}
 

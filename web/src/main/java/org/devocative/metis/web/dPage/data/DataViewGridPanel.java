@@ -362,7 +362,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 								Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
 
 							Map<String, List<String>> map = WebUtil.toMap(getWebRequest().getRequestParameters(), false, false);
-							Map<String, String> newMap = new HashMap<>();
+							Map<String, Object> newMap = new HashMap<>();
 							for (Map.Entry<String, List<String>> entry : map.entrySet()) {
 								if (ignoredValues.isEmpty() || !ignoredValues.contains(entry.getValue().get(0))) {
 									newMap.put(entry.getKey(), entry.getValue().get(0));
@@ -371,23 +371,30 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 										entry.getKey(), entry.getValue().get(0));
 								}
 							}
+							newMap.putAll(filter);
+
+							Map<String, Object> targetFilter = new HashMap<>();
 
 							Map<String, Object> params = new HashMap<>();
 							params.put("row", rowData.getObject());
 							params.put("params", newMap);
-							params.put("filter", filter);
+							params.put("filter", targetFilter);
+
+							StringBuilder script = new StringBuilder();
+							script
+								.append("def range(l,u){new org.devocative.adroit.vo.RangeVO(l,u)}\n")
+								.append("def now(){new Date()}\n")
+								.append(xdvLink.getSentData());
 
 							IStringTemplate stringTemplate = stringTemplateService
-								.create(xdvLink.getSentData(), TemplateEngineType.FreeMarker);
+								.create(script.toString(), TemplateEngineType.GroovyShell);
 
-							stringTemplate.registerToStringConverter(Date.class, DateToStringConverter.INSTANCE);
+							stringTemplate.process(params);
 
-							String webParams = stringTemplate.process(params, true);
-
-							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), webParams);
+							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetFilter);
 
 							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
-							dPage.setWebParams(WebUtil.toMap(webParams, true, false));
+							dPage.addToFilter(targetFilter);
 
 							modalWindow.setContent(dPage);
 							modalWindow
