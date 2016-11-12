@@ -31,6 +31,8 @@ public interface IDataService {
 
 	List<Map<String, Object>> executeOData(ODataQVO request);
 
+	Long executeODataCount(ODataQVO request);
+
 	Map<String, Object> convertSimpleParamsToFilter(
 		Long dataSourceId,
 		List<DataAbstractFieldVO> fields,

@@ -381,6 +381,39 @@ public class DataService implements IDataService {
 	}
 
 	@Override
+	public Long executeODataCount(ODataQVO request) {
+		logger.info("Executing OData Count: DV=[{}] Usr=[{}]", request.getName(), securityService.getCurrentUser());
+		long start = System.currentTimeMillis();
+
+		try {
+			DataView dataView = dataViewService.loadByName(request.getName());
+			XDataView xDataView = dataViewService.getXDataView(dataView);
+
+			Map<String, Object> inputParams = new HashMap<>();
+			if (request.getInputParams() != null) {
+				for (Map.Entry<String, Object> entry : request.getInputParams().entrySet()) {
+					inputParams.put(entry.getKey().toLowerCase(), entry.getValue());
+				}
+			}
+
+			CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceName());
+			countQVO
+				.setFilterExpression(request.getFilterExpression())
+				.setInputParams(inputParams);
+
+			Long result = dataSourceService.execute(countQVO).getResult();
+
+			logger.info("Executed OData Count: DV=[{}] Usr=[{}] Dur=[{}]",
+				request.getName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
+
+			return result;
+		} catch (RuntimeException e) {
+			logger.error("Execute OData Error: DV=" + request.getName(), e);
+			throw e;
+		}
+	}
+
+	@Override
 	public Map<String, Object> convertSimpleParamsToFilter(
 		Long dataSourceId,
 		List<DataAbstractFieldVO> fields,

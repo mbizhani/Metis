@@ -7,10 +7,7 @@ import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.expression.OrderExpression;
-import org.apache.olingo.odata2.api.uri.info.GetComplexPropertyUriInfo;
-import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
-import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
-import org.apache.olingo.odata2.api.uri.info.GetSimplePropertyUriInfo;
+import org.apache.olingo.odata2.api.uri.info.*;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
@@ -134,5 +131,32 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 	public ODataResponse readEntityComplexProperty(GetComplexPropertyUriInfo uriInfo, String contentType) throws ODataException {
 		logger.debug("OData.readEntityComplexProperty: {}", uriInfo);
 		throw new RuntimeException("NI: readEntityComplexProperty!");
+	}
+
+	@Override
+	public ODataResponse countEntitySet(GetEntitySetCountUriInfo uriInfo, String contentType) throws ODataException {
+		EdmEntitySet entitySet = uriInfo.getStartEntitySet();
+
+		logger.info("OData Count: DataView=[{}] User=[{}]",
+			entitySet.getEntityType().getName(), securityService.getCurrentUser());
+
+		ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName());
+
+		Map<String, Object> inputParams = new HashMap<>();
+
+		if (uriInfo.getFilter() != null) {
+			SQLExpressionVisitor visitor = new SQLExpressionVisitor(inputParams);
+			Object accept = uriInfo.getFilter().accept(visitor);
+
+			logger.info("\tOData Count: Filter Expr=[{}] Params=[{}]", accept, visitor.getParamsValue());
+
+			dataQVO.setFilterExpression(accept.toString());
+		}
+
+		dataQVO.setInputParams(inputParams);
+
+		Long dataCount = dataService.executeODataCount(dataQVO);
+
+		return EntityProvider.writeText(String.valueOf(dataCount));
 	}
 }
