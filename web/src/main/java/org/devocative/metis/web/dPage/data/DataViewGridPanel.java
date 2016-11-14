@@ -292,13 +292,15 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------
 
 	private OColumnList<Map<String, Object>> createColumns(final DataVO dataVO) {
+		List<String> disabledSortColumns = WebUtil.listOf(MetisWebParam.DISABLE_SORT_COLUMN, false);
+
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 
 		for (DataFieldVO fieldVO : dataVO.getFields()) {
 			OColumn<Map<String, Object>> column;
 			if (XDSFieldResultType.Shown.equals(fieldVO.getResultType())) {
 				column = new OPropertyColumn<>(new Model<>(fieldVO.getTitleOrName()), fieldVO.getName());
-				column.setSortable(true);
+				column.setSortable(!disabledSortColumns.contains(fieldVO.getName()));
 
 				if (fieldVO.getColumnWidth() != null) {
 					column.setWidth(OSize.fixed(fieldVO.getColumnWidth()));
@@ -329,10 +331,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						case Boolean:
 							column.setFormatter(OBooleanFormatter.bool());
 							break;
-						/*default:
-							throw new MetisException(MetisErrorCode.InvalidDataViewState,
-								String.format("Invalid column type for filter: DV=%s, field=%s, type=%s",
-									dataVO.getName(), fieldVO.getName(), fieldVO.getType()));*/
+						default:
 					}
 				}
 
@@ -361,7 +360,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 								new ArrayList<String>() :
 								Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
 
-							Map<String, List<String>> map = WebUtil.toMap(getWebRequest().getRequestParameters(), false, false);
+							Map<String, List<String>> map = WebUtil.toMap(false, false);
 							Map<String, Object> newMap = new HashMap<>();
 							for (Map.Entry<String, List<String>> entry : map.entrySet()) {
 								if (ignoredValues.isEmpty() || !ignoredValues.contains(entry.getValue().get(0))) {
@@ -384,6 +383,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							script
 								.append("def range(l,u){new org.devocative.adroit.vo.RangeVO(l,u)}\n")
 								.append("def now(){new Date()}\n")
+								.append("def list(Object... p){def list=[]; p.each{def k=new org.devocative.adroit.vo.KeyValueVO();k.key=it;list.add(k)}; return list}\n")
+									//.append("def item(Object p){def k=new org.devocative.adroit.vo.KeyValueVO();k.key=p; return k;}\n")
 								.append(xdvLink.getSentData());
 
 							IStringTemplate stringTemplate = stringTemplateService

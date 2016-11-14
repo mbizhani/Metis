@@ -6,4 +6,5 @@ public interface MetisWebParam {
 	String RETURN_FIELD = "$return";
 	String DISABLED_FILTER_INPUT = "$disableFilter";
 	String INVISIBLE_FILTER_INPUT = "$invisibleFilter";
+	String DISABLE_SORT_COLUMN = "$disableSort";
 }

@@ -7,7 +7,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.string.StringValue;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPanel;
@@ -70,11 +69,11 @@ public class DataViewFilterPanel extends DPanel {
 		}
 
 		if (ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues) == null) {
-			webParams = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
+			webParams = WebUtil.toMap(true, true);
 		} else {
 			List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
 			webParams = new HashMap<>();
-			Map<String, List<String>> map = WebUtil.toMap(getWebRequest().getRequestParameters(), true, true);
+			Map<String, List<String>> map = WebUtil.toMap(true, true);
 			for (Map.Entry<String, List<String>> entry : map.entrySet()) {
 				List<String> replacement = new ArrayList<>();
 				for (String val : entry.getValue()) {
@@ -99,8 +98,8 @@ public class DataViewFilterPanel extends DPanel {
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
 		}
 
-		disabledFilterInputs = listOf(MetisWebParam.DISABLED_FILTER_INPUT);
-		invisibleFilterInputs = listOf(MetisWebParam.INVISIBLE_FILTER_INPUT);
+		disabledFilterInputs = WebUtil.listOf(MetisWebParam.DISABLED_FILTER_INPUT, true);
+		invisibleFilterInputs = WebUtil.listOf(MetisWebParam.INVISIBLE_FILTER_INPUT, true);
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		floatTable.setEqualWidth(true);
@@ -208,14 +207,29 @@ public class DataViewFilterPanel extends DPanel {
 				final boolean multiple = fieldVO.getTargetDSMultipleSelection() == null || fieldVO.getTargetDSMultipleSelection();
 
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
-					List<KeyValueVO<Serializable, String>> lookUpList;
+					List<Serializable> keys = new ArrayList<>();
+
 					if (filter.containsKey(fieldVO.getName())) {
 						if (multiple) {
-							lookUpList = (List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName());
+							if (filter.get(fieldVO.getName()) instanceof List) {
+								List<KeyValueVO<Serializable, String>> lookUpList = (List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName());
+								for (KeyValueVO<Serializable, String> keyValueVO : lookUpList) {
+									keys.add(keyValueVO.getKey());
+								}
+							} else {
+								Serializable key = (Serializable) filter.get(fieldVO.getName());
+								keys.add(key);
+								filter.put(fieldVO.getName(), Collections.singleton(new KeyValueVO<>(key, null)));
+							}
 						} else {
-							KeyValueVO<Serializable, String> single = (KeyValueVO<Serializable, String>) filter.get(fieldVO.getName());
-							lookUpList = new ArrayList<>();
-							lookUpList.add(single);
+							if (filter.get(fieldVO.getName()) instanceof KeyValueVO) {
+								KeyValueVO<Serializable, String> single = (KeyValueVO<Serializable, String>) filter.get(fieldVO.getName());
+								keys.add(single.getKey());
+							} else {
+								Serializable key = (Serializable) filter.get(fieldVO.getName());
+								keys.add(key);
+								filter.put(fieldVO.getName(), new KeyValueVO<>(key, null));
+							}
 						}
 
 						/*
@@ -224,23 +238,24 @@ public class DataViewFilterPanel extends DPanel {
 						if (fieldVO.getTargetDSFilter() != null && !webParams.containsKey(fieldVO.getName().toLowerCase())) {
 							filter.remove(fieldVO.getName());
 						}
-					} else {
-						try {
-							lookUpList = dataSourceService.executeLookUp(
-								dataSourceId,
-								fieldVO.getTargetDSId(),
-								sentDBConnection,
-								null
-							).getResult();
-						} catch (Exception e) {
-							logger.error("DataViewFilterPanel -> createFieldFormComponent() for lookUp", e);
+					}
 
-							String err = WDefaults.getExceptionToMessageHandler().handleMessage(this, e);
-							error(String.format("%s: %s", fieldVO.getTitle(), err));
+					List<KeyValueVO<Serializable, String>> lookUpList;
+					try {
+						lookUpList = dataSourceService.executeLookUp(
+							dataSourceId,
+							fieldVO.getTargetDSId(),
+							sentDBConnection,
+							keys
+						).getResult();
+					} catch (Exception e) {
+						logger.error("DataViewFilterPanel -> createFieldFormComponent() for lookUp", e);
 
-							lookUpList = new ArrayList<>();
-							lookUpList.add(new KeyValueVO<Serializable, String>("?", "-- Err: " + err));
-						}
+						String err = WDefaults.getExceptionToMessageHandler().handleMessage(this, e);
+						error(String.format("%s: %s", fieldVO.getTitle(), err));
+
+						lookUpList = new ArrayList<>();
+						lookUpList.add(new KeyValueVO<Serializable, String>("?", "-- Err: " + err));
 					}
 
 					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, multiple);
@@ -278,20 +293,5 @@ public class DataViewFilterPanel extends DPanel {
 				break;
 		}
 		return fieldFormItem;
-	}
-
-	private List<String> listOf(String param) {
-		List<String> result = new ArrayList<>();
-
-		List<StringValue> parameterValues = getWebRequest().getRequestParameters().getParameterValues(param);
-		if (parameterValues != null && parameterValues.size() > 0) {
-			for (StringValue parameterValue : parameterValues) {
-				if (!parameterValue.isEmpty()) {
-					result.add(parameterValue.toString().toLowerCase());
-				}
-			}
-		}
-
-		return result;
 	}
 }
