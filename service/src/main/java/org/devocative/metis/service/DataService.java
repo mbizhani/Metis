@@ -36,6 +36,9 @@ import java.util.*;
 public class DataService implements IDataService {
 	private static final Logger logger = LoggerFactory.getLogger(DataService.class);
 
+	private static final String DATE_PATTERN = "yyyyMMdd";
+	private static final String DATE_TIME_PATTERN = "yyyyMMddHHmmss";
+
 	@Autowired
 	private IPersistorService persistorService;
 
@@ -500,14 +503,91 @@ public class DataService implements IDataService {
 					result.put(fieldName, filtered);
 				}
 			} catch (Exception e) {
-				logger.warn("Converting sent parameter value={} to filter, field=[{}], dsId=[{}], error=[{}]",
-					values, fieldName, dataSourceService.load(dataSourceId), e.toString());
+				logger.warn("Converting URL parameter value={} to filter, field=[{}], dsId=[{}], error=[{}]",
+					values, fieldName, dataSourceService.load(dataSourceId), e);
+
+				//TODO throw exception!
 			}
 		}
 
 		return result;
 	}
 
+	@Override
+	public Map<String, Object> convertFilterToFilter(
+		Long dataSourceId,
+		List<DataAbstractFieldVO> fields,
+		Map<String, Object> params,
+		String sentDBConnection) {
+
+		Map<String, Object> result = new HashMap<>();
+
+		for (DataAbstractFieldVO fieldVO : fields) {
+			String fieldName = fieldVO.getName();
+			Object value = params.get(fieldName);
+
+			try {
+				if (value != null) {
+					switch (fieldVO.getFilterType()) {
+						case Equal:
+							result.put(fieldName, convertFilterParam(fieldVO.getType(), value, true));
+							break;
+
+						case Contain:
+							result.put(fieldName, convertFilterParam(fieldVO.getType(), value, false));
+							break;
+
+						case Range:
+							if (value instanceof RangeVO) {
+								RangeVO sentRange = (RangeVO) value;
+								RangeVO<Object> newRange = new RangeVO<>(
+									convertFilterParam(fieldVO.getType(), sentRange.getLower(), false),
+									convertFilterParam(fieldVO.getType(), sentRange.getUpper(), false)
+								);
+								result.put(fieldName, newRange);
+							}
+							break;
+
+						case List:
+						case Search:
+							DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
+							XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
+
+							Map<String, Object> lookUpFilter = new HashMap<>();
+
+							if (fieldVO.getTargetDSFilter() != null) {
+								Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
+								lookUpFilter.putAll(filterTargetDS);
+							}
+
+							XDSField keyField = targetXDS.getField(targetDS.getKeyField());
+							lookUpFilter.put(keyField.getName(), convertFilterParam(keyField.getType(), value, true));
+
+							List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
+								dataSourceId,
+								fieldVO.getTargetDSId(),
+								sentDBConnection,
+								lookUpFilter
+							).getResult();
+
+							boolean multiple = fieldVO.getTargetDSMultipleSelection() == null || fieldVO.getTargetDSMultipleSelection();
+							if (multiple) {
+								result.put(fieldName, filtered);
+							} else if (filtered.size() > 0) {
+								result.put(fieldName, filtered.get(0));
+							}
+							break;
+					}
+				}
+			} catch (Exception e) {
+				logger.warn("Converting filter parameter value={} to filter, field=[{}], dsId=[{}], error=[{}]",
+					value, fieldName, dataSourceService.load(dataSourceId), e);
+				throw new MetisException(MetisErrorCode.InvalidFilterValue, fieldName, e);
+			}
+		}
+
+		return result;
+	}
 
 	// ------------------------------ PRIVATE METHODS
 
@@ -549,6 +629,75 @@ public class DataService implements IDataService {
 		}
 	}
 
+	private Object convertFilterParam(XDSFieldType fieldType, Object value, boolean canReturnList) {
+		Object result = null;
+
+		if (value != null) {
+			if (value instanceof List) {
+				List list = (List) value;
+				if (canReturnList) {
+					List<Object> newList = new ArrayList<>();
+					for (Object item : list) {
+						newList.add(convertFilterParam(fieldType, item, false));
+					}
+					result = newList;
+				} else {
+					result = convertFilterParam(fieldType, list.get(0), false);
+				}
+			} else if (value instanceof KeyValueVO) {
+				KeyValueVO keyValueVO = (KeyValueVO) value;
+				result = convertFilterParam(fieldType, keyValueVO.getKey(), false);
+			} else {
+				switch (fieldType) {
+					case String:
+						result = value.toString();
+						break;
+
+					case Integer:
+					case Real:
+						if (value instanceof Number) {
+							result = value;
+						} else if (value instanceof String) {
+							String str = (String) value;
+							if (fieldType == XDSFieldType.Integer) {
+								result = Long.parseLong(str);
+							} else {
+								result = new BigDecimal(str);
+							}
+						} else {
+							throw new RuntimeException("Not Number/String Value");
+						}
+						break;
+
+					case Date:
+					case DateTime:
+						if (value instanceof Date) {
+							result = value;
+						} else if (value instanceof String) {
+							String str = (String) value;
+							if (fieldType == XDSFieldType.Date) {
+								result = CalendarUtil.parseDate(str, DATE_PATTERN);
+							} else {
+								result = CalendarUtil.parseDate(str, DATE_TIME_PATTERN);
+							}
+						} else {
+							throw new RuntimeException("Not Date/String Value");
+						}
+						break;
+
+					case Boolean:
+						result = Boolean.valueOf(value.toString());
+						break;
+
+					default:
+						throw new RuntimeException("Invalid value for target filter");
+				}
+			}
+		}
+
+		return result;
+	}
+
 	private Serializable convertQueryParam(XDSFieldType fieldType, String value) {
 		Serializable result = null;
 
@@ -567,11 +716,11 @@ public class DataService implements IDataService {
 					break;
 
 				case Date:
-					result = CalendarUtil.parseDate(value, "yyyyMMdd");
+					result = CalendarUtil.parseDate(value, DATE_PATTERN);
 					break;
 
 				case DateTime:
-					result = CalendarUtil.parseDate(value, "yyyyMMddHHmmss");
+					result = CalendarUtil.parseDate(value, DATE_TIME_PATTERN);
 					break;
 
 				case Boolean:

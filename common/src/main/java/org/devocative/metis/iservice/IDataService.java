@@ -38,4 +38,10 @@ public interface IDataService {
 		List<DataAbstractFieldVO> fields,
 		Map<String, List<String>> params,
 		String sentDBConnection);
+
+	Map<String, Object> convertFilterToFilter(
+		Long dataSourceId,
+		List<DataAbstractFieldVO> fields,
+		Map<String, Object> params,
+		String sentDBConnection);
 }

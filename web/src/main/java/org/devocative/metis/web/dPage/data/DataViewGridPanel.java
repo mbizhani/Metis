@@ -383,8 +383,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							script
 								.append("def range(l,u){new org.devocative.adroit.vo.RangeVO(l,u)}\n")
 								.append("def now(){new Date()}\n")
-								.append("def list(Object... p){def list=[]; p.each{def k=new org.devocative.adroit.vo.KeyValueVO();k.key=it;list.add(k)}; return list}\n")
-									//.append("def item(Object p){def k=new org.devocative.adroit.vo.KeyValueVO();k.key=p; return k;}\n")
+								.append("def list(Object... p){def list=[]; p.each{list.add(it)}; return list}\n")
 								.append(xdvLink.getSentData());
 
 							IStringTemplate stringTemplate = stringTemplateService
@@ -395,7 +394,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetFilter);
 
 							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
-							dPage.addToFilter(targetFilter);
+							dPage.addToFilter(targetFilter, sentDBConnection);
 
 							modalWindow.setContent(dPage);
 							modalWindow
@@ -405,7 +404,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							modalWindow.show(target);
 						} catch (Exception e) {
 							logger.error("Cross-Report: {} -> {}", dataVO.getName(), dataView.getName(), e);
-							WMessager.show("Error", e.getMessage(), target);
+							WMessager.show(e, target);
 						}
 					}
 				});

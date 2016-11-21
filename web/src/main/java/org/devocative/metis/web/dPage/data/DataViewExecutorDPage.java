@@ -118,8 +118,9 @@ public class DataViewExecutorDPage extends DPage {
 		return this;
 	}
 
-	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
-		this.filter.putAll(filter);
+	public DataViewExecutorDPage addToFilter(Map<String, Object> filter, String sentDBConnection) {
+		this.filter.putAll(dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
+			filter, sentDBConnection));
 		return this;
 	}
 
