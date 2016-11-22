@@ -16,6 +16,8 @@ public class QueryExecInfoRVO implements Serializable {
 
 	private String exception;
 
+	private String dbConnName;
+
 	// ------------------------------
 
 	public String getFinalSQL() {
@@ -30,24 +32,36 @@ public class QueryExecInfoRVO implements Serializable {
 		return duration;
 	}
 
-	public void setDuration(Long duration) {
+	public QueryExecInfoRVO setDuration(Long duration) {
 		this.duration = duration;
+		return this;
 	}
 
 	public String getException() {
 		return exception;
 	}
 
-	public void setException(Exception exception) {
+	public QueryExecInfoRVO setException(Exception exception) {
 		this.exception = exception.getMessage();
+		return this;
+	}
+
+	public String getDbConnName() {
+		return dbConnName;
+	}
+
+	public QueryExecInfoRVO setDbConnName(String dbConnName) {
+		this.dbConnName = dbConnName;
+		return this;
 	}
 
 	// ------------------------------
 
-	public void fromNamedParameterStatement(NamedParameterStatement nps) {
+	public QueryExecInfoRVO fromNamedParameterStatement(NamedParameterStatement nps) {
 		if (nps != null) {
 			finalSQL = nps.getFinalIndexedQuery();
 			finalParams = nps.getFinalParams();
 		}
+		return this;
 	}
 }

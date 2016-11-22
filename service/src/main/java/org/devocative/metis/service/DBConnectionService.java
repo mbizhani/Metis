@@ -287,9 +287,11 @@ public class DBConnectionService implements IDBConnectionService {
 		NamedParameterStatement nps = null;
 		DbQueryRVO result = new DbQueryRVO();
 
+		String dbConnName = load(dbConnId).getName();
+		result.getQueryExecInfo().setDbConnName(dbConnName);
 		long start = System.currentTimeMillis();
 		logger.info("Executing Query: Cmnt=[{}] User=[{}] Conn=[{}]",
-			comment, securityService.getCurrentUser(), load(dbConnId).getName());
+			comment, securityService.getCurrentUser(), dbConnName);
 
 		try (Connection connection = getConnection(dbConnId)) {
 			query = String.format("/*%s*/ %s", comment, query);
@@ -344,14 +346,17 @@ public class DBConnectionService implements IDBConnectionService {
 				comment, securityService.getCurrentUser(), load(dbConnId).getName(),
 				result.getQueryExecInfo().getDuration(), result.getRows().size());
 
-			result.getQueryExecInfo().fromNamedParameterStatement(nps);
-			result.getQueryExecInfo().setDuration(System.currentTimeMillis() - start);
+			result.getQueryExecInfo()
+				.fromNamedParameterStatement(nps)
+				.setDuration(System.currentTimeMillis() - start);
 
 			return result;
 		} catch (SQLException e) {
 			logger.error("executeQuery: " + comment, e);
-			result.getQueryExecInfo().setException(e);
-			result.getQueryExecInfo().fromNamedParameterStatement(nps);
+			result.getQueryExecInfo()
+				.setException(e)
+				.fromNamedParameterStatement(nps);
+
 			throw new MetisException(MetisErrorCode.SQLExecution, e)
 				.setExecInfoList(result.getQueryExecInfo());
 		}

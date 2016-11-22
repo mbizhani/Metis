@@ -42,6 +42,12 @@ public class SearchDebugPanel extends DPanel {
 
 		add(new Label("sentURL", builder.toString()));
 
+		String dbConnName = "";
+		if (!queryExecInfoList.isEmpty()) {
+			dbConnName = queryExecInfoList.get(0).getDbConnName();
+		}
+		add(new Label("dbConnName", dbConnName));
+
 		add(new ListView<QueryExecInfoRVO>("list", queryExecInfoList) {
 			private static final long serialVersionUID = 8291860105472506977L;
 
