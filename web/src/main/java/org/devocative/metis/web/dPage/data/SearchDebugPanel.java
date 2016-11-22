@@ -17,10 +17,21 @@ public class SearchDebugPanel extends DPanel {
 		super(id);
 
 		StringBuilder builder = new StringBuilder();
-		builder.append("| ");
+		builder
+			.append(getWebRequest().getClientUrl().getHost())
+			.append(":")
+			.append(getWebRequest().getClientUrl().getPort())
+		;
+
+		boolean firstParam = true;
 
 		for (Url.QueryParameter parameter : getWebRequest().getClientUrl().getQueryParameters()) {
 			if (!parameter.getValue().isEmpty()) {
+				if (firstParam) {
+					builder.append(" || ");
+					firstParam = false;
+				}
+
 				String name = parameter.getName();
 				if (name.startsWith("amp;")) {
 					name = name.substring(4);
