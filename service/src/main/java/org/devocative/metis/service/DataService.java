@@ -517,14 +517,14 @@ public class DataService implements IDataService {
 	public Map<String, Object> convertFilterToFilter(
 		Long dataSourceId,
 		List<DataAbstractFieldVO> fields,
-		Map<String, Object> params,
+		Map<String, Object> filter,
 		String sentDBConnection) {
 
 		Map<String, Object> result = new HashMap<>();
 
 		for (DataAbstractFieldVO fieldVO : fields) {
 			String fieldName = fieldVO.getName();
-			Object value = params.get(fieldName);
+			Object value = filter.get(fieldName);
 
 			try {
 				if (value != null) {

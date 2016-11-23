@@ -42,6 +42,6 @@ public interface IDataService {
 	Map<String, Object> convertFilterToFilter(
 		Long dataSourceId,
 		List<DataAbstractFieldVO> fields,
-		Map<String, Object> params,
+		Map<String, Object> filter,
 		String sentDBConnection);
 }

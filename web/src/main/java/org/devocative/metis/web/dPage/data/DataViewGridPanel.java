@@ -360,23 +360,27 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 								new ArrayList<String>() :
 								Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
 
-							Map<String, List<String>> map = WebUtil.toMap(false, false);
-							Map<String, Object> newMap = new HashMap<>();
-							for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+							Map<String, List<String>> urlParams = WebUtil.toMap(false, false);
+
+							Map<String, Object> paramsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+							for (Map.Entry<String, List<String>> entry : urlParams.entrySet()) {
 								if (ignoredValues.isEmpty() || !ignoredValues.contains(entry.getValue().get(0))) {
-									newMap.put(entry.getKey(), entry.getValue().get(0));
+									paramsMap.put(entry.getKey(), entry.getValue().get(0));
 								} else {
 									logger.warn("Cross-Report parameter [{}]=[{}] ignored!",
 										entry.getKey(), entry.getValue().get(0));
 								}
 							}
-							newMap.putAll(filter);
+							paramsMap.putAll(filter);
 
-							Map<String, Object> targetFilter = new HashMap<>();
+							Map<String, Object> targetFilter = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+							Map<String, Object> rowMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+							rowMap.putAll(rowData.getObject());
 
 							Map<String, Object> params = new HashMap<>();
-							params.put("row", rowData.getObject());
-							params.put("params", newMap);
+							params.put("row", rowMap);
+							params.put("params", paramsMap);
 							params.put("filter", targetFilter);
 
 							StringBuilder script = new StringBuilder();
