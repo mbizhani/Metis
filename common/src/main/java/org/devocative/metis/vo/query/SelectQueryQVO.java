@@ -10,8 +10,8 @@ public class SelectQueryQVO extends AbstractQueryQVO {
 
 	// ------------------------------
 
-	public SelectQueryQVO(String dataSourceName, List<String> selectFields) {
-		super(dataSourceName);
+	public SelectQueryQVO(Long dataSourceId, List<String> selectFields) {
+		super(dataSourceId);
 		this.selectFields = selectFields;
 	}
 

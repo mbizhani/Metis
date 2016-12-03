@@ -446,7 +446,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public DsQueryRVO<List<Map<String, Object>>> execute(SelectQueryQVO queryQVO) {
-		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
+		DataSource dataSource = load(queryQVO.getDataSourceId());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
 		DSQueryBuilder queryBuilder = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
@@ -484,7 +484,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 			if (parentIds.size() > 0) {
 				SelectQueryQVO selectQueryQVO = new SelectQueryQVO(
-					queryQVO.getDataSourceName(),
+					queryQVO.getDataSourceId(),
 					queryQVO.getSelectFields());
 				selectQueryQVO
 					.setSortFields(queryQVO.getSortFields())
@@ -538,7 +538,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public DsQueryRVO<List<Map<String, Object>>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId) {
-		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
+		DataSource dataSource = load(queryQVO.getDataSourceId());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
 		Map<String, Object> params = new HashMap<>();
@@ -570,7 +570,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public DsQueryRVO<Long> execute(CountQueryQVO queryQVO) {
-		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
+		DataSource dataSource = load(queryQVO.getDataSourceId());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
 		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
@@ -602,7 +602,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public DsQueryRVO<List<Map<String, Object>>> execute(AggregateQueryQVO queryQVO) {
-		DataSource dataSource = loadByName(queryQVO.getDataSourceName());
+		DataSource dataSource = load(queryQVO.getDataSourceId());
 		XDataSource xDataSource = getXDataSource(dataSource);
 
 		List<String> select = new ArrayList<>();

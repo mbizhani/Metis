@@ -257,6 +257,8 @@ public class DataService implements IDataService {
 		persistorService.commitOrRollback();
 	}
 
+	// ---------------
+
 	@Override
 	public DataViewRVO executeDataView(DataViewQVO request) {
 		logger.info("Executing DataView: DV=[{}] Usr=[{}] SentDB=[{}]",
@@ -266,13 +268,13 @@ public class DataService implements IDataService {
 		DataView dataView = dataViewService.loadByName(request.getName());
 		XDataView xDataView = dataViewService.getXDataView(dataView);
 
-		List<String> selectFields = getSelectedFields(xDataView);
+		List<String> selectFields = getSelectedFields(xDataView, true);
 
 		DataViewRVO result = new DataViewRVO();
 
 		// --------------- SELECT
 
-		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
+		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
 		selectQVO
 			.setPagination(PaginationQVO.byPage(request.getPageIndex(), request.getPageSize()))
 			.setSortFields(request.getSortFieldList())
@@ -284,7 +286,7 @@ public class DataService implements IDataService {
 
 		// --------------- COUNT
 
-		CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceName());
+		CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceId());
 		countQVO
 			.setInputParams(request.getFilter())
 			.setSentDBConnection(request.getSentDBConnection());
@@ -301,7 +303,7 @@ public class DataService implements IDataService {
 			}
 		}
 		if (agrFields.size() > 0) {
-			AggregateQueryQVO agrQVO = new AggregateQueryQVO(xDataView.getDataSourceName(), agrFields);
+			AggregateQueryQVO agrQVO = new AggregateQueryQVO(xDataView.getDataSourceId(), agrFields);
 			agrQVO
 				.setInputParams(request.getFilter())
 				.setSentDBConnection(request.getSentDBConnection());
@@ -327,9 +329,9 @@ public class DataService implements IDataService {
 		DataView dataView = dataViewService.loadByName(request.getName());
 		XDataView xDataView = dataViewService.getXDataView(dataView);
 
-		List<String> selectFields = getSelectedFields(xDataView);
+		List<String> selectFields = getSelectedFields(xDataView, true);
 
-		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
+		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
 		selectQVO
 			.setSortFields(request.getSortFieldList())
 			.setSentDBConnection(request.getSentDBConnection());
@@ -355,7 +357,7 @@ public class DataService implements IDataService {
 			DataView dataView = dataViewService.loadByName(request.getName());
 			XDataView xDataView = dataViewService.getXDataView(dataView);
 
-			List<String> selectFields = getSelectedFields(xDataView);
+			List<String> selectFields = getSelectedFields(xDataView, false);
 
 			Map<String, Object> inputParams = new HashMap<>();
 			if (request.getInputParams() != null) {
@@ -364,7 +366,7 @@ public class DataService implements IDataService {
 				}
 			}
 
-			SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceName(), selectFields);
+			SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
 			selectQVO
 				.setPagination(PaginationQVO.byResult(request.getFirstResult(), request.getMaxResults()))
 				.setSortFields(request.getOrderBy())
@@ -399,7 +401,7 @@ public class DataService implements IDataService {
 				}
 			}
 
-			CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceName());
+			CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceId());
 			countQVO
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams);
@@ -415,6 +417,8 @@ public class DataService implements IDataService {
 			throw e;
 		}
 	}
+
+	// ---------------
 
 	@Override
 	public Map<String, Object> convertSimpleParamsToFilter(
@@ -602,15 +606,13 @@ public class DataService implements IDataService {
 		dataVO.fromXDataSource(xDataSource);
 	}
 
-	private List<String> getSelectedFields(XDataView xDataView) {
+	private List<String> getSelectedFields(XDataView xDataView, boolean includeHidden) {
 		List<String> selectFields = new ArrayList<>();
 		for (XDVField xdvField : xDataView.getFields()) {
 			if (xdvField.getResultType() != null) {
-				switch (xdvField.getResultType()) {
-					case Shown:
-					case Hidden:
-						selectFields.add(xdvField.getName());
-						break;
+				if (xdvField.getResultType() == XDSFieldResultType.Shown ||
+					(includeHidden && xdvField.getResultType() == XDSFieldResultType.Hidden)) {
+					selectFields.add(xdvField.getName());
 				}
 			}
 		}

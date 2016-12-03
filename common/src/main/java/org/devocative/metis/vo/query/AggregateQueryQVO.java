@@ -8,8 +8,8 @@ import java.util.Map;
 public class AggregateQueryQVO extends AbstractQueryQVO {
 	private Map<String, List<XDVAggregatorFunction>> selectFields;
 
-	public AggregateQueryQVO(String dataSourceName, Map<String, List<XDVAggregatorFunction>> selectFields) {
-		super(dataSourceName);
+	public AggregateQueryQVO(Long dataSourceId, Map<String, List<XDVAggregatorFunction>> selectFields) {
+		super(dataSourceId);
 		this.selectFields = selectFields;
 	}
 
