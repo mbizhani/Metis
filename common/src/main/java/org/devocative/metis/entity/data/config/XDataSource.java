@@ -79,6 +79,18 @@ public class XDataSource implements Serializable {
 		this.params = params;
 	}
 
+	public List<XDSAbstractField> getAllFields() {
+		List<XDSAbstractField> result = new ArrayList<>();
+		if (getFields() != null) {
+			result.addAll(getFields());
+		}
+
+		if (getParams() != null) {
+			result.addAll(getParams());
+		}
+		return result;
+	}
+
 	// ---------------------- OTHERS
 
 	@XStreamOmitField

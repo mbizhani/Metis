@@ -90,6 +90,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	public DataViewGridPanel(String id, final DataVO dataVO, final Map<String, Object> filter) {
 		super(id);
+
 		this.dataVO = dataVO;
 		this.filter = filter;
 
@@ -179,13 +180,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 		}
 
-		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
-			sentDBConnection = getWebRequest()
-				.getRequestParameters()
-				.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
-				.toOptionalString();
-		}
-
 		add(new WAjaxLink("info", MetisIcon.INFO) {
 			private static final long serialVersionUID = 3303989238841000829L;
 
@@ -214,7 +208,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					new FileStoreListDPage(modalWindow.getContentId(), fvo)
 						.setGridFit(true)
 						.setFormVisible(false)
-						.setRemoveColumns("mimeType", "status", "fileId",
+						.setRemoveColumns("mimeType", "storage", "status", "fileId",
 							"creatorUser", "modificationDate", "modifierUser", "version", "EDIT")
 				);
 				modalWindow.getOptions()
@@ -249,6 +243,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	public DataViewGridPanel setMultiSelect(boolean multiSelect) {
 		oBaseGrid.setSingleSelect(!multiSelect);
+		return this;
+	}
+
+	public DataViewGridPanel setSentDBConnection(String sentDBConnection) {
+		this.sentDBConnection = sentDBConnection;
 		return this;
 	}
 
@@ -455,7 +454,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetFilter);
 
 							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
-							dPage.addToFilter(targetFilter, sentDBConnection);
+							dPage
+								.setSentDBConnection(sentDBConnection)
+								.addToFilter(targetFilter);
 
 							modalWindow.setContent(dPage);
 							modalWindow

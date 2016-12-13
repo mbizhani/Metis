@@ -9,9 +9,11 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
@@ -33,8 +35,14 @@ public class DataViewExecutorDPage extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewExecutorDPage.class);
 
 	private DataVO dataVO;
+	private String sentDBConnection;
 	private DataViewGridPanel mainGrid;
 	private Map<String, Object> filter = new HashMap<>();
+
+	private IModel<String> title;
+	private boolean hasDataVO = true;
+	private boolean multiSelect;
+	private String selectionJSCallback;
 
 	@Inject
 	private IDataService dataService;
@@ -49,10 +57,6 @@ public class DataViewExecutorDPage extends DPage {
 	public DataViewExecutorDPage(String id, List<String> params) {
 		super(id, params);
 
-		boolean hasDataVO = true;
-		IModel<String> title;
-		String color = "color:inherit;";
-
 		if (params.size() > 0) {
 			dataVO = dataService.loadDataVO(params.get(0));
 		}
@@ -66,10 +70,48 @@ public class DataViewExecutorDPage extends DPage {
 			dataVO.setName(params.size() > 0 ? params.get(0) : "-");
 
 			hasDataVO = false;
-			color = "color:red;";
 		} else {
 			title = new Model<>(dataVO.getTitle());
 		}
+	}
+
+	// ------------------------------
+
+	public DataViewExecutorDPage setSelectionJSCallback(String selectionJSCallback) {
+		this.selectionJSCallback = selectionJSCallback;
+		return this;
+	}
+
+	public DataViewExecutorDPage setMultiSelect(boolean multiSelect) {
+		this.multiSelect = multiSelect;
+		return this;
+	}
+
+	public DataViewExecutorDPage setSentDBConnection(String sentDBConnection) {
+		this.sentDBConnection = sentDBConnection;
+		return this;
+	}
+
+	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
+		this.filter.putAll(dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
+			filter, sentDBConnection));
+		return this;
+	}
+
+	// ------------------------------
+
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+
+		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
+			sentDBConnection = getWebRequest()
+				.getRequestParameters()
+				.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
+				.toOptionalString();
+		}
+
+		String color = hasDataVO ? "color:inherit;" : "color:red;";
 
 		add(new Label("dvTitle", title).add(new AttributeModifier("style", color)));
 		add(new Label("dvName", dataVO.getName()).add(new AttributeModifier("style", color)));
@@ -82,7 +124,10 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
-			form.add(new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields()));
+			form.add(
+				new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
+					.setSentDBConnection(sentDBConnection)
+			);
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;
 
@@ -93,7 +138,12 @@ public class DataViewExecutorDPage extends DPage {
 					target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
 				}
 			});
-			add(mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter));
+			mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
+			mainGrid
+				.setMultiSelect(multiSelect)
+				.setSelectionJSCallback(selectionJSCallback)
+				.setSentDBConnection(sentDBConnection);
+			add(mainGrid);
 		} else {
 			form.add(new WebComponent("filterPanel"));
 			form.add(new WebComponent("search"));
@@ -101,30 +151,6 @@ public class DataViewExecutorDPage extends DPage {
 			add(new WebComponent("mainGrid"));
 		}
 	}
-
-	// ------------------------------
-
-	public DataViewExecutorDPage setSelectionJSCallback(String jsCallback) {
-		if (mainGrid != null) {
-			mainGrid.setSelectionJSCallback(jsCallback);
-		}
-		return this;
-	}
-
-	public DataViewExecutorDPage setMultiSelect(boolean multiSelect) {
-		if (mainGrid != null) {
-			mainGrid.setMultiSelect(multiSelect);
-		}
-		return this;
-	}
-
-	public DataViewExecutorDPage addToFilter(Map<String, Object> filter, String sentDBConnection) {
-		this.filter.putAll(dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
-			filter, sentDBConnection));
-		return this;
-	}
-
-	// ------------------------------
 
 	@Override
 	protected void onAfterRender() {
