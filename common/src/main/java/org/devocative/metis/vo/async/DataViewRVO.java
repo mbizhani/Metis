@@ -17,6 +17,8 @@ public class DataViewRVO implements Serializable {
 
 	private List<QueryExecInfoRVO> queryExecInfoList = new ArrayList<>();
 
+	private String fileId;
+
 	// ------------------------------
 
 	public List<Map<String, Object>> getList() {
@@ -57,6 +59,15 @@ public class DataViewRVO implements Serializable {
 
 	public List<QueryExecInfoRVO> getQueryExecInfoList() {
 		return queryExecInfoList;
+	}
+
+	public String getFileId() {
+		return fileId;
+	}
+
+	public DataViewRVO setFileId(String fileId) {
+		this.fileId = fileId;
+		return this;
 	}
 
 	// ------------------------------

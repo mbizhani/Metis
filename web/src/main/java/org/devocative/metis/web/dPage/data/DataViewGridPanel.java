@@ -8,10 +8,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.StringValueConversionException;
 import org.devocative.adroit.ConfigUtil;
+import org.devocative.demeter.entity.EFileStatus;
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.template.IStringTemplate;
 import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.demeter.iservice.template.TemplateEngineType;
+import org.devocative.demeter.vo.filter.FileStoreFVO;
 import org.devocative.demeter.web.DPanel;
+import org.devocative.demeter.web.UrlUtil;
+import org.devocative.demeter.web.dpage.FileStoreListDPage;
 import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataView;
@@ -40,6 +45,7 @@ import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OHiddenColumn;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
+import org.devocative.wickomp.grid.toolbar.OAjaxLinkButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.WAjaxLink;
@@ -66,6 +72,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	@Inject
 	private IStringTemplateService stringTemplateService;
 
+	@Inject
+	private ISecurityService securityService;
+
 	private DataVO dataVO;
 	private Map<String, Object> filter;
 	private AsyncBehavior asyncBehavior;
@@ -79,7 +88,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	// ------------------------------
 
-	public DataViewGridPanel(String id, DataVO dataVO, Map<String, Object> filter) {
+	public DataViewGridPanel(String id, final DataVO dataVO, final Map<String, Object> filter) {
 		super(id);
 		this.dataVO = dataVO;
 		this.filter = filter;
@@ -132,10 +141,24 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setIdField(keyField != null ? keyField.getName() : null)
 			.setTitleField(titleField != null ? titleField.getName() : null)
 			.setPageList(Arrays.asList(100, 200, 500, 1000))
-			/*.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
-				MetisIcon.EXPORT_EXCEL,
-				String.format("%s-export.xlsx", dataVO.getName()),
-				10000))*/
+			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.EXPORT_EXCEL) {
+				private static final long serialVersionUID = 3303989238841000829L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					DataViewQVO dataViewQVO = new DataViewQVO();
+					dataViewQVO
+						.setName(DataViewGridPanel.this.dataVO.getName())
+							//TODO .setSortFieldList(getSortFieldsMap(sortFields))
+						.setFilter(getFilterMap())
+						.setSentDBConnection(sentDBConnection)
+						.setDoExport(true);
+
+					asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW, dataViewQVO);
+
+					WMessager.show("Info", getString("msg.file.under.construction"), target);
+				}
+			})
 			.setReturnField(returnField)
 			.setHeight(OSize.fixed(dataVO.getGridHeightSafely().getHeight()))
 			.setWidth(OSize.percent(100))
@@ -163,15 +186,44 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				.toOptionalString();
 		}
 
-		add(new WAjaxLink("debug") {
+		add(new WAjaxLink("info", MetisIcon.INFO) {
 			private static final long serialVersionUID = 3303989238841000829L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				modalWindow.setContent(new SearchDebugPanel(modalWindow.getContentId(), queryExecInfoList));
+				modalWindow.getOptions()
+					.setFit(null)
+					.setWidth(OSize.fixed(900))
+					.setHeight(OSize.fixed(600));
 				modalWindow.show(target);
 			}
 		}.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)));
+
+		add(new WAjaxLink("attachment", MetisIcon.ATTACHMENT) {
+			private static final long serialVersionUID = 2236601403443810728L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				FileStoreFVO fvo = new FileStoreFVO();
+				fvo.setTag(dataVO.getName());
+				fvo.setCreatorUser(Collections.singletonList(securityService.getCurrentUser().toUser()));
+				fvo.setStatus(Collections.singletonList(EFileStatus.VALID));
+
+				modalWindow.setContent(
+					new FileStoreListDPage(modalWindow.getContentId(), fvo)
+						.setGridFit(true)
+						.setFormVisible(false)
+						.setRemoveColumns("mimeType", "status", "fileId",
+							"creatorUser", "modificationDate", "modifierUser", "version", "EDIT")
+				);
+				modalWindow.getOptions()
+					.setFit(null)
+					.setWidth(OSize.fixed(700))
+					.setHeight(OSize.fixed(400));
+				modalWindow.show(target);
+			}
+		});
 
 		Boolean multiSelect;
 		try {
@@ -218,7 +270,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		queryExecInfoList = dataViewRVO.getQueryExecInfoList();
 
 		if (MetisDModule.EXEC_DATA_VIEW.equals(handlerId)) {
-			grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount(), dataViewRVO.getFooter());
+			if (dataViewRVO.getFileId() == null) {
+				grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount(), dataViewRVO.getFooter());
+			} else {
+				//TODO
+				handler.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(dataViewRVO.getFileId())));
+			}
 		} else if (MetisDModule.EXEC_DATA_VIEW_CHILDREN.equals(handlerId)) {
 			((WTreeGrid<Map<String, Object>>) grid).pushChildren(handler, dataViewRVO.getParentId(), dataViewRVO.getList());
 		}
@@ -236,7 +293,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------ IGridAsyncDataSource
 
 	@Override
-	public void list(long pageIndex, long pageSize, List<WSortField> sortFields) {
+	public void asyncList(long pageIndex, long pageSize, List<WSortField> sortFields) {
 		DataViewQVO dataViewQVO = new DataViewQVO();
 		dataViewQVO
 			.setName(dataVO.getName())
@@ -252,7 +309,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------ ITreeGridAsyncDataSource
 
 	@Override
-	public void listByParent(Serializable parentId, List<WSortField> sortFields) {
+	public void asyncListByParent(Serializable parentId, List<WSortField> sortFields) {
 		DataViewQVO dataViewQVO = new DataViewQVO();
 		dataViewQVO
 			.setName(dataVO.getName())
@@ -403,7 +460,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							modalWindow.setContent(dPage);
 							modalWindow
 								.getOptions()
-								.setMaximizable(false)
 								.setFit(true);
 							modalWindow.show(target);
 						} catch (Exception e) {

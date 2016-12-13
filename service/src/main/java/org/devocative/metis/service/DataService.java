@@ -1,12 +1,18 @@
 package org.devocative.metis.service;
 
 import org.devocative.adroit.CalendarUtil;
+import org.devocative.adroit.ConfigUtil;
+import org.devocative.adroit.ExcelExporter;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
+import org.devocative.demeter.entity.EMimeType;
+import org.devocative.demeter.iservice.FileStoreHandler;
+import org.devocative.demeter.iservice.IFileStoreService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataSource;
@@ -28,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.*;
@@ -53,6 +60,9 @@ public class DataService implements IDataService {
 
 	@Autowired
 	private ISecurityService securityService;
+
+	@Autowired
+	private IFileStoreService fileStoreService;
 
 	// ------------------------------ PUBLIC METHODS
 
@@ -321,6 +331,68 @@ public class DataService implements IDataService {
 	}
 
 	@Override
+	public DataViewRVO exportDataView(DataViewQVO request) {
+		logger.info("Exporting DataView: DV=[{}] Usr=[{}] SentDB=[{}]",
+			request.getName(), securityService.getCurrentUser(), request.getSentDBConnection());
+
+		long start = System.currentTimeMillis();
+
+		DataView dataView = dataViewService.loadByName(request.getName());
+		XDataView xDataView = dataViewService.getXDataView(dataView);
+
+		DataSource dataSource = dataSourceService.load(xDataView.getDataSourceId());
+		XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
+
+		List<String> titleFields = new ArrayList<>();
+		for (XDVField xdvField : xDataView.getFields()) {
+			if (xdvField.getResultType() != null) {
+				if (xdvField.getResultType() == XDSFieldResultType.Shown) {
+					titleFields.add(xDataSource.getField(xdvField.getName()).getSafeTitle());
+				}
+			}
+		}
+
+		List<String> selectFields = getSelectedFields(xDataView, false);
+		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
+		selectQVO
+			.setPagination(PaginationQVO.byPage(1L, 1000L))
+			.setSortFields(request.getSortFieldList())
+			.setInputParams(request.getFilter())
+			.setSentDBConnection(request.getSentDBConnection());
+
+		DsQueryRVO<List<Map<String, Object>>> listRVO = dataSourceService.execute(selectQVO);
+
+		ExcelExporter exporter = new ExcelExporter(dataView.getTitle());
+		exporter.setColumnsHeader(titleFields);
+
+		for (Map<String, Object> map : listRVO.getResult()) {
+			List<Object> row = new ArrayList<>();
+			for (String field : selectFields) {
+				row.add(map.get(field));
+			}
+			exporter.addRowData(row);
+		}
+
+		Date now = new Date();
+		Date expire = CalendarUtil.add(now, Calendar.DATE,
+			ConfigUtil.getInteger(MetisConfigKey.ExportReportExpireDays));
+		//TODO using calendar from User
+		String name = String.format("%s-%s.xlsx", dataView.getName(), CalendarUtil.toPersian(now, "yyyyMMdd-HHmmss"));
+		FileStoreHandler fileStoreHandler = fileStoreService.create(name, EMimeType.EXCEL, expire, dataView.getName());
+		try {
+			exporter.generate(fileStoreHandler);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		logger.info("Exported DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}]",
+			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(),
+			System.currentTimeMillis() - start);
+
+		return new DataViewRVO().setFileId(fileStoreHandler.getFileStore().getFileId());
+	}
+
+	@Override
 	public DataViewRVO executeDataViewForParent(DataViewQVO request) {
 		logger.info("Executing DataView of Parent: DV=[{}] Prnt=[{}] Usr=[{}]",
 			request.getName(), request.getParentId(), securityService.getCurrentUser());
@@ -457,7 +529,7 @@ public class DataService implements IDataService {
 							Map<String, Object> lookUpFilter = new HashMap<>();
 
 							if (fieldVO.getTargetDSFilter() != null) {
-								Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
+								Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getAllFields());
 								lookUpFilter.putAll(filterTargetDS);
 							}
 
@@ -497,7 +569,7 @@ public class DataService implements IDataService {
 				} else if (fieldVO.getTargetDSFilter() != null && fieldVO.getType() == XDSFieldType.LookUp) {
 					DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
 					XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
-					Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
+					Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getAllFields());
 					List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
 						dataSourceId,
 						fieldVO.getTargetDSId(),
@@ -560,7 +632,7 @@ public class DataService implements IDataService {
 							Map<String, Object> lookUpFilter = new HashMap<>();
 
 							if (fieldVO.getTargetDSFilter() != null) {
-								Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getFields());
+								Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getAllFields());
 								lookUpFilter.putAll(filterTargetDS);
 							}
 
@@ -737,7 +809,7 @@ public class DataService implements IDataService {
 		return result;
 	}
 
-	private Map<String, Object> createMapOfFilterTargetDS(String filter, List<XDSField> xdsFields) {
+	private Map<String, Object> createMapOfFilterTargetDS(String filter, List<XDSAbstractField> xdsFields) {
 		Map<String, List<String>> paramsMap = new HashMap<>();
 
 		String[] params = filter.split("[&]");
@@ -753,7 +825,7 @@ public class DataService implements IDataService {
 		}
 
 		Map<String, Object> result = new HashMap<>();
-		for (XDSField xdsField : xdsFields) {
+		for (XDSAbstractField xdsField : xdsFields) {
 			String fieldName = xdsField.getName();
 			List<String> values = paramsMap.get(fieldName);
 

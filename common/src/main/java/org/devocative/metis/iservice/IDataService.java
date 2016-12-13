@@ -27,6 +27,8 @@ public interface IDataService {
 
 	DataViewRVO executeDataView(DataViewQVO request);
 
+	DataViewRVO exportDataView(DataViewQVO request);
+
 	DataViewRVO executeDataViewForParent(DataViewQVO request);
 
 	List<Map<String, Object>> executeOData(ODataQVO request);

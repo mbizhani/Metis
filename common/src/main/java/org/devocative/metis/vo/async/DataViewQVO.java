@@ -16,6 +16,8 @@ public class DataViewQVO implements Serializable {
 
 	private String sentDBConnection;
 
+	private boolean doExport = false;
+
 	// ------------------------------
 
 	public String getName() {
@@ -78,6 +80,15 @@ public class DataViewQVO implements Serializable {
 
 	public DataViewQVO setSentDBConnection(String sentDBConnection) {
 		this.sentDBConnection = sentDBConnection;
+		return this;
+	}
+
+	public boolean isDoExport() {
+		return doExport;
+	}
+
+	public DataViewQVO setDoExport(boolean doExport) {
+		this.doExport = doExport;
 		return this;
 	}
 }

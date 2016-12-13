@@ -38,7 +38,6 @@ import org.devocative.wickomp.grid.*;
 import org.devocative.wickomp.grid.column.OColumn;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
-import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.WEasyLayout;
@@ -293,10 +292,10 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 			.setSelectionIndicator(true)
 			.setIdField(dataSource.getKeyField())
 			.setTitleField(dataSource.getTitleField())
-			.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
+			/*.addToolbarButton(new OExportExcelButton<Map<String, Object>>(
 				MetisIcon.EXPORT_EXCEL,
 				String.format("%s-export.xlsx", dataSource.getName()),
-				10000))
+				10000))*/
 			.setFit(true)
 		;
 
@@ -360,7 +359,7 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 		//------------------------ IGridDataSource
 
 		@Override
-		public void list(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
+		public void asyncList(long pageIndex, long pageSize, List<WSortField> sortFieldList) {
 			/*return dataSourceService.executeDataSource(dataSource.getName(), getFilterMap(), getSortFieldsMap(sortFieldList),
 				pageIndex, pageSize);*/
 			asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW,

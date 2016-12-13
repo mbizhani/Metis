@@ -9,7 +9,9 @@ public enum MetisConfigKey implements IConfigKey {
 	DBConnParamName("mts.dv.conn.param.name"),
 	UseEqualOnUpperBound("mts.range.equal.upper", false, Arrays.asList(true, false)),
 	ShowSearchDebugger("mts.search.debugger.visible", true, Arrays.asList(true, false)),
-	IgnoreParameterValues("mts.ignore.param.values")
+	IgnoreParameterValues("mts.ignore.param.values"),
+
+	ExportReportExpireDays("mts.export.days", 3)
 	;
 	private String key;
 	private boolean validate = false;
