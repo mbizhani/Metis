@@ -7,6 +7,7 @@ import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
+import org.devocative.demeter.entity.EFileStorage;
 import org.devocative.demeter.entity.EMimeType;
 import org.devocative.demeter.iservice.FileStoreHandler;
 import org.devocative.demeter.iservice.IFileStoreService;
@@ -378,7 +379,13 @@ public class DataService implements IDataService {
 			ConfigUtil.getInteger(MetisConfigKey.ExportReportExpireDays));
 		//TODO using calendar from User
 		String name = String.format("%s-%s.xlsx", dataView.getName(), CalendarUtil.toPersian(now, "yyyyMMdd-HHmmss"));
-		FileStoreHandler fileStoreHandler = fileStoreService.create(name, EMimeType.EXCEL, expire, dataView.getName());
+		FileStoreHandler fileStoreHandler = fileStoreService.create(
+			name,
+			EFileStorage.DISK,
+			EMimeType.EXCEL,
+			expire,
+			dataView.getName());
+
 		try {
 			exporter.generate(fileStoreHandler);
 		} catch (IOException e) {
