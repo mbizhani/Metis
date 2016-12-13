@@ -76,6 +76,17 @@ class InitStep extends WWizardStepPanel {
 			.setLabel(new ResourceModel("DataSource.query.mode"))
 			.setEnabled(dataVO.isDataSourceEditable());
 
+		if (dataVO.getCaseSensitiveFilter() == null) {
+			dataVO.setCaseSensitiveFilter(false);
+		}
+
+		/*add(new WBooleanInput("caseSensitiveFilter")
+				.setLabelVisible(false)
+				.setRequired(true)
+				.setLabel(new ResourceModel("DataSource.caseSensitiveFilter"))
+				.setEnabled(dataVO.isDataSourceEditable())
+		);*/
+
 		add(new WSelectionInput("selectionMode", new PropertyModel(dataVO, "selectionMode"),
 			Arrays.asList(XDVGridSelectionMode.values()), false)
 			.setLabelVisible(false)
