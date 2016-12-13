@@ -31,6 +31,8 @@ import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.async.AsyncBehavior;
 import org.devocative.wickomp.async.IAsyncResponseHandler;
 import org.devocative.wickomp.form.*;
+import org.devocative.wickomp.form.range.WDateRangeInput;
+import org.devocative.wickomp.form.range.WNumberRangeInput;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
 import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.formatter.ONumberFormatter;

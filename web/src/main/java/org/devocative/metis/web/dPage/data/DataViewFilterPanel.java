@@ -20,6 +20,8 @@ import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WDefaults;
 import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.*;
+import org.devocative.wickomp.form.range.WDateRangeInput;
+import org.devocative.wickomp.form.range.WNumberRangeInput;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
