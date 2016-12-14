@@ -22,6 +22,7 @@ import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.form.range.WDateRangeInput;
 import org.devocative.wickomp.form.range.WNumberRangeInput;
+import org.devocative.wickomp.form.range.WTextRangeInput;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.opt.OSize;
 import org.slf4j.Logger;
@@ -144,6 +145,8 @@ public class DataViewFilterPanel extends DPanel {
 			case String:
 				if (XDSFieldFilterType.Contain == fieldVO.getFilterType()) {
 					fieldFormItem = new WSqlStringInput(fieldVO.getName());
+				} else if (XDSFieldFilterType.Range == fieldVO.getFilterType()) {
+					fieldFormItem = new WTextRangeInput(fieldVO.getName());
 				} else {
 					fieldFormItem = new WTextInput(fieldVO.getName());
 				}

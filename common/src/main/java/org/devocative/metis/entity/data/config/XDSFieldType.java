@@ -6,8 +6,8 @@ import java.util.List;
 
 public enum XDSFieldType {
 	String(
-		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Contain},
-		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Contain}
+		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Contain, XDSFieldFilterType.Range},
+		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Contain, XDSFieldFilterType.Range}
 	),
 	Integer(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
