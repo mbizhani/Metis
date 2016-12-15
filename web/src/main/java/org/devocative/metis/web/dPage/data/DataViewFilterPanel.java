@@ -240,7 +240,7 @@ public class DataViewFilterPanel extends DPanel {
 
 					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, multiple);
 				} else {
-					fieldFormItem = new WClientSearchableListInput<KeyValueVO<String, String>>(fieldVO.getName()) {
+					fieldFormItem = new WClientSearchableListInput(fieldVO.getName(), multiple) {
 						private static final long serialVersionUID = 9122156586999811309L;
 
 						{
@@ -263,7 +263,7 @@ public class DataViewFilterPanel extends DPanel {
 						}
 
 						@Override
-						protected List<KeyValueVO<String, String>> createClientOptions(List<KeyValueVO<String, String>> list) {
+						protected List<KeyValueVO<String, String>> createClientOptions(List list) {
 							return list;
 						}
 					}.setOpenModalLinkVisible(!filter.containsKey(fieldVO.getName()));

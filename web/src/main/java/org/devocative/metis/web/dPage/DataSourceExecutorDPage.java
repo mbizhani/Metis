@@ -185,7 +185,7 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 							fieldFormItem = new WSelectionInput(dsField.getName(), lookUpList, true)
 								.setLabelVisible(false);
 						} else {
-							fieldFormItem = new WClientSearchableListInput<KeyValueVO<Serializable, String>>(dsField.getName()) {
+							fieldFormItem = new WClientSearchableListInput(dsField.getName(), false) {
 								{
 									getModalWindowOptions().setWidth(OSize.percent(80));
 								}
@@ -209,7 +209,7 @@ public class DataSourceExecutorDPage extends DPage implements IAsyncResponseHand
 								}
 
 								@Override
-								protected List<KeyValueVO<String, String>> createClientOptions(List<KeyValueVO<Serializable, String>> list) {
+								protected List<KeyValueVO<String, String>> createClientOptions(List list) {
 									return null;
 								}
 							}
