@@ -6,7 +6,6 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.string.StringValueConversionException;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.entity.EFileStatus;
 import org.devocative.demeter.iservice.ISecurityService;
@@ -79,9 +78,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private Map<String, Object> filter;
 	private AsyncBehavior asyncBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
-	private OBaseGrid<Map<String, Object>> oBaseGrid;
 
 	private String sentDBConnection;
+	private String selectionJSCallback;
+	private Boolean multiSelect;
 
 	private List<QueryExecInfoRVO> queryExecInfoList;
 	private WModalWindow modalWindow;
@@ -95,154 +95,18 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		this.filter = filter;
 
 		asyncBehavior = new AsyncBehavior(this);
-		modalWindow = new WModalWindow("modal");
-
 		add(asyncBehavior);
-		add(modalWindow);
-
-		OColumnList<Map<String, Object>> columns = createColumns(dataVO);
-
-		DataFieldVO selfRelPointerField = dataVO.findSelfRelPointerField();
-		DataFieldVO titleField = dataVO.findTitleField();
-		DataFieldVO keyField = dataVO.findKeyField();
-
-		if (selfRelPointerField == null) {
-			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
-			gridOptions
-				.setGroupStyle("background-color:#dddddd")
-				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
-
-			oBaseGrid = gridOptions;
-			grid = new WDataGrid<>("grid", gridOptions, this);
-		} else {
-			OTreeGrid<Map<String, Object>> gridOptions = new OTreeGrid<>();
-			gridOptions
-				.setParentIdField(selfRelPointerField.getName())
-				.setTreeField(titleField != null ? titleField.getName() : null)
-				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(MetisIcon.COLLAPSE));
-
-			oBaseGrid = gridOptions;
-			grid = new WTreeGrid<>("grid", gridOptions, this);
-		}
-
-		add(grid);
-		grid.setEnabled(false);
-
-		String returnField = getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.RETURN_FIELD).toOptionalString();
-		if (returnField != null) {
-			logger.info("DataView [{}], changing return field to [{}]", dataVO.getName(), returnField);
-		}
-
-		oBaseGrid
-			.setShowFooter(true)
-			.setColumns(columns)
-			.setMultiSort(true)
-			.setSelectionIndicator(true)
-			.setSingleSelect(dataVO.getSelectionModeSafely() == XDVGridSelectionMode.Single)
-			.setIdField(keyField != null ? keyField.getName() : null)
-			.setTitleField(titleField != null ? titleField.getName() : null)
-			.setPageList(Arrays.asList(100, 200, 500, 1000))
-			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.EXPORT_EXCEL) {
-				private static final long serialVersionUID = 3303989238841000829L;
-
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					DataViewQVO dataViewQVO = new DataViewQVO();
-					dataViewQVO
-						.setName(DataViewGridPanel.this.dataVO.getName())
-							//TODO .setSortFieldList(getSortFieldsMap(sortFields))
-						.setFilter(getFilterMap())
-						.setSentDBConnection(sentDBConnection)
-						.setDoExport(true);
-
-					asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW, dataViewQVO);
-
-					WMessager.show("Info", getString("msg.file.under.construction"), target);
-				}
-			})
-			.setReturnField(returnField)
-			.setHeight(OSize.fixed(dataVO.getGridHeightSafely().getHeight()))
-			.setWidth(OSize.percent(100))
-		;
-
-		if (!getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty()) {
-			if (dataVO.getSelectionValidationJS() == null) {
-				oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
-			} else {
-				StringBuilder builder = new StringBuilder();
-				builder.append("function(rows){")
-					.append("for(var r=0;r<rows.length;r++){")
-					.append("var row = rows[r];")
-					.append(String.format("if(%1$sSelValidJS(row.row)){$.messager.alert('', %1$sSelValidJS(row.row));return;}", dataVO.getName()))
-					.append("}")
-					.append("parent.postMessage(JSON.stringify(rows),'*');}");
-				oBaseGrid.setSelectionJSHandler(builder.toString());
-			}
-		}
-
-		add(new WAjaxLink("info", MetisIcon.INFO) {
-			private static final long serialVersionUID = 3303989238841000829L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				modalWindow.setContent(new SearchDebugPanel(modalWindow.getContentId(), queryExecInfoList));
-				modalWindow.getOptions()
-					.setFit(null)
-					.setWidth(OSize.fixed(900))
-					.setHeight(OSize.fixed(600));
-				modalWindow.show(target);
-			}
-		}.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)));
-
-		add(new WAjaxLink("attachment", MetisIcon.ATTACHMENT) {
-			private static final long serialVersionUID = 2236601403443810728L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				FileStoreFVO fvo = new FileStoreFVO();
-				fvo.setTag(dataVO.getName());
-				fvo.setCreatorUser(Collections.singletonList(securityService.getCurrentUser().toUser()));
-				fvo.setStatus(Collections.singletonList(EFileStatus.VALID));
-
-				modalWindow.setContent(
-					new FileStoreListDPage(modalWindow.getContentId(), fvo)
-						.setGridFit(true)
-						.setFormVisible(false)
-						.setRemoveColumns("mimeType", "storage", "status", "fileId",
-							"creatorUser", "modificationDate", "modifierUser", "version", "EDIT")
-				);
-				modalWindow.getOptions()
-					.setFit(null)
-					.setWidth(OSize.fixed(700))
-					.setHeight(OSize.fixed(400));
-				modalWindow.show(target);
-			}
-		});
-
-		Boolean multiSelect;
-		try {
-			multiSelect = getWebRequest()
-				.getRequestParameters()
-				.getParameterValue(MetisWebParam.MULTI_SELECT)
-				.toOptionalBoolean();
-		} catch (StringValueConversionException e) {
-			multiSelect = null;
-		}
-
-		if (multiSelect != null) {
-			oBaseGrid.setSingleSelect(!multiSelect);
-		}
 	}
 
 	// ------------------------------
 
-	public DataViewGridPanel setSelectionJSCallback(String jsCallback) {
-		grid.getOptions().setSelectionJSHandler(jsCallback);
+	public DataViewGridPanel setSelectionJSCallback(String selectionJSCallback) {
+		this.selectionJSCallback = selectionJSCallback;
 		return this;
 	}
 
 	public DataViewGridPanel setMultiSelect(boolean multiSelect) {
-		oBaseGrid.setSingleSelect(!multiSelect);
+		this.multiSelect = multiSelect;
 		return this;
 	}
 
@@ -343,6 +207,146 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			String func = String.format("function %sSelValidJS(row){%s}", dataVO.getName(), dataVO.getSelectionValidationJS());
 			response.render(JavaScriptHeaderItem.forScript(func, dataVO.getName()));
 		}
+	}
+
+	// ------------------------------
+
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+
+		modalWindow = new WModalWindow("modal");
+		add(modalWindow);
+
+		OColumnList<Map<String, Object>> columns = createColumns(dataVO);
+
+		DataFieldVO selfRelPointerField = dataVO.findSelfRelPointerField();
+		DataFieldVO titleField = dataVO.findTitleField();
+		DataFieldVO keyField = dataVO.findKeyField();
+
+		OBaseGrid<Map<String, Object>> oBaseGrid;
+		if (selfRelPointerField == null) {
+			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
+			gridOptions
+				.setGroupStyle("background-color:#dddddd")
+				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
+
+			oBaseGrid = gridOptions;
+			grid = new WDataGrid<>("grid", gridOptions, this);
+		} else {
+			OTreeGrid<Map<String, Object>> gridOptions = new OTreeGrid<>();
+			gridOptions
+				.setParentIdField(selfRelPointerField.getName())
+				.setTreeField(titleField != null ? titleField.getName() : null)
+				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(MetisIcon.COLLAPSE));
+
+			oBaseGrid = gridOptions;
+			grid = new WTreeGrid<>("grid", gridOptions, this);
+		}
+
+		String returnField = getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.RETURN_FIELD).toOptionalString();
+		if (returnField != null) {
+			logger.info("DataView [{}], changing return field to [{}]", dataVO.getName(), returnField);
+		}
+
+		oBaseGrid
+			.setShowFooter(true)
+			.setColumns(columns)
+			.setMultiSort(true)
+			.setSelectionIndicator(true)
+			.setSingleSelect(dataVO.getSelectionModeSafely() == XDVGridSelectionMode.Single)
+			.setIdField(keyField != null ? keyField.getName() : null)
+			.setTitleField(titleField != null ? titleField.getName() : null)
+			.setPageList(Arrays.asList(100, 200, 500, 1000))
+			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.EXPORT_EXCEL) {
+				private static final long serialVersionUID = 3303989238841000829L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					DataViewQVO dataViewQVO = new DataViewQVO();
+					dataViewQVO
+						.setName(DataViewGridPanel.this.dataVO.getName())
+							//TODO .setSortFieldList(getSortFieldsMap(sortFields))
+						.setFilter(getFilterMap())
+						.setSentDBConnection(sentDBConnection)
+						.setDoExport(true);
+
+					asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW, dataViewQVO);
+
+					WMessager.show("Info", getString("msg.file.under.construction"), target);
+				}
+			})
+			.setReturnField(returnField)
+			.setHeight(OSize.fixed(dataVO.getGridHeightSafely().getHeight()))
+			.setWidth(OSize.percent(100))
+		;
+
+		if (selectionJSCallback != null) {
+			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
+		} else if (!getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty()) {
+			if (dataVO.getSelectionValidationJS() == null) {
+				oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
+			} else {
+				StringBuilder builder = new StringBuilder();
+				builder.append("function(rows){")
+					.append("for(var r=0;r<rows.length;r++){")
+					.append("var row = rows[r];")
+					.append(String.format("if(%1$sSelValidJS(row.row)){$.messager.alert('', %1$sSelValidJS(row.row));return;}", dataVO.getName()))
+					.append("}")
+					.append("parent.postMessage(JSON.stringify(rows),'*');}");
+				oBaseGrid.setSelectionJSHandler(builder.toString());
+			}
+		}
+
+		if (!getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.MULTI_SELECT).isEmpty()) {
+			multiSelect = getWebRequest()
+				.getRequestParameters()
+				.getParameterValue(MetisWebParam.MULTI_SELECT)
+				.toBoolean();
+		}
+		oBaseGrid.setSingleSelect(multiSelect != null ? !multiSelect : null);
+
+		add(grid);
+		grid.setEnabled(false);
+
+		add(new WAjaxLink("info", MetisIcon.INFO) {
+			private static final long serialVersionUID = 3303989238841000829L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				modalWindow.setContent(new SearchDebugPanel(modalWindow.getContentId(), queryExecInfoList));
+				modalWindow.getOptions()
+					.setFit(null)
+					.setWidth(OSize.fixed(900))
+					.setHeight(OSize.fixed(600));
+				modalWindow.show(target);
+			}
+		}.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)));
+
+		add(new WAjaxLink("attachment", MetisIcon.ATTACHMENT) {
+			private static final long serialVersionUID = 2236601403443810728L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				FileStoreFVO fvo = new FileStoreFVO();
+				fvo.setTag(dataVO.getName());
+				fvo.setCreatorUser(Collections.singletonList(securityService.getCurrentUser().toUser()));
+				fvo.setStatus(Collections.singletonList(EFileStatus.VALID));
+
+				modalWindow.setContent(
+					new FileStoreListDPage(modalWindow.getContentId(), fvo)
+						.setGridFit(true)
+						.setFormVisible(false)
+						.setRemoveColumns("mimeType", "storage", "status", "fileId",
+							"creatorUser", "modificationDate", "modifierUser", "version", "EDIT")
+				);
+				modalWindow.getOptions()
+					.setFit(null)
+					.setWidth(OSize.fixed(700))
+					.setHeight(OSize.fixed(400));
+				modalWindow.show(target);
+			}
+		});
 	}
 
 	// ------------------------------
