@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dPage.data.form;
+package org.devocative.metis.web.dpagee.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -8,7 +8,7 @@ import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
-import org.devocative.metis.web.dPage.data.DataViewExecutorDPage;
+import org.devocative.metis.web.dpagee.data.DataViewExecutorDPage;
 import org.devocative.wickomp.form.wizard.OWizard;
 import org.devocative.wickomp.form.wizard.WWizardPanel;
 import org.devocative.wickomp.html.WMessager;

@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dPage.connection;
+package org.devocative.metis.web.dpagee.connection;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;

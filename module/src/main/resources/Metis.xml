@@ -17,7 +17,7 @@
 		<entity type="org.devocative.metis.entity.connection.DBConnection"/>
 		<entity type="org.devocative.metis.entity.connection.DBConnectionGroup"/>
 
-		<!--<entity type="org.devocative.metis.entity.data.DataGroup"/>-->
+		<entity type="org.devocative.metis.entity.data.DataGroup"/>
 		<entity type="org.devocative.metis.entity.data.DataSource"/>
 		<entity type="org.devocative.metis.entity.data.DataSourceRelation"/>
 		<entity type="org.devocative.metis.entity.data.DataView"/>
@@ -28,32 +28,32 @@
 	</tasks>
 
 	<dPages>
-		<dPage type="org.devocative.metis.web.dPage.data.form.DataViewFormDPage"
+		<dPage type="org.devocative.metis.web.dpagee.data.form.DataViewFormDPage"
 			   title="KEY:dPage.mts.DataViewForm"
 			   uri="/dvForm"
 			   inMenu="true"/>
 
-		<dPage type="org.devocative.metis.web.dPage.data.DataViewExecutorDPage"
+		<dPage type="org.devocative.metis.web.dpagee.data.DataViewExecutorDPage"
 			   title="KEY:dPage.mts.DataViewExecutor"
 			   uri="/dvExec"
 			   inMenu="false"/>
 
-		<dPage type="org.devocative.metis.web.dPage.data.DataViewListDPage"
+		<dPage type="org.devocative.metis.web.dpagee.data.DataViewListDPage"
 			   title="KEY:dPage.mts.DataViewList"
 			   uri="/dvList"
 			   inMenu="true"/>
 
-		<dPage type="org.devocative.metis.web.dPage.data.DataSourceListDPage"
+		<dPage type="org.devocative.metis.web.dpagee.data.DataSourceListDPage"
 			   title="KEY:dPage.mts.DataSourceList"
 			   uri="/dsList"
 			   inMenu="true"/>
 
-		<dPage type="org.devocative.metis.web.dPage.connection.DBConnectionForm"
+		<dPage type="org.devocative.metis.web.dpagee.connection.DBConnectionForm"
 			   title="KEY:dPage.mts.DBConnectionForm"
 			   uri="/dbcForm"
 			   inMenu="true"/>
 
-		<dPage type="org.devocative.metis.web.dPage.connection.DBConnectionGroupForm"
+		<dPage type="org.devocative.metis.web.dpagee.connection.DBConnectionGroupForm"
 			   title="KEY:dPage.mts.DBConnectionGroupForm"
 			   uri="/dbcGrpForm"
 			   inMenu="true"/>
