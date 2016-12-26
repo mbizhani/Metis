@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dpagee.connection;
+package org.devocative.metis.web.dpage.connection;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;

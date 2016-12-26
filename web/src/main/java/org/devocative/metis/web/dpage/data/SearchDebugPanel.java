@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dpagee.data;
+package org.devocative.metis.web.dpage.data;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;

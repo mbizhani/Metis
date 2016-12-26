@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dpagee.data;
+package org.devocative.metis.web.dpage.data;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -18,7 +18,7 @@ import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
-import org.devocative.metis.web.dpagee.data.form.DataViewFormDPage;
+import org.devocative.metis.web.dpage.data.form.DataViewFormDPage;
 import org.devocative.wickomp.html.WMessager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

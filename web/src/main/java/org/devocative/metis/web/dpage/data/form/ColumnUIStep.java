@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dpagee.data.form;
+package org.devocative.metis.web.dpage.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;

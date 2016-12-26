@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dpagee.data;
+package org.devocative.metis.web.dpage.data;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;

@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dpagee.data.form;
+package org.devocative.metis.web.dpage.data.form;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
