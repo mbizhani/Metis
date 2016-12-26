@@ -10,7 +10,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.iservice.IDataService;
-import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WBooleanInput;

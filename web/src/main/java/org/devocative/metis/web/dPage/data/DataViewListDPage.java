@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dPage;
+package org.devocative.metis.web.dPage.data;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -12,11 +12,10 @@ import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.data.DataView;
-import org.devocative.metis.iservice.IDataSourceService;
-import org.devocative.metis.iservice.IDataViewService;
-import org.devocative.metis.vo.filter.DataViewFVO;
+import org.devocative.metis.iservice.data.IDataSourceService;
+import org.devocative.metis.iservice.data.IDataViewService;
+import org.devocative.metis.vo.filter.data.DataViewFVO;
 import org.devocative.metis.web.MetisIcon;
-import org.devocative.metis.web.dPage.data.DataViewExecutorDPage;
 import org.devocative.metis.web.dPage.data.form.DataViewFormDPage;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.form.WSelectionInput;

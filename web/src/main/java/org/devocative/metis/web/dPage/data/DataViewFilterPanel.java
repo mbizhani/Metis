@@ -14,7 +14,7 @@ import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
-import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WDefaults;

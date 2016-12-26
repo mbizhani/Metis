@@ -1,8 +1,8 @@
-package org.devocative.metis.iservice;
+package org.devocative.metis.iservice.data;
 
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDataView;
-import org.devocative.metis.vo.filter.DataViewFVO;
+import org.devocative.metis.vo.filter.data.DataViewFVO;
 
 import java.util.List;
 

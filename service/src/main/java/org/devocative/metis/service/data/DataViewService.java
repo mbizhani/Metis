@@ -1,4 +1,4 @@
-package org.devocative.metis.service;
+package org.devocative.metis.service.data;
 
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.cache.ICache;
@@ -9,9 +9,9 @@ import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDataView;
-import org.devocative.metis.iservice.IDataSourceService;
-import org.devocative.metis.iservice.IDataViewService;
-import org.devocative.metis.vo.filter.DataViewFVO;
+import org.devocative.metis.iservice.data.IDataSourceService;
+import org.devocative.metis.iservice.data.IDataViewService;
+import org.devocative.metis.vo.filter.data.DataViewFVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -11,7 +11,7 @@ import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.iservice.IDBConnectionService;
 import org.devocative.metis.iservice.IDataService;
-import org.devocative.metis.iservice.IDataSourceService;
+import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.query.EQLMetaDataVO;

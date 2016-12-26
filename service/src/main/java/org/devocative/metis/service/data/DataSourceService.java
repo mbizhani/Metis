@@ -1,4 +1,4 @@
-package org.devocative.metis.service;
+package org.devocative.metis.service.data;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.core.util.QuickWriter;
@@ -27,8 +27,8 @@ import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataSourceRelation;
 import org.devocative.metis.entity.data.config.*;
 import org.devocative.metis.iservice.IDBConnectionService;
-import org.devocative.metis.iservice.IDataSourceService;
-import org.devocative.metis.vo.filter.DataSourceFVO;
+import org.devocative.metis.iservice.data.IDataSourceService;
+import org.devocative.metis.vo.filter.data.DataSourceFVO;
 import org.devocative.metis.vo.query.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

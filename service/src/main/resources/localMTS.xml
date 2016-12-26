@@ -9,6 +9,5 @@
 	   http://www.springframework.org/schema/context/spring-context-4.0.xsd">
 
 	<context:component-scan base-package="org.devocative.metis.service"/>
-	<context:component-scan base-package="org.devocative.metis.service.task"/>
 
 </beans>

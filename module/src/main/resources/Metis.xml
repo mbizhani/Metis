@@ -38,12 +38,12 @@
 			   uri="/dvExec"
 			   inMenu="false"/>
 
-		<dPage type="org.devocative.metis.web.dPage.DataViewListDPage"
+		<dPage type="org.devocative.metis.web.dPage.data.DataViewListDPage"
 			   title="KEY:dPage.mts.DataViewList"
 			   uri="/dvList"
 			   inMenu="true"/>
 
-		<dPage type="org.devocative.metis.web.dPage.DataSourceListDPage"
+		<dPage type="org.devocative.metis.web.dPage.data.DataSourceListDPage"
 			   title="KEY:dPage.mts.DataSourceList"
 			   uri="/dsList"
 			   inMenu="true"/>

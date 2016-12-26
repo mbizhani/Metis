@@ -7,7 +7,7 @@ import org.apache.olingo.odata2.api.exception.ODataException;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
-import org.devocative.metis.iservice.IDataViewService;
+import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.slf4j.Logger;

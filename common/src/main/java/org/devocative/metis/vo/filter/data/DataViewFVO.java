@@ -1,4 +1,4 @@
-package org.devocative.metis.vo.filter;
+package org.devocative.metis.vo.filter.data;
 
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.entity.User;

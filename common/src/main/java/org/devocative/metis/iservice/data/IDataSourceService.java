@@ -1,10 +1,10 @@
-package org.devocative.metis.iservice;
+package org.devocative.metis.iservice.data;
 
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDataSource;
-import org.devocative.metis.vo.filter.DataSourceFVO;
+import org.devocative.metis.vo.filter.data.DataSourceFVO;
 import org.devocative.metis.vo.query.*;
 
 import java.io.Serializable;

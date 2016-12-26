@@ -8,7 +8,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.devocative.metis.entity.data.config.XDVLink;
-import org.devocative.metis.iservice.IDataViewService;
+import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WAjaxButton;
 import org.devocative.wickomp.form.WSelectionInput;
