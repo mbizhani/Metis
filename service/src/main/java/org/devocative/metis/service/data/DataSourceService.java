@@ -26,7 +26,7 @@ import org.devocative.metis.entity.connection.mapping.*;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataSourceRelation;
 import org.devocative.metis.entity.data.config.*;
-import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.vo.filter.data.DataSourceFVO;
 import org.devocative.metis.vo.query.*;

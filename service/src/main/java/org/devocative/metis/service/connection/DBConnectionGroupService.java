@@ -1,10 +1,10 @@
-package org.devocative.metis.service;
+package org.devocative.metis.service.connection;
 
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
-import org.devocative.metis.iservice.IDBConnectionGroupService;
-import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.iservice.connection.IDBConnectionGroupService;
+import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

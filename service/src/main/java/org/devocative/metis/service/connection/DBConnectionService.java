@@ -1,4 +1,4 @@
-package org.devocative.metis.service;
+package org.devocative.metis.service.connection;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.thoughtworks.xstream.XStream;
@@ -23,7 +23,7 @@ import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
-import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.query.DbQueryRVO;
 import org.devocative.metis.vo.query.PaginationQVO;

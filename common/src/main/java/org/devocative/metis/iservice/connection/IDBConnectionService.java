@@ -1,4 +1,4 @@
-package org.devocative.metis.iservice;
+package org.devocative.metis.iservice.connection;
 
 import org.devocative.demeter.iservice.IApplicationLifecycle;
 import org.devocative.metis.entity.connection.DBConnection;

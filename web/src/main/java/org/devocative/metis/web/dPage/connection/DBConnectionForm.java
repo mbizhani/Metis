@@ -1,4 +1,4 @@
-package org.devocative.metis.web.dPage;
+package org.devocative.metis.web.dPage.connection;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -17,8 +17,8 @@ import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DButton;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.connection.DBConnection;
-import org.devocative.metis.iservice.IDBConnectionGroupService;
-import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.iservice.connection.IDBConnectionGroupService;
+import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.form.WSelectionInput;

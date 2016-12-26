@@ -9,7 +9,7 @@ import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDVGridHeight;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
-import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;

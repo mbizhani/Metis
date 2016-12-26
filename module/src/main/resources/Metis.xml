@@ -48,12 +48,12 @@
 			   uri="/dsList"
 			   inMenu="true"/>
 
-		<dPage type="org.devocative.metis.web.dPage.DBConnectionForm"
+		<dPage type="org.devocative.metis.web.dPage.connection.DBConnectionForm"
 			   title="KEY:dPage.mts.DBConnectionForm"
 			   uri="/dbcForm"
 			   inMenu="true"/>
 
-		<dPage type="org.devocative.metis.web.dPage.DBConnectionGroupForm"
+		<dPage type="org.devocative.metis.web.dPage.connection.DBConnectionGroupForm"
 			   title="KEY:dPage.mts.DBConnectionGroupForm"
 			   uri="/dbcGrpForm"
 			   inMenu="true"/>

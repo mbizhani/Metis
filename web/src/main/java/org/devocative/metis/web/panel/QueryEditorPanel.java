@@ -9,7 +9,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.component.DAjaxButton;
-import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.vo.query.DbQueryRVO;
 import org.devocative.metis.vo.query.PaginationQVO;
 import org.devocative.metis.web.MetisIcon;

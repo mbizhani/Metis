@@ -13,7 +13,7 @@ import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.data.DataSource;
-import org.devocative.metis.iservice.IDBConnectionService;
+import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.vo.filter.data.DataSourceFVO;
 import org.devocative.metis.web.MetisIcon;
