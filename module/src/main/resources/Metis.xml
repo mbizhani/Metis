@@ -48,6 +48,12 @@
 			   uri="/dsList"
 			   inMenu="true"/>
 
+		<dPage type="org.devocative.metis.web.dpage.data.DataGroupListDPage"
+			   title="KEY:dPage.mts.DataGroupList"
+			   uri="/dgList"
+			   inMenu="true"/>
+
+
 		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionForm"
 			   title="KEY:dPage.mts.DBConnectionForm"
 			   uri="/dbcForm"

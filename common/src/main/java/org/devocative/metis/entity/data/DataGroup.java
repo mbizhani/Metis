@@ -17,7 +17,7 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 
 	@Id
 	@GeneratedValue(generator = "mts_data_group")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_data_view", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+	@org.hibernate.annotations.GenericGenerator(name = "mts_data_group", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 		parameters = {
 			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
 			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
@@ -29,7 +29,7 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 	@Column(name = "c_name", nullable = false)
 	private String name;
 
-	// ------------------------------ CREATE / MODIFY
+	// --------------- CREATE / MODIFY
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -79,6 +79,8 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 		this.name = name;
 	}
 
+	// ---------------
+
 	@Override
 	public Date getCreationDate() {
 		return creationDate;
@@ -91,6 +93,10 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 
 	public User getCreatorUser() {
 		return creatorUser;
+	}
+
+	public void setCreatorUser(User creatorUser) {
+		this.creatorUser = creatorUser;
 	}
 
 	@Override
@@ -117,6 +123,10 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 		return modifierUser;
 	}
 
+	public void setModifierUser(User modifierUser) {
+		this.modifierUser = modifierUser;
+	}
+
 	@Override
 	public Long getModifierUserId() {
 		return modifierUserId;
@@ -135,5 +145,29 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 	@Override
 	public void setVersion(Integer version) {
 		this.version = version;
+	}
+
+	// ---------------
+
+
+	@Override
+	public String toString() {
+		return getName() != null ? getName() : "[?]";
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof DataGroup)) return false;
+
+		DataGroup dataGroup = (DataGroup) o;
+
+		return !(getId() != null ? !getId().equals(dataGroup.getId()) : dataGroup.getId() != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		return getId() != null ? getId().hashCode() : 0;
 	}
 }
