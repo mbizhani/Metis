@@ -30,6 +30,16 @@ public class DataGroupService implements IDataGroupService {
 	}
 
 	@Override
+	public DataGroup loadByName(String name) {
+		return persistorService
+			.createQueryBuilder()
+			.addFrom(DataGroup.class, "ent")
+			.addWhere("and ent.name = :name")
+			.addParam("name", name)
+			.object();
+	}
+
+	@Override
 	public List<DataGroup> list() {
 		return persistorService.list(DataGroup.class);
 	}
@@ -51,16 +61,6 @@ public class DataGroupService implements IDataGroupService {
 			.addSelect("select count(1)")
 			.addFrom(DataGroup.class, "ent")
 			.applyFilter(DataGroup.class, "ent", filter)
-			.object();
-	}
-
-	@Override
-	public DataGroup loadByName(String name) {
-		return persistorService
-			.createQueryBuilder()
-			.addFrom(DataGroup.class, "ent")
-			.addWhere("and ent.name = :name")
-			.addParam("name", name)
 			.object();
 	}
 

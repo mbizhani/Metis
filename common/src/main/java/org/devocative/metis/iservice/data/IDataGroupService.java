@@ -12,13 +12,13 @@ public interface IDataGroupService {
 
 	DataGroup load(Long id);
 
+	DataGroup loadByName(String name);
+
 	List<DataGroup> list();
 
 	List<DataGroup> search(DataGroupFVO filter, long pageIndex, long pageSize);
 
 	long count(DataGroupFVO filter);
-
-	DataGroup loadByName(String name);
 
 	List<User> getCreatorUserList();
 

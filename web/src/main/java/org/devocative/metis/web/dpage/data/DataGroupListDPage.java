@@ -87,7 +87,7 @@ public class DataGroupListDPage extends DPage implements IGridDataSource<DataGro
 		window.getOptions().setHeight(OSize.percent(80)).setWidth(OSize.percent(80));
 		add(window);
 
-		add(new WAjaxLink ("add", MetisIcon.ADD) {
+		add(new WAjaxLink("add", MetisIcon.ADD) {
 			private static final long serialVersionUID = -703466974L;
 
 			@Override
