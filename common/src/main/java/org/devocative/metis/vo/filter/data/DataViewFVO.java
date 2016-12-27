@@ -1,8 +1,10 @@
+//overwrite
 package org.devocative.metis.vo.filter.data;
 
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.persistor.Filterer;
+import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataSource;
 
 import java.io.Serializable;
@@ -11,23 +13,18 @@ import java.util.List;
 
 @Filterer
 public class DataViewFVO implements Serializable {
-	private static final long serialVersionUID = -8665599811773271216L;
+	private static final long serialVersionUID = 710275741L;
 
 	private String name;
-
 	private String title;
-
 	private List<DataSource> dataSource;
-
+	private List<DataGroup> groups;
 	private RangeVO<Date> creationDate;
-
 	private List<User> creatorUser;
-
 	private RangeVO<Date> modificationDate;
-
 	private List<User> modifierUser;
 
-	// ------------------- ACCESSORS
+	// ------------------------------
 
 	public String getName() {
 		return name;
@@ -51,6 +48,14 @@ public class DataViewFVO implements Serializable {
 
 	public void setDataSource(List<DataSource> dataSource) {
 		this.dataSource = dataSource;
+	}
+
+	public List<DataGroup> getGroups() {
+		return groups;
+	}
+
+	public void setGroups(List<DataGroup> groups) {
+		this.groups = groups;
 	}
 
 	public RangeVO<Date> getCreationDate() {
@@ -84,4 +89,5 @@ public class DataViewFVO implements Serializable {
 	public void setModifierUser(List<User> modifierUser) {
 		this.modifierUser = modifierUser;
 	}
+
 }

@@ -57,15 +57,6 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "f_connection", insertable = false, updatable = false)
 	private Long connectionId;
 
-	//@ManyToOne(fetch = FetchType.EAGER)
-	//@JoinColumn(name = "f_group", foreignKey = @ForeignKey(name = "datasrc2grp"))
-	@Transient
-	private DataGroup group;
-
-	//@Column(name = "f_group", insertable = false, updatable = false)
-	@Transient
-	private Long groupId;
-
 	// ----------------------------- CREATE / MODIFY
 
 	@NotAudited
@@ -186,21 +177,6 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	public Long getConnectionId() {
 		return connectionId;
-	}
-
-	public DataGroup getGroup() {
-		return group;
-	}
-
-	public void setGroup(DataGroup group) {
-		this.group = group;
-		if (group != null) {
-			this.groupId = group.getId();
-		}
-	}
-
-	public Long getGroupId() {
-		return groupId;
 	}
 
 	// ----------------------------- CREATE / MODIFY ACCESSORS

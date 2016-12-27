@@ -7,6 +7,7 @@ import org.hibernate.envers.NotAudited;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Audited
 @Entity
@@ -48,6 +49,14 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	private Long dataSourceId;
 
 	//TODO relation to itself for LookUp & Details
+
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "mt_dataview_group",
+		joinColumns = {@JoinColumn(name = "f_data_view")},
+		inverseJoinColumns = {@JoinColumn(name = "f_group")},
+		foreignKey = @ForeignKey(name = "dataview_group2dataview"),
+		inverseForeignKey = @ForeignKey(name = "dataview_group2group"))
+	private List<DataGroup> groups;
 
 	// ----------------------------- CREATE / MODIFY
 
@@ -142,6 +151,14 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 
 	public Long getDataSourceId() {
 		return dataSourceId;
+	}
+
+	public List<DataGroup> getGroups() {
+		return groups;
+	}
+
+	public void setGroups(List<DataGroup> groups) {
+		this.groups = groups;
 	}
 
 	// ----------------------------- CREATE / MODIFY ACCESSORS

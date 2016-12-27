@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE meta PUBLIC
+		"Meta Data"
+		"http://www.devocative.org/dtd/devolcano-metadata.dtd">
+
+<meta>
+	<filterClass>targetClass.entity</filterClass>
+	<classes>
+		<class fqn="org.devocative.metis.entity.ConfigLob">
+			<cinfo/>
+			<id ref="id"/>
+			<fields>
+				<field name="id">
+					<finfo/>
+				</field>
+				<field name="value">
+					<finfo/>
+				</field>
+				<field name="creationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="creatorUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="creatorUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="modificationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="modifierUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="modifierUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="version">
+					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+			</fields>
+		</class>
+		<class fqn="org.devocative.metis.entity.connection.DBConnection">
+			<cinfo/>
+			<id ref="id"/>
+			<fields>
+				<field name="id">
+					<finfo/>
+				</field>
+				<field name="name">
+					<finfo/>
+				</field>
+				<field name="driver">
+					<finfo/>
+				</field>
+				<field name="url">
+					<finfo/>
+				</field>
+				<field name="username">
+					<finfo/>
+				</field>
+				<field name="password">
+					<finfo/>
+				</field>
+				<field name="schema">
+					<finfo/>
+				</field>
+				<field name="testQuery">
+					<finfo/>
+				</field>
+				<field name="group">
+					<finfo/>
+				</field>
+				<field name="groupId">
+					<finfo/>
+				</field>
+				<field name="config">
+					<finfo/>
+				</field>
+				<field name="configId">
+					<finfo/>
+				</field>
+				<field name="creationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="creatorUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="creatorUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="modificationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="modifierUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="modifierUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="version">
+					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+			</fields>
+		</class>
+		<class fqn="org.devocative.metis.entity.connection.DBConnectionGroup">
+			<cinfo/>
+			<id ref="id"/>
+			<fields>
+				<field name="id">
+					<finfo/>
+				</field>
+				<field name="name">
+					<finfo/>
+				</field>
+				<field name="driver">
+					<finfo/>
+				</field>
+				<field name="url">
+					<finfo/>
+				</field>
+				<field name="testQuery">
+					<finfo/>
+				</field>
+				<field name="config">
+					<finfo/>
+				</field>
+				<field name="configId">
+					<finfo/>
+				</field>
+				<field name="creationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="creatorUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="creatorUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="modificationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="modifierUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="modifierUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="version">
+					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+			</fields>
+		</class>
+		<class fqn="org.devocative.metis.entity.data.DataGroup">
+			<cinfo/>
+			<id ref="id"/>
+			<fields>
+				<field name="id">
+					<finfo/>
+				</field>
+				<field name="name">
+					<finfo/>
+				</field>
+				<field name="creationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="creatorUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="creatorUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="modificationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="modifierUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="modifierUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="version">
+					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+			</fields>
+		</class>
+		<class fqn="org.devocative.metis.entity.data.DataSource">
+			<cinfo/>
+			<id ref="id"/>
+			<fields>
+				<field name="id">
+					<finfo/>
+				</field>
+				<field name="name">
+					<finfo/>
+				</field>
+				<field name="title">
+					<finfo/>
+				</field>
+				<field name="keyField">
+					<finfo/>
+				</field>
+				<field name="titleField">
+					<finfo/>
+				</field>
+				<field name="selfRelPointerField">
+					<finfo/>
+				</field>
+				<field name="config">
+					<finfo/>
+				</field>
+				<field name="configId">
+					<finfo/>
+				</field>
+				<field name="connection">
+					<finfo/>
+				</field>
+				<field name="connectionId">
+					<finfo/>
+				</field>
+				<field name="group">
+					<finfo/>
+				</field>
+				<field name="groupId">
+					<finfo/>
+				</field>
+				<field name="creationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="creatorUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="creatorUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="modificationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="modifierUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="modifierUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="version">
+					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+			</fields>
+		</class>
+		<class fqn="org.devocative.metis.entity.data.DataSourceRelation">
+			<cinfo/>
+			<id ref="id"/>
+			<fields>
+				<field name="id">
+					<finfo/>
+				</field>
+				<field name="sourcePointerField">
+					<finfo/>
+				</field>
+				<field name="targetKeyField">
+					<finfo/>
+				</field>
+				<field name="targetTitleField">
+					<finfo/>
+				</field>
+				<field name="deleted">
+					<finfo/>
+				</field>
+				<field name="source">
+					<finfo/>
+				</field>
+				<field name="sourceId">
+					<finfo/>
+				</field>
+				<field name="target">
+					<finfo/>
+				</field>
+				<field name="targetId">
+					<finfo/>
+				</field>
+				<field name="creationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="creatorUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="creatorUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="modificationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="modifierUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="modifierUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="version">
+					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+			</fields>
+		</class>
+		<class fqn="org.devocative.metis.entity.data.DataView">
+			<cinfo hasForm="false"/>
+			<id ref="id"/>
+			<fields>
+				<field name="id">
+					<finfo/>
+				</field>
+				<field name="name">
+					<finfo/>
+				</field>
+				<field name="title">
+					<finfo/>
+				</field>
+				<field name="config">
+					<finfo ignore="true"/>
+				</field>
+				<field name="configId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="dataSource">
+					<finfo/>
+				</field>
+				<field name="dataSourceId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="groups">
+					<finfo/>
+				</field>
+				<field name="creationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="creatorUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="creatorUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="modificationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="modifierUser">
+					<finfo hasForm="false"/>
+				</field>
+				<field name="modifierUserId">
+					<finfo ignore="true"/>
+				</field>
+				<field name="version">
+					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+			</fields>
+		</class>
+		<class fqn="org.devocative.metis.entity.MetisUserProfile">
+			<cinfo/>
+			<id ref="id"/>
+			<fields>
+				<field name="id">
+					<finfo/>
+				</field>
+				<field name="user">
+					<finfo/>
+				</field>
+				<field name="defaultConnection">
+					<finfo/>
+				</field>
+				<field name="defaultConnectionId">
+					<finfo/>
+				</field>
+				<field name="creationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="modificationDate">
+					<finfo hasForm="false" hasTimePart="true"/>
+				</field>
+				<field name="version">
+					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+			</fields>
+		</class>
+	</classes>
+</meta>

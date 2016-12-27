@@ -3,10 +3,13 @@ package org.devocative.metis.service.data;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
+import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.data.DataGroup;
+import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDataView;
 import org.devocative.metis.iservice.data.IDataSourceService;
@@ -41,7 +44,12 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		dataViewCache.setMissedHitHandler(this);
 	}
 
-	// ------------------------------ PUBLIC METHODS
+	// ------------------------------
+
+	@Override
+	public void saveOrUpdate(DataView entity) {
+		persistorService.saveOrUpdate(entity);
+	}
 
 	@Override
 	public DataView load(Long id) {
@@ -62,23 +70,6 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 			dataViewCache.put(dv.getId(), dv);
 		}
 		return dv;
-	}
-
-	// IMissedHitHandler
-	@Override
-	public DataView loadForCache(Long key) {
-		return persistorService
-			.createQueryBuilder()
-			.addFrom(DataView.class, "ent")
-			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
-			.addWhere("and ent.id = :id")
-			.addParam("id", key)
-			.object();
-	}
-
-	@Override
-	public XDataView getXDataView(DataView dataView) {
-		return (XDataView) xStream.fromXML(dataView.getConfig().getValue());
 	}
 
 	@Override
@@ -104,6 +95,45 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 			.addFrom(DataView.class, "ent")
 			.applyFilter(DataView.class, "ent", filter)
 			.object();
+	}
+
+	@Override
+	public List<DataSource> getDataSourceList() {
+		return persistorService.list(DataSource.class);
+	}
+
+	@Override
+	public List<DataGroup> getGroupsList() {
+		return persistorService.list(DataGroup.class);
+	}
+
+	@Override
+	public List<User> getCreatorUserList() {
+		return persistorService.list(User.class);
+	}
+
+	@Override
+	public List<User> getModifierUserList() {
+		return persistorService.list(User.class);
+	}
+
+	// ==============================
+
+	// IMissedHitHandler
+	@Override
+	public DataView loadForCache(Long key) {
+		return persistorService
+			.createQueryBuilder()
+			.addFrom(DataView.class, "ent")
+			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+			.addWhere("and ent.id = :id")
+			.addParam("id", key)
+			.object();
+	}
+
+	@Override
+	public XDataView getXDataView(DataView dataView) {
+		return (XDataView) xStream.fromXML(dataView.getConfig().getValue());
 	}
 
 	@Override
@@ -140,5 +170,4 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 			.list();
 	}
 
-	// ------------------------------ PRIVATE METHODS
 }
