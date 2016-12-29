@@ -34,7 +34,7 @@ public interface IDataViewService {
 
 	XDataView getXDataView(DataView dataView);
 
-	void saveOrUpdate(Long dataViewId, String title, XDataView xDataView);
+	void saveOrUpdate(Long dataViewId, String title, XDataView xDataView, List<DataGroup> groups);
 
 	List<String> listForOData();
 }

@@ -84,6 +84,7 @@ public class DataService implements IDataService {
 			}
 
 			result.setTitle(dataView.getTitle());
+			result.setGroups(dataView.getGroups());
 
 			updateDataVOByDataSource(result, dataView.getDataSourceId());
 			result.setDataViewId(dataView.getId());
@@ -263,7 +264,7 @@ public class DataService implements IDataService {
 		XDataView xDataView = dataVO.toXDataView();
 		xDataView.setDataSourceId(dataVO.getDataSourceId());
 
-		dataViewService.saveOrUpdate(dataVO.getDataViewId(), dataVO.getTitle(), xDataView);
+		dataViewService.saveOrUpdate(dataVO.getDataViewId(), dataVO.getTitle(), xDataView, dataVO.getGroups());
 
 		persistorService.commitOrRollback();
 	}

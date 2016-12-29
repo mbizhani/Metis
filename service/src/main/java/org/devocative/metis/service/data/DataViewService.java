@@ -137,7 +137,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 	}
 
 	@Override
-	public void saveOrUpdate(Long dataViewId, String title, XDataView xDataView) {
+	public void saveOrUpdate(Long dataViewId, String title, XDataView xDataView, List<DataGroup> groups) {
 		DataView dataView;
 		ConfigLob config;
 
@@ -155,6 +155,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		dataView.setTitle(title);
 		dataView.setConfig(config);
 		dataView.setDataSource(dataSourceService.load(xDataView.getDataSourceId()));
+		dataView.setGroups(groups);
 
 		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataView);

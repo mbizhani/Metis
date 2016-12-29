@@ -10,6 +10,7 @@ import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDVGridHeight;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
+import org.devocative.metis.iservice.data.IDataGroupService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
@@ -28,6 +29,9 @@ class InitStep extends WWizardStepPanel {
 
 	@Inject
 	private IDBConnectionService connectionService;
+
+	@Inject
+	private IDataGroupService dataGroupService;
 
 	public InitStep(DataVO dataVO) {
 		this.dataVO = dataVO;
@@ -87,10 +91,15 @@ class InitStep extends WWizardStepPanel {
 				.setEnabled(dataVO.isDataSourceEditable())
 		);*/
 
+		add(new WSelectionInput("groups", new PropertyModel(dataVO, "groups"), dataGroupService.list(), true)
+			.setLabelVisible(false)
+			.setLabel(new ResourceModel("DataView.groups")));
+
 		add(new WSelectionInput("selectionMode", new PropertyModel(dataVO, "selectionMode"),
 			Arrays.asList(XDVGridSelectionMode.values()), false)
 			.setLabelVisible(false)
-			.setRequired(true).setLabel(new ResourceModel("DataView.selectionMode")));
+			.setRequired(true)
+			.setLabel(new ResourceModel("DataView.selectionMode")));
 
 		add(new WSelectionInput("gridHeight", new PropertyModel(dataVO, "gridHeight"),
 			Arrays.asList(XDVGridHeight.values()), false)

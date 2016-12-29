@@ -1,6 +1,7 @@
 package org.devocative.metis.vo;
 
 import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.config.*;
 
 import java.io.Serializable;
@@ -43,6 +44,11 @@ public class DataVO implements Serializable {
 	 * DataView.title
 	 */
 	private String title;
+
+	/**
+	 * DataView.groups
+	 */
+	private List<DataGroup> groups;
 
 	/**
 	 * XDataView.dataSourceName
@@ -156,6 +162,14 @@ public class DataVO implements Serializable {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public List<DataGroup> getGroups() {
+		return groups;
+	}
+
+	public void setGroups(List<DataGroup> groups) {
+		this.groups = groups;
 	}
 
 	public String getDataSourceName() {
