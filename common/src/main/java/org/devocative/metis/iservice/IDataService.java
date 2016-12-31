@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDataService {
+	DataVO loadDataVO(Long dataViewId);
+
 	DataVO loadDataVO(String dataViewName);
 
 	DataVO createAnotherDataView(String dsName);

@@ -1,7 +1,7 @@
-//overwrite
 package org.devocative.metis.service.data;
 
 import org.devocative.demeter.entity.User;
+import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataView;
@@ -11,7 +11,10 @@ import org.devocative.metis.vo.filter.data.ReportFVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service("mtsReportService")
 public class ReportService implements IReportService {
@@ -77,4 +80,26 @@ public class ReportService implements IReportService {
 	}
 
 	// ==============================
+
+
+	@Override
+	public Map<DataGroup, List<Report>> listPerGroup() {
+		List<Report> reports = persistorService
+			.createQueryBuilder()
+			.addFrom(Report.class, "ent")
+			.addJoin("grp", "ent.groups", EJoinMode.LeftFetch)
+			.list();
+
+		Map<DataGroup, List<Report>> result = new TreeMap<>();
+		for (Report report : reports) {
+			for (DataGroup group : report.getGroups()) {
+				if (!result.containsKey(group)) {
+					result.put(group, new ArrayList<Report>());
+				}
+				result.get(group).add(report);
+			}
+		}
+
+		return result;
+	}
 }

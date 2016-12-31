@@ -68,34 +68,17 @@ public class DataService implements IDataService {
 	// ------------------------------ PUBLIC METHODS
 
 	@Override
-	public DataVO loadDataVO(String dataViewName) {
-		logger.info("Loading DataView data: DV=[{}] Usr=[{}]", dataViewName, securityService.getCurrentUser());
+	public DataVO loadDataVO(Long dataViewId) {
+		DataView dataView = dataViewService.load(dataViewId);
 
+		return loadDataVOByDataView(dataView);
+	}
+
+	@Override
+	public DataVO loadDataVO(String dataViewName) {
 		DataView dataView = dataViewService.loadByName(dataViewName);
 
-		DataVO result = null;
-		if (dataView != null) {
-			result = new DataVO();
-
-			XDataView xDataView = dataViewService.getXDataView(dataView);
-
-			if (dataView.getDataSourceId() == null || !dataView.getDataSourceId().equals(xDataView.getDataSourceId())) {
-				throw new MetisException(MetisErrorCode.InvalidDataViewState);
-			}
-
-			result.setTitle(dataView.getTitle());
-			result.setGroups(dataView.getGroups());
-
-			updateDataVOByDataSource(result, dataView.getDataSourceId());
-			result.setDataViewId(dataView.getId());
-
-			result.fromXDataView(xDataView);
-
-			result.setDataSourceEditable(
-				result.getName() != null && result.getName().equals(result.getDataSourceName())
-			);
-		}
-		return result;
+		return loadDataVOByDataView(dataView);
 	}
 
 	@Override
@@ -674,6 +657,34 @@ public class DataService implements IDataService {
 	}
 
 	// ------------------------------ PRIVATE METHODS
+
+	private DataVO loadDataVOByDataView(DataView dataView) {
+		logger.info("Loading DataView data: DV=[{}] Usr=[{}]", dataView.getName(), securityService.getCurrentUser());
+
+		DataVO result = null;
+		if (dataView != null) {
+			result = new DataVO();
+
+			XDataView xDataView = dataViewService.getXDataView(dataView);
+
+			if (dataView.getDataSourceId() == null || !dataView.getDataSourceId().equals(xDataView.getDataSourceId())) {
+				throw new MetisException(MetisErrorCode.InvalidDataViewState);
+			}
+
+			result.setTitle(dataView.getTitle());
+			result.setGroups(dataView.getGroups());
+
+			updateDataVOByDataSource(result, dataView.getDataSourceId());
+			result.setDataViewId(dataView.getId());
+
+			result.fromXDataView(xDataView);
+
+			result.setDataSourceEditable(
+				result.getName() != null && result.getName().equals(result.getDataSourceName())
+			);
+		}
+		return result;
+	}
 
 	private void updateDataVOByDataSource(DataVO dataVO, Long dsId) {
 		DataSource dataSource = dataSourceService.load(dsId);

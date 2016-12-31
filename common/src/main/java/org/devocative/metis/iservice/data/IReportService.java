@@ -1,4 +1,3 @@
-//overwrite
 package org.devocative.metis.iservice.data;
 
 import org.devocative.demeter.entity.User;
@@ -8,6 +7,7 @@ import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.vo.filter.data.ReportFVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IReportService {
 	void saveOrUpdate(Report entity);
@@ -29,4 +29,6 @@ public interface IReportService {
 	List<User> getModifierUserList();
 
 	// ==============================
+
+	Map<DataGroup, List<Report>> listPerGroup();
 }
