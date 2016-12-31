@@ -21,6 +21,7 @@
 		<entity type="org.devocative.metis.entity.data.DataSource"/>
 		<entity type="org.devocative.metis.entity.data.DataSourceRelation"/>
 		<entity type="org.devocative.metis.entity.data.DataView"/>
+		<entity type="org.devocative.metis.entity.data.Report"/>
 	</entities>
 
 	<tasks>
@@ -51,6 +52,11 @@
 		<dPage type="org.devocative.metis.web.dpage.data.DataGroupListDPage"
 			   title="KEY:dPage.mts.DataGroupList"
 			   uri="/dgList"
+			   inMenu="true"/>
+
+		<dPage type="org.devocative.metis.web.dpage.data.ReportListDPage"
+			   title="KEY:dPage.mts.ReportList"
+			   uri="/reports"
 			   inMenu="true"/>
 
 
