@@ -1,15 +1,46 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 
+<wicket:head>
+	<style type="text/css">
+		.btn {
+			height: 50px;
+			display: inline-block;
+			color: #ffffff;
+			background-color: #4CAF50;
+			padding: 10px;
+			margin: 5px;
+			border: none;
+			border-radius: 4px;
+			transition-duration: 0.4s;
+		}
+
+		.btn:hover {
+			box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+		}
+	</style>
+</wicket:head>
+
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-	<wicket:container wicket:id="group">
-		<div>
-			<h2 wicket:id="groupTitle"></h2>
-			<div wicket:id="report">
-				<span wicket:id="reportTitle"></span>
-				<button wicket:id="run" type="button">Hi</button>
-			</div>
+	<div class="easyui-accordion" data-options="multiple:true">
+		<div wicket:id="group" style="overflow:auto;padding:10px;">
+
+			<wicket:container wicket:id="report">
+				<button wicket:id="run" type="button" class="btn"></button>
+			</wicket:container>
 		</div>
-	</wicket:container>
+	</div>
+
+	<!--<script type="text/javascript">
+		$('.btn').tooltip({
+			onShow: function () {
+				$(this).tooltip('tip').css({
+					borderColor: '#4CAF50',
+					backgroundColor: '#E1FF00',
+					borderRadius: '7px'
+				});
+			}
+		});
+	</script>-->
 </wicket:panel>
 
 </html>
