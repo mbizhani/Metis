@@ -64,6 +64,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 				.createQueryBuilder()
 				.addFrom(DataView.class, "ent")
 				.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+				.addJoin("grp", "ent.groups", EJoinMode.LeftFetch)
 				.addWhere("and ent.name = :name")
 				.addParam("name", name)
 				.object();
@@ -126,6 +127,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 			.createQueryBuilder()
 			.addFrom(DataView.class, "ent")
 			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+			.addJoin("grp", "ent.groups", EJoinMode.LeftFetch)
 			.addWhere("and ent.id = :id")
 			.addParam("id", key)
 			.object();
