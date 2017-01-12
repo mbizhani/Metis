@@ -85,6 +85,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private List<QueryExecInfoRVO> queryExecInfoList;
 	private WModalWindow modalWindow;
+	private WAjaxLink info;
 
 	// ------------------------------
 
@@ -118,6 +119,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	public void loadData(AjaxRequestTarget target) {
 		grid.setEnabled(true);
 		grid.loadData(target);
+
+		if (!info.isEnabled()) {
+			info.setEnabled(true);
+			target.add(info);
+		}
 	}
 
 	public String getGridHtmlId() {
@@ -309,7 +315,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		add(grid);
 		grid.setEnabled(false);
 
-		add(new WAjaxLink("info", MetisIcon.INFO) {
+		info = new WAjaxLink("info", MetisIcon.INFO) {
 			private static final long serialVersionUID = 3303989238841000829L;
 
 			@Override
@@ -321,7 +327,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					.setHeight(OSize.fixed(600));
 				modalWindow.show(target);
 			}
-		}.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)));
+		};
+		info.setEnabled(false)
+			.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger))
+			.setOutputMarkupId(true);
+		add(info);
 
 		add(new WAjaxLink("attachment", MetisIcon.ATTACHMENT) {
 			private static final long serialVersionUID = 2236601403443810728L;
