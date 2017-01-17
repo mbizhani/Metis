@@ -19,15 +19,13 @@ import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.metis.web.dpage.data.form.DataViewFormDPage;
+import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.html.WMessager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DataViewExecutorDPage extends DPage {
 	private static final long serialVersionUID = 733765900178805871L;
@@ -38,6 +36,7 @@ public class DataViewExecutorDPage extends DPage {
 	private String sentDBConnection;
 	private DataViewGridPanel mainGrid;
 	private Map<String, Object> filter = new HashMap<>();
+	private String filterParams;
 
 	private IModel<String> title;
 	private boolean hasDataVO = true;
@@ -92,6 +91,11 @@ public class DataViewExecutorDPage extends DPage {
 		return this;
 	}
 
+	public DataViewExecutorDPage setFilterParams(String filterParams) {
+		this.filterParams = filterParams;
+		return this;
+	}
+
 	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
 		this.filter.putAll(dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
 			filter, sentDBConnection));
@@ -124,9 +128,23 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
+			Map<String, List<String>> webParams;
+
+			if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
+				List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
+				webParams = WebUtil.toMap(true, true, ignoredValues);
+			} else {
+				webParams = WebUtil.toMap(true, true);
+			}
+
+			if(filterParams != null) {
+				webParams.putAll(WebUtil.toMap(filterParams, true, true));
+			}
+
 			form.add(
 				new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
 					.setSentDBConnection(sentDBConnection)
+					.setWebParams(webParams)
 			);
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;
@@ -142,7 +160,8 @@ public class DataViewExecutorDPage extends DPage {
 			mainGrid
 				.setMultiSelect(multiSelect)
 				.setSelectionJSCallback(selectionJSCallback)
-				.setSentDBConnection(sentDBConnection);
+				.setSentDBConnection(sentDBConnection)
+				.setWebParams(webParams);
 			add(mainGrid);
 		} else {
 			form.add(new WebComponent("filterPanel"));

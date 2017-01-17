@@ -1,8 +1,8 @@
-//overwrite
 package org.devocative.metis.web.dpage.data;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
@@ -63,8 +63,6 @@ public class ReportFormDPage extends DPage {
 		floatTable.add(new WTextInput("title")
 			.setRequired(true)
 			.setLabel(new ResourceModel("Report.title")));
-		floatTable.add(new WTextInput("config")
-			.setLabel(new ResourceModel("Report.config")));
 		floatTable.add(new WSelectionInput("dataView", reportService.getDataViewList(), false)
 			.setRequired(true)
 			.setLabel(new ResourceModel("Report.dataView")));
@@ -74,6 +72,9 @@ public class ReportFormDPage extends DPage {
 
 		Form<Report> form = new Form<>("form", new CompoundPropertyModel<>(entity));
 		form.add(floatTable);
+		form.add(new TextArea("config")
+			.setLabel(new ResourceModel("Report.config")));
+
 		form.add(new DAjaxButton("save", new ResourceModel("label.save"), MetisIcon.SAVE) {
 			private static final long serialVersionUID = -1267673564L;
 

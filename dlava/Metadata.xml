@@ -363,10 +363,15 @@
 					<finfo/>
 				</field>
 				<field name="config">
-					<finfo hasList="false" hasFVO="false"/>
+					<finfo hasList="false" hasFVO="false" textType="multiline">
+						<htmlAttr>cols=&quot;40&quot; rows=&quot;10&quot; style=&quot;direction:ltr&quot;</htmlAttr>
+					</finfo>
 				</field>
 				<field name="dataView">
 					<finfo/>
+				</field>
+				<field name="dataViewId">
+					<finfo ignore="true"/>
 				</field>
 				<field name="groups">
 					<finfo required="true"/>

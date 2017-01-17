@@ -32,7 +32,6 @@ import org.devocative.metis.web.MetisDModule;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WModel;
-import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.async.AsyncBehavior;
 import org.devocative.wickomp.async.IAsyncResponseHandler;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
@@ -82,6 +81,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private String sentDBConnection;
 	private String selectionJSCallback;
 	private Boolean multiSelect;
+	private Map<String, List<String>> webParams;
 
 	private List<QueryExecInfoRVO> queryExecInfoList;
 	private WModalWindow modalWindow;
@@ -113,6 +113,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	public DataViewGridPanel setSentDBConnection(String sentDBConnection) {
 		this.sentDBConnection = sentDBConnection;
+		return this;
+	}
+
+	public DataViewGridPanel setWebParams(Map<String, List<String>> webParams) {
+		this.webParams = webParams;
 		return this;
 	}
 
@@ -362,7 +367,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------
 
 	private OColumnList<Map<String, Object>> createColumns(final DataVO dataVO) {
-		List<String> disabledSortColumns = WebUtil.listOf(MetisWebParam.DISABLE_SORT_COLUMN, false);
+		List<String> disabledSortColumns = webParams.containsKey(MetisWebParam.DISABLE_SORT_COLUMN) ?
+			webParams.get(MetisWebParam.DISABLE_SORT_COLUMN) :
+			Collections.<String>emptyList();
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 
@@ -426,21 +433,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					@Override
 					public void onClick(AjaxRequestTarget target, IModel<Map<String, Object>> rowData) {
 						try {
-							List<String> ignoredValues = ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues) == null ?
-								new ArrayList<String>() :
-								Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
-
-							Map<String, List<String>> urlParams = WebUtil.toMap(false, false);
-
 							Map<String, Object> paramsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-							for (Map.Entry<String, List<String>> entry : urlParams.entrySet()) {
-								if (ignoredValues.isEmpty() || !ignoredValues.contains(entry.getValue().get(0))) {
-									paramsMap.put(entry.getKey(), entry.getValue().get(0));
-								} else {
-									logger.warn("Cross-Report parameter [{}]=[{}] ignored!",
-										entry.getKey(), entry.getValue().get(0));
-								}
-							}
+							paramsMap.putAll(webParams);
 							paramsMap.putAll(filter);
 
 							Map<String, Object> targetFilter = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);

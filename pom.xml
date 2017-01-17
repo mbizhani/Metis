@@ -43,7 +43,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/mbizhani/Metis.git</connection>
 		<developerConnection>scm:git:https://github.com/mbizhani/Metis.git</developerConnection>
-		<url>https://github.com/mbizhani/</url>
+		<url>https://github.com/mbizhani/Metis</url>
 		<tag>HEAD</tag>
 	</scm>
 

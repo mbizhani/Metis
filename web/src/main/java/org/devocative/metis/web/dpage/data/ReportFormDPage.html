@@ -6,12 +6,17 @@
 	<form wicket:id="form">
 		<div class="dmt-form">
 			<div wicket:id="floatTable">
-				<div><div wicket:id="title"></div></div>
-				<div><div wicket:id="config"></div></div>
-				<div><div wicket:id="dataView"></div></div>
-				<div><div wicket:id="groups"></div></div>
+				<div><div wicket:id="title" ></div></div>
+				<div><div wicket:id="dataView" ></div></div>
+				<div><div wicket:id="groups" ></div></div>
 
 			</div>
+			<table>
+				<tr>
+					<th><wicket:message key="Report.config"/> </th>
+					<td><textarea wicket:id="config" cols="40" rows="10" style="direction:ltr"></textarea></td>
+				</tr>
+			</table>
 
 			<button wicket:id="save"></button>
 			<button type="reset">

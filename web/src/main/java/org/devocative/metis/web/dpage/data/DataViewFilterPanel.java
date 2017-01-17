@@ -7,10 +7,8 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
-import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPanel;
-import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
@@ -18,7 +16,6 @@ import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WDefaults;
-import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.*;
 import org.devocative.wickomp.form.range.WDateRangeInput;
 import org.devocative.wickomp.form.range.WNumberRangeInput;
@@ -72,18 +69,16 @@ public class DataViewFilterPanel extends DPanel {
 		return this;
 	}
 
+	public DataViewFilterPanel setWebParams(Map<String, List<String>> webParams) {
+		this.webParams = webParams;
+		return this;
+	}
+
 	// ------------------------------
 
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
-
-		if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
-			List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
-			webParams = WebUtil.toMap(true, true, ignoredValues);
-		} else {
-			webParams = WebUtil.toMap(true, true);
-		}
 
 		try {
 			filter.putAll(dataService.convertSimpleParamsToFilter(dataSourceId, fields, webParams, sentDBConnection));
@@ -93,10 +88,10 @@ public class DataViewFilterPanel extends DPanel {
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
 		}
 
-		disabledFilterInputs = webParams.get(MetisWebParam.DISABLED_FILTER_INPUT) != null ?
+		disabledFilterInputs = webParams.containsKey(MetisWebParam.DISABLED_FILTER_INPUT) ?
 			webParams.get(MetisWebParam.DISABLED_FILTER_INPUT) :
 			Collections.<String>emptyList();
-		invisibleFilterInputs = webParams.get(MetisWebParam.INVISIBLE_FILTER_INPUT) != null ?
+		invisibleFilterInputs = webParams.containsKey(MetisWebParam.INVISIBLE_FILTER_INPUT) ?
 			webParams.get(MetisWebParam.INVISIBLE_FILTER_INPUT) :
 			Collections.<String>emptyList();
 
@@ -214,7 +209,7 @@ public class DataViewFilterPanel extends DPanel {
 						/*
 						if the lookup is filtered by passing targetDSFilter, the result should not be selected
 						*/
-						if (fieldVO.getTargetDSFilter() != null && !webParams.containsKey(fieldVO.getName().toLowerCase())) {
+						if (fieldVO.getTargetDSFilter() != null && !webParams.containsKey(fieldVO.getName())) {
 							filter.remove(fieldVO.getName());
 						}
 					}
@@ -250,11 +245,11 @@ public class DataViewFilterPanel extends DPanel {
 						@Override
 						protected Component createSelectionPanel(String selectionPanelId) {
 							String targetDSName = dataSourceService.load(fieldVO.getTargetDSId()).getName();
-							return new DataViewExecutorDPage(
-								selectionPanelId,
-								Collections.singletonList(targetDSName))
+							return new DataViewExecutorDPage(selectionPanelId, Collections.singletonList(targetDSName))
 								.setSelectionJSCallback(getJSCallback())
-								.setMultiSelect(multiple);
+								.setMultiSelect(multiple)
+								.setSentDBConnection(sentDBConnection)
+								.setFilterParams(fieldVO.getTargetDSFilter());
 						}
 
 						@Override

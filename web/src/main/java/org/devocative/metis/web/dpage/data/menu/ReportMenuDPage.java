@@ -81,7 +81,7 @@ public class ReportMenuDPage extends DPage {
 								public void onClick(AjaxRequestTarget target) {
 									tabPanel.addTab(target, new ReportExecutorPanel(
 											tabPanel.getTabContentId(),
-											report),
+											report.getId()),
 										new OTab(new Model<>(report.getTitle()), true));
 								}
 							};

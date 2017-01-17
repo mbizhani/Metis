@@ -1,9 +1,6 @@
 package org.devocative.metis.service;
 
-import org.devocative.adroit.CalendarUtil;
-import org.devocative.adroit.ConfigUtil;
-import org.devocative.adroit.ExcelExporter;
-import org.devocative.adroit.ObjectUtil;
+import org.devocative.adroit.*;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
@@ -513,7 +510,7 @@ public class DataService implements IDataService {
 							break;
 
 						case List:
-						case Search:
+						//case Search: NOTE: removed
 							DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
 							XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
 
@@ -557,7 +554,7 @@ public class DataService implements IDataService {
 						RangeVO rangeVO = new RangeVO<>(lower, upper);
 						result.put(fieldName, rangeVO);
 					}
-				} else if (fieldVO.getTargetDSFilter() != null && fieldVO.getType() == XDSFieldType.LookUp) {
+				} else if (fieldVO.getTargetDSFilter() != null && fieldVO.getFilterType() == XDSFieldFilterType.List) { //NOTE: before fieldVO.getType() == XDSFieldType.LookUp
 					DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
 					XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
 					Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getAllFields());
@@ -829,19 +826,7 @@ public class DataService implements IDataService {
 	}
 
 	private Map<String, Object> createMapOfFilterTargetDS(String filter, List<XDSAbstractField> xdsFields) {
-		Map<String, List<String>> paramsMap = new HashMap<>();
-
-		String[] params = filter.split("[&]");
-		for (String paramValue : params) {
-			int i = paramValue.indexOf("=");
-			String param = paramValue.substring(0, i).toLowerCase();
-			String value = paramValue.substring(i + 1);
-			if (paramsMap.containsKey(param)) {
-				paramsMap.get(param).add(value);
-			} else {
-				paramsMap.put(param, ObjectUtil.asList(value));
-			}
-		}
+		Map<String, List<String>> paramsMap = toMap(filter);
 
 		Map<String, Object> result = new HashMap<>();
 		for (XDSAbstractField xdsField : xdsFields) {
@@ -866,14 +851,56 @@ public class DataService implements IDataService {
 				}
 			} else if (paramsMap.containsKey(fieldName + "_u") || paramsMap.containsKey(fieldName + "_l")) {
 				if (xdsField.getFilterType().equals(XDSFieldFilterType.Range)) {
-					Serializable lower = convertQueryParam(xdsField.getType(), paramsMap.get(fieldName + "_l").get(0));
-					Serializable upper = convertQueryParam(xdsField.getType(), paramsMap.get(fieldName + "_u").get(0));
+					Serializable lower = null;
+					Serializable upper = null;
+					if (paramsMap.containsKey(fieldName + "_l")) {
+						lower = convertQueryParam(xdsField.getType(), paramsMap.get(fieldName + "_l").get(0));
+					}
+					if (paramsMap.containsKey(fieldName + "_u")) {
+						upper = convertQueryParam(xdsField.getType(), paramsMap.get(fieldName + "_u").get(0));
+					}
 					RangeVO rangeVO = new RangeVO<>(lower, upper);
 					result.put(fieldName, rangeVO);
 				}
 			}
 		}
 
+		return result;
+	}
+
+	/**
+	 * It is based on WebUtil.toMap()
+	 * @param paramsAsUrl
+	 * @return
+	 */
+	private Map<String, List<String>> toMap(String paramsAsUrl) {
+		Map<String, List<String>> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+		String[] paramValueArr = paramsAsUrl.split("[&]");
+
+		for (String paramValue : paramValueArr) {
+			int i = paramValue.indexOf('=');
+			if (i > 0) {
+				String param = paramValue.substring(0, i);
+				String value = paramValue.substring(i + 1);
+
+				if (!result.containsKey(param)) {
+					result.put(param, new AdroitList<>(String.CASE_INSENSITIVE_ORDER));
+				}
+
+				List<String> values = result.get(param);
+				if (!value.isEmpty()) {
+					values.add(value);
+				}
+			}
+		}
+
+		HashSet<String> keys = new HashSet<>(result.keySet());
+		for (String key : keys) {
+			if (result.get(key).size() == 0) {
+				result.remove(key);
+			}
+		}
 		return result;
 	}
 }
