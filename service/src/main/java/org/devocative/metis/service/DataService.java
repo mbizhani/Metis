@@ -510,7 +510,7 @@ public class DataService implements IDataService {
 							break;
 
 						case List:
-						//case Search: NOTE: removed
+						case Search:
 							DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
 							XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
 
