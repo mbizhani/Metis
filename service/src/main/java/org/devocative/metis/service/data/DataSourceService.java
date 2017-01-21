@@ -439,7 +439,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public String processDynamicQuery(String text, Map<String, Object> params) {
-		return stringTemplateService.create(text, TemplateEngineType.FreeMarker).process(params);
+		return (String) stringTemplateService.create(text, TemplateEngineType.FreeMarker).process(params);
 	}
 
 	// ---------------
