@@ -75,6 +75,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private DataVO dataVO;
 	private Map<String, Object> filter;
+	private Map<String, String> sortFieldsMap;
 	private AsyncBehavior asyncBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
 
@@ -168,12 +169,14 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	@Override
 	public void asyncList(long pageIndex, long pageSize, List<WSortField> sortFields) {
+		sortFieldsMap = getSortFieldsMap(sortFields);
+
 		DataViewQVO dataViewQVO = new DataViewQVO();
 		dataViewQVO
 			.setName(dataVO.getName())
 			.setPageIndex(pageIndex)
 			.setPageSize(pageSize)
-			.setSortFieldList(getSortFieldsMap(sortFields))
+			.setSortFieldList(sortFieldsMap)
 			.setFilter(getFilterMap())
 			.setSentDBConnection(sentDBConnection);
 
@@ -188,7 +191,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		dataViewQVO
 			.setName(dataVO.getName())
 			.setParentId(parentId)
-			.setSortFieldList(getSortFieldsMap(sortFields))
+			.setSortFieldList(sortFieldsMap)
 			.setSentDBConnection(sentDBConnection);
 
 		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW_CHILDREN, dataViewQVO);
@@ -279,6 +282,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						.setName(DataViewGridPanel.this.dataVO.getName())
 							//TODO .setSortFieldList(getSortFieldsMap(sortFields))
 						.setFilter(getFilterMap())
+						.setSortFieldList(sortFieldsMap)
 						.setSentDBConnection(sentDBConnection)
 						.setDoExport(true);
 
@@ -496,7 +500,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private Map<String, String> getSortFieldsMap(List<WSortField> sortFieldList) {
 		Map<String, String> sortFieldsMap = null;
 		if (sortFieldList != null && !sortFieldList.isEmpty()) {
-			sortFieldsMap = new HashMap<>();
+			sortFieldsMap = new LinkedHashMap<>();
 			for (WSortField sortField : sortFieldList) {
 				sortFieldsMap.put(sortField.getField(), sortField.getOrder());
 			}
