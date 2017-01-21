@@ -40,8 +40,10 @@ public class DataViewFilterPanel extends DPanel {
 	private String sentDBConnection;
 	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
+
 	private List<String> disabledFilterInputs;
 	private List<String> invisibleFilterInputs;
+	private List<String> requiredFilterInputs;
 
 	@Inject
 	private IDataService dataService;
@@ -94,6 +96,9 @@ public class DataViewFilterPanel extends DPanel {
 		invisibleFilterInputs = webParams.containsKey(MetisWebParam.INVISIBLE_FILTER_INPUT) ?
 			webParams.get(MetisWebParam.INVISIBLE_FILTER_INPUT) :
 			Collections.<String>emptyList();
+		requiredFilterInputs = webParams.containsKey(MetisWebParam.REQUIRED_FILTER_INPUT) ?
+			webParams.get(MetisWebParam.REQUIRED_FILTER_INPUT) :
+			Collections.<String>emptyList();
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		floatTable.setEqualWidth(true);
@@ -116,10 +121,13 @@ public class DataViewFilterPanel extends DPanel {
 
 					if (fieldVO.getType().equals(XDSFieldType.LookUp)) {
 						fieldFormItem.setRequired(fieldVO.getRequiredSafely() || filter.containsKey(fieldVO.getName().toLowerCase()));
-					} else if (
-						filter.containsKey(fieldVO.getName().toLowerCase()) ||
+					} else if (filter.containsKey(fieldVO.getName().toLowerCase()) ||
 							disabledFilterInputs.contains(fieldVO.getName().toLowerCase())) {
 						fieldFormItem.setEnabled(false);
+					}
+
+					if(requiredFilterInputs.contains(fieldVO.getName())) {
+						fieldFormItem.setRequired(true);
 					}
 
 					view.add(fieldFormItem);
