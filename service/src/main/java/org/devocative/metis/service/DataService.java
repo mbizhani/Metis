@@ -569,8 +569,7 @@ public class DataService implements IDataService {
 			} catch (Exception e) {
 				logger.warn("Converting URL parameter value={} to filter, field=[{}], dsId=[{}], error=[{}]",
 					values, fieldName, dataSourceService.load(dataSourceId), e);
-
-				//TODO throw exception!
+				throw new MetisException(MetisErrorCode.InvalidFilterValue, fieldName, e);
 			}
 		}
 
@@ -846,7 +845,13 @@ public class DataService implements IDataService {
 
 					case List:
 					case Search:
-						result.put(fieldName, values);
+						List<KeyValueVO<String, String>> keyValueVOs = new ArrayList<>();
+						for (String value : values) {
+							keyValueVOs.add(new KeyValueVO<>(value, value));
+						}
+						result.put(fieldName, keyValueVOs);
+
+						//NOTE old one that is wrong: result.put(fieldName, values);
 						break;
 				}
 			} else if (paramsMap.containsKey(fieldName + "_u") || paramsMap.containsKey(fieldName + "_l")) {
@@ -861,7 +866,12 @@ public class DataService implements IDataService {
 					}
 					RangeVO rangeVO = new RangeVO<>(lower, upper);
 					result.put(fieldName, rangeVO);
+				} else {
+					logger.error("FilterTargetDS has parameter sent as range with invalid filter type: field=[{}] filter=[{}]",
+						xdsField.getName(), filter);
 				}
+			} else {
+				logger.error("Wrong 'else' execution: DataService.createMapOfFilterTargetDS()");
 			}
 		}
 
@@ -870,6 +880,7 @@ public class DataService implements IDataService {
 
 	/**
 	 * It is based on WebUtil.toMap()
+	 *
 	 * @param paramsAsUrl
 	 * @return
 	 */

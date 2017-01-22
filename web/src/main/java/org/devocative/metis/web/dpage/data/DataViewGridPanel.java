@@ -298,7 +298,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 		if (selectionJSCallback != null) {
 			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
-		} else if (!getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty()) {
+		} else if (webParams.containsKey(MetisWebParam.WINDOW)) {
 			if (dataVO.getSelectionValidationJS() == null) {
 				oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
 			} else {
@@ -313,7 +313,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 		}
 
-		if (!getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.MULTI_SELECT).isEmpty()) {
+		if (webParams.containsKey(MetisWebParam.MULTI_SELECT)) {
 			multiSelect = getWebRequest()
 				.getRequestParameters()
 				.getParameterValue(MetisWebParam.MULTI_SELECT)
@@ -468,6 +468,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
 							dPage
 								.setSentDBConnection(sentDBConnection)
+								.setConsiderWebParams(false)
 								.addToFilter(targetFilter);
 
 							modalWindow.setContent(dPage);

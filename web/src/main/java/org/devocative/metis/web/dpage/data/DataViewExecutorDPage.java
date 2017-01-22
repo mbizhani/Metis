@@ -42,6 +42,7 @@ public class DataViewExecutorDPage extends DPage {
 	private boolean hasDataVO = true;
 	private boolean multiSelect;
 	private String selectionJSCallback;
+	private boolean considerWebParams = true;
 
 	@Inject
 	private IDataService dataService;
@@ -96,6 +97,11 @@ public class DataViewExecutorDPage extends DPage {
 		return this;
 	}
 
+	public DataViewExecutorDPage setConsiderWebParams(boolean considerWebParams) {
+		this.considerWebParams = considerWebParams;
+		return this;
+	}
+
 	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
 		this.filter.putAll(dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
 			filter, sentDBConnection));
@@ -130,14 +136,18 @@ public class DataViewExecutorDPage extends DPage {
 		if (hasDataVO) {
 			Map<String, List<String>> webParams;
 
-			if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
-				List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
-				webParams = WebUtil.toMap(true, true, ignoredValues);
+			if (considerWebParams) {
+				if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
+					List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
+					webParams = WebUtil.toMap(true, true, ignoredValues);
+				} else {
+					webParams = WebUtil.toMap(true, true);
+				}
 			} else {
-				webParams = WebUtil.toMap(true, true);
+				webParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 			}
 
-			if(filterParams != null) {
+			if (filterParams != null) {
 				webParams.putAll(WebUtil.toMap(filterParams, true, true));
 			}
 
