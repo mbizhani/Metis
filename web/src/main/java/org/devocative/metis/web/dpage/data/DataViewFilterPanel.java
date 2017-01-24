@@ -83,7 +83,7 @@ public class DataViewFilterPanel extends DPanel {
 		super.onInitialize();
 
 		try {
-			filter.putAll(dataService.convertSimpleParamsToFilter(dataSourceId, fields, webParams, sentDBConnection));
+			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, webParams, sentDBConnection);
 		} catch (Exception e) {
 			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter()", e);
 

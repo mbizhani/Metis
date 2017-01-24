@@ -37,7 +37,8 @@ public interface IDataService {
 
 	Long executeODataCount(ODataQVO request);
 
-	Map<String, Object> convertSimpleParamsToFilter(
+	void convertSimpleParamsToFilter(
+		Map<String, Object> result,
 		Long dataSourceId,
 		List<DataAbstractFieldVO> fields,
 		Map<String, List<String>> params,

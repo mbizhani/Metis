@@ -83,6 +83,13 @@ public class ReportExecutorPanel extends WPanel {
 			dataVO.getAllFields(),
 			targetFilter, null));
 
+		//NOTE: the key is set in targetParam to force required fields in filter panel
+		for (String key : filter.keySet()) {
+			if (!targetParam.containsKey(key)) {
+				targetParam.put(key, null);
+			}
+		}
+
 		Form<Map<String, Object>> form = new Form<>("form");
 		add(form);
 

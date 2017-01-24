@@ -481,16 +481,24 @@ public class DataService implements IDataService {
 	// ---------------
 
 	@Override
-	public Map<String, Object> convertSimpleParamsToFilter(
+	public void convertSimpleParamsToFilter(
+		Map<String, Object> result,
 		Long dataSourceId,
 		List<DataAbstractFieldVO> fields,
 		Map<String, List<String>> params,
 		String sentDBConnection) {
 
-		Map<String, Object> result = new HashMap<>();
-
 		for (DataAbstractFieldVO fieldVO : fields) {
 			String fieldName = fieldVO.getName();
+
+			// NOTE:
+			// based on the workflow of filling the filter map in DataViewFilterPanel,
+			// it is possible that convertFilterToFilter() is called before this method.
+			// so if a key is set in result, further processing must be ignored!
+			if (result.containsKey(fieldName)) {
+				continue;
+			}
+
 			List<String> values = params.get(fieldName);
 
 			try {
@@ -572,8 +580,6 @@ public class DataService implements IDataService {
 				throw new MetisException(MetisErrorCode.InvalidFilterValue, fieldName, e);
 			}
 		}
-
-		return result;
 	}
 
 	@Override
