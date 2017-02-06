@@ -480,7 +480,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		}
 
 		if (dataSource.getSelfRelPointerField() != null) {
-			List<Object> parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list.getResult());
+			Set<Object> parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list.getResult());
 
 			if (parentIds.size() > 0) {
 				SelectQueryQVO selectQueryQVO = new SelectQueryQVO(
@@ -732,8 +732,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		return map.get(alias);
 	}
 
-	private List<Object> extractParentIds(String selfRelPointerField, List<Map<String, Object>> list) {
-		List<Object> parentIds = new ArrayList<>();
+	private Set<Object> extractParentIds(String selfRelPointerField, List<Map<String, Object>> list) {
+		Set<Object> parentIds = new LinkedHashSet<>();
 		for (Map<String, Object> map : list) {
 			if (map.get(selfRelPointerField) != null) {
 				parentIds.add(map.get(selfRelPointerField));
@@ -744,7 +744,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	private List<Map<String, Object>> findParentsToRoot(DataSource dataSource,
 														SelectQueryQVO queryQVO,
-														List<Object> parentIds) {
+														Set<Object> parentIds) {
 
 		XDataSource xDataSource = getXDataSource(dataSource);
 
@@ -783,12 +783,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			visitedParents.addAll(parentIds);
 
 			parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list);
-
-			for (int i = parentIds.size() - 1; i >= 0; i--) {
-				if (visitedParents.contains(parentIds.get(i))) {
-					parentIds.remove(i);
-				}
-			}
+			parentIds.removeAll(visitedParents);
 		}
 
 		return result;
