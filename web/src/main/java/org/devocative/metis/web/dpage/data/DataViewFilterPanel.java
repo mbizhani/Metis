@@ -40,6 +40,7 @@ public class DataViewFilterPanel extends DPanel {
 	private String sentDBConnection;
 	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
+	private Set<String> filterWithDefaultAndDisables = new HashSet<>();
 
 	private List<String> disabledFilterInputs;
 	private List<String> invisibleFilterInputs;
