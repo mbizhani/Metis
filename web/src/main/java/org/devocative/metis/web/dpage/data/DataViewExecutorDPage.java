@@ -14,6 +14,7 @@ import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.MetisConfigKey;
+import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
@@ -72,6 +73,7 @@ public class DataViewExecutorDPage extends DPage {
 			hasDataVO = false;
 		} else {
 			title = new Model<>(dataVO.getTitle());
+			multiSelect = XDVGridSelectionMode.Multiple.equals(dataVO.getSelectionModeSafely());
 		}
 	}
 
