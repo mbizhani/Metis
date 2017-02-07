@@ -38,6 +38,7 @@ public class DataViewExecutorDPage extends DPage {
 	private DataViewGridPanel mainGrid;
 	private Map<String, Object> filter = new HashMap<>();
 	private String filterParams;
+	private Set<String> filterWithDefAndReqOrDis = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 
 	private IModel<String> title;
 	private boolean hasDataVO = true;
@@ -105,8 +106,12 @@ public class DataViewExecutorDPage extends DPage {
 	}
 
 	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
-		this.filter.putAll(dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
-			filter, sentDBConnection));
+		Map<String, Object> map = dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
+			filter, sentDBConnection);
+
+		filterWithDefAndReqOrDis.addAll(map.keySet());
+
+		this.filter.putAll(map);
 		return this;
 	}
 
@@ -153,10 +158,13 @@ public class DataViewExecutorDPage extends DPage {
 				webParams.putAll(WebUtil.toMap(filterParams, true, true));
 			}
 
+			filterWithDefAndReqOrDis.addAll(webParams.keySet());
+
 			form.add(
 				new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
 					.setSentDBConnection(sentDBConnection)
 					.setWebParams(webParams)
+					.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
 			);
 			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;

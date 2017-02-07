@@ -40,7 +40,7 @@ public class DataViewFilterPanel extends DPanel {
 	private String sentDBConnection;
 	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
-	private Set<String> filterWithDefaultAndDisables = new HashSet<>();
+	private Set<String> filterWithDefAndReqOrDis;
 
 	private List<String> disabledFilterInputs;
 	private List<String> invisibleFilterInputs;
@@ -74,6 +74,11 @@ public class DataViewFilterPanel extends DPanel {
 
 	public DataViewFilterPanel setWebParams(Map<String, List<String>> webParams) {
 		this.webParams = webParams;
+		return this;
+	}
+
+	public DataViewFilterPanel setFilterWithDefAndReqOrDis(Set<String> filterWithDefAndReqOrDis) {
+		this.filterWithDefAndReqOrDis = filterWithDefAndReqOrDis;
 		return this;
 	}
 
@@ -121,20 +126,23 @@ public class DataViewFilterPanel extends DPanel {
 						.setRequired(fieldVO.getRequiredSafely());
 
 					if (fieldVO.getType().equals(XDSFieldType.LookUp)) {
-						fieldFormItem.setRequired(fieldVO.getRequiredSafely() || filter.containsKey(fieldVO.getName().toLowerCase()));
-					} else if (filter.containsKey(fieldVO.getName().toLowerCase()) ||
-							disabledFilterInputs.contains(fieldVO.getName().toLowerCase())) {
+						fieldFormItem.setRequired(
+							fieldVO.getRequiredSafely() ||
+								filterWithDefAndReqOrDis.contains(fieldVO.getName())
+						);
+					} else if (filterWithDefAndReqOrDis.contains(fieldVO.getName()) ||
+						disabledFilterInputs.contains(fieldVO.getName())) {
 						fieldFormItem.setEnabled(false);
 					}
 
-					if(requiredFilterInputs.contains(fieldVO.getName())) {
+					if (requiredFilterInputs.contains(fieldVO.getName())) {
 						fieldFormItem.setRequired(true);
 					}
 
 					view.add(fieldFormItem);
 				}
 				item.add(view);
-				item.setVisible(!invisibleFilterInputs.contains(fieldVO.getName().toLowerCase()));
+				item.setVisible(!invisibleFilterInputs.contains(fieldVO.getName()));
 			}
 		});
 	}
@@ -218,7 +226,7 @@ public class DataViewFilterPanel extends DPanel {
 						/*
 						if the lookup is filtered by passing targetDSFilter, the result should not be selected
 						*/
-						if (fieldVO.getTargetDSFilter() != null && !webParams.containsKey(fieldVO.getName())) {
+						if (fieldVO.getTargetDSFilter() != null && !filterWithDefAndReqOrDis.contains(fieldVO.getName())) {
 							filter.remove(fieldVO.getName());
 						}
 					}
