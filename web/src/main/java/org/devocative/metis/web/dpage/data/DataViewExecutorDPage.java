@@ -161,8 +161,6 @@ public class DataViewExecutorDPage extends DPage {
 				webParams.putAll(WebUtil.toMap(filterParams, true, true));
 			}
 
-			filterWithDefAndReqOrDis.addAll(webParams.keySet());
-
 			form.add(
 				new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
 					.setSentDBConnection(sentDBConnection)

@@ -9,6 +9,7 @@ import org.devocative.metis.vo.query.ODataQVO;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface IDataService {
 	DataVO loadDataVO(Long dataViewId);
@@ -37,7 +38,7 @@ public interface IDataService {
 
 	Long executeODataCount(ODataQVO request);
 
-	void convertSimpleParamsToFilter(
+	Set<String> convertSimpleParamsToFilter(
 		Map<String, Object> result,
 		Long dataSourceId,
 		List<DataAbstractFieldVO> fields,

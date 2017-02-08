@@ -71,7 +71,6 @@ public class ReportExecutorPanel extends WPanel {
 
 		Set<String> filterWithDefAndReqOrDis = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 		filterWithDefAndReqOrDis.addAll(filter.keySet());
-		filterWithDefAndReqOrDis.addAll(targetParam.keySet());
 
 		form.add(
 			new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())

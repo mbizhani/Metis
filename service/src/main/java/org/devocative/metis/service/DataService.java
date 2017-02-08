@@ -487,12 +487,14 @@ public class DataService implements IDataService {
 	// ---------------
 
 	@Override
-	public void convertSimpleParamsToFilter(
+	public Set<String> convertSimpleParamsToFilter(
 		Map<String, Object> result,
 		Long dataSourceId,
 		List<DataAbstractFieldVO> fields,
 		Map<String, List<String>> params,
 		String sentDBConnection) {
+
+		Set<String> finalWebParams = new HashSet<>();
 
 		for (DataAbstractFieldVO fieldVO : fields) {
 			String fieldName = fieldVO.getName();
@@ -553,6 +555,10 @@ public class DataService implements IDataService {
 							}
 							break;
 					}
+
+					if (result.containsKey(fieldName)) {
+						finalWebParams.add(fieldName);
+					}
 				} else if (params.containsKey(fieldName + "_u") || params.containsKey(fieldName + "_l")) {
 					if (fieldVO.getFilterType().equals(XDSFieldFilterType.Range)) {
 						Serializable lower = null;
@@ -567,6 +573,8 @@ public class DataService implements IDataService {
 
 						RangeVO rangeVO = new RangeVO<>(lower, upper);
 						result.put(fieldName, rangeVO);
+
+						finalWebParams.add(fieldName);
 					}
 				} else if (fieldVO.getTargetDSFilter() != null && fieldVO.getFilterType() == XDSFieldFilterType.List) { //NOTE: before fieldVO.getType() == XDSFieldType.LookUp
 					DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
@@ -586,6 +594,8 @@ public class DataService implements IDataService {
 				throw new MetisException(MetisErrorCode.InvalidFilterValue, fieldName, e);
 			}
 		}
+
+		return finalWebParams;
 	}
 
 	@Override

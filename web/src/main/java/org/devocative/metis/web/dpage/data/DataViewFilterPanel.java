@@ -94,12 +94,12 @@ public class DataViewFilterPanel extends DPanel {
 		}
 
 		try {
-			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, webParams, sentDBConnection);
+			Set<String> finalWebParams = dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, webParams, sentDBConnection);
+			filterWithDefAndReqOrDis.addAll(finalWebParams);
 		} catch (Exception e) {
 			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter(webParams)", e);
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
 		}
-		filterWithDefAndReqOrDis.addAll(filter.keySet());
 
 		Map<String, List<String>> defaultValue = findDefaultValue();
 		filterWithDef.addAll(defaultValue.keySet());
