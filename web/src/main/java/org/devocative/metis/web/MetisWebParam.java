@@ -8,4 +8,5 @@ public interface MetisWebParam {
 	String INVISIBLE_FILTER_INPUT = "$invisibleFilter";
 	String DISABLE_SORT_COLUMN = "$disableSort";
 	String REQUIRED_FILTER_INPUT = "$required";
+	String DEFAULT_FILTER_VALUE = "$default";
 }

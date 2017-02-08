@@ -41,6 +41,7 @@ public class DataViewFilterPanel extends DPanel {
 	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
 	private Set<String> filterWithDefAndReqOrDis;
+	private Set<String> filterWithDef = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 
 	private List<String> disabledFilterInputs;
 	private List<String> invisibleFilterInputs;
@@ -95,8 +96,16 @@ public class DataViewFilterPanel extends DPanel {
 		try {
 			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, webParams, sentDBConnection);
 		} catch (Exception e) {
-			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter()", e);
+			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter(webParams)", e);
+			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
+		}
 
+		Map<String, List<String>> defaultValue = findDefaultValue();
+		filterWithDef.addAll(defaultValue.keySet());
+		try {
+			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, defaultValue, sentDBConnection);
+		} catch (Exception e) {
+			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter(defaultValue)", e);
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
 		}
 
@@ -213,7 +222,7 @@ public class DataViewFilterPanel extends DPanel {
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
 					List<KeyValueVO<Serializable, String>> lookUpList = null;
 
-					if (filter.containsKey(fieldVO.getName())) {
+					if (filter.containsKey(fieldVO.getName()) && !filterWithDef.contains(fieldVO.getName())) {
 						/**
 						 * NOTE:
 						 * Since DataService.convertSimpleParamsToFilter() is called in the beginning of onInitialize(),
@@ -282,12 +291,33 @@ public class DataViewFilterPanel extends DPanel {
 						protected List<KeyValueVO<String, String>> createClientOptions(List list) {
 							return list;
 						}
-					}.setOpenModalLinkVisible(!filter.containsKey(fieldVO.getName()));
+					}
+						.setOpenModalLinkVisible(!filterWithDefAndReqOrDis.contains(fieldVO.getName()) ||
+							filterWithDef.contains(fieldVO.getName()));
 				}
 				break;
 			case Unknown:
 				break;
 		}
 		return fieldFormItem;
+	}
+
+	private Map<String, List<String>> findDefaultValue() {
+		Map<String, List<String>> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+		if (webParams.containsKey(MetisWebParam.DEFAULT_FILTER_VALUE)) {
+			List<String> defaults = webParams.get(MetisWebParam.DEFAULT_FILTER_VALUE);
+			for (String def : defaults) {
+				int i = def.indexOf("~");
+				String field = def.substring(0, i);
+				String value = def.substring(i + 1);
+
+				if (!result.containsKey(field)) {
+					result.put(field, new ArrayList<String>());
+				}
+
+				result.get(field).add(value);
+			}
+		}
+		return result;
 	}
 }
