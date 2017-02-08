@@ -7,6 +7,7 @@ import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.demeter.iservice.ApplicationLifecyclePriority;
 import org.devocative.demeter.iservice.ICacheService;
+import org.devocative.demeter.iservice.IRequestLifecycle;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.demeter.vo.UserVO;
@@ -42,8 +43,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service("mtsDBConnectionService")
-public class DBConnectionService implements IDBConnectionService {
+public class DBConnectionService implements IDBConnectionService, IRequestLifecycle {
 	private static final Logger logger = LoggerFactory.getLogger(DBConnectionService.class);
+
+	private static final ThreadLocal<ConnectionInfo> currentConnection = new ThreadLocal<>();
 
 	private static final List<Integer> STRING_TYPES = Arrays.asList(Types.VARCHAR, Types.CHAR, Types.NVARCHAR,
 		Types.NCHAR, Types.LONGNVARCHAR, Types.CLOB, Types.NCLOB);
@@ -124,6 +127,17 @@ public class DBConnectionService implements IDBConnectionService {
 		return ApplicationLifecyclePriority.Medium;
 	}
 
+	// ------------------------------ IRequestLifecycle
+
+	@Override
+	public void beforeRequest() {
+	}
+
+	@Override
+	public void afterResponse() {
+		closeCurrentConnection();
+	}
+
 	// ------------------------------
 
 	@Override
@@ -200,7 +214,9 @@ public class DBConnectionService implements IDBConnectionService {
 	public List<DataFieldVO> findFields(Long dbConnId, String sql, Map<String, Object> params) {
 		List<DataFieldVO> result = new ArrayList<>();
 
-		try (Connection connection = getConnection(dbConnId)) {
+		try {
+			Connection connection = getConnection(dbConnId);
+
 			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, getSchemaForDB(dbConnId));
 			nps.setFetchSize(1);
 			nps.setParameters(params)
@@ -293,7 +309,8 @@ public class DBConnectionService implements IDBConnectionService {
 		logger.info("Executing Query: Cmnt=[{}] User=[{}] Conn=[{}]",
 			comment, securityService.getCurrentUser(), dbConnName);
 
-		try (Connection connection = getConnection(dbConnId)) {
+		try {
+			Connection connection = getConnection(dbConnId);
 			query = String.format("/*%s*/ %s", comment, query);
 
 			nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
@@ -371,7 +388,8 @@ public class DBConnectionService implements IDBConnectionService {
 		NamedParameterStatement nps = null;
 		QueryExecInfoRVO execInfo = new QueryExecInfoRVO();
 
-		try (Connection connection = getConnection(dbConnId)) {
+		try {
+			Connection connection = getConnection(dbConnId);
 			nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
 			nps
 				.setDateClassReplacement(Timestamp.class)
@@ -413,10 +431,10 @@ public class DBConnectionService implements IDBConnectionService {
 	public boolean checkConnection(Long id) {
 		DBConnection dbConnection = load(id);
 		if (dbConnection.getSafeTestQuery() != null) {
-			try (Connection connection = getConnection(id)) {
+			try {
+				Connection connection = getConnection(id);
 				Statement st = connection.createStatement();
 				st.executeQuery(dbConnection.getSafeTestQuery());
-				st.close();
 				return true;
 			} catch (SQLException e) {
 				return false;
@@ -497,7 +515,19 @@ public class DBConnectionService implements IDBConnectionService {
 
 	// ------------------------------
 
-	private Connection getConnection(Long dbConnId) {
+	private Connection getConnection(long dbConnId) {
+
+		ConnectionInfo info = currentConnection.get();
+		if (info != null) {
+			if (info.dbConnId == dbConnId) {
+				logger.debug("Getting current connection: {}", dbConnId);
+				return info.connection;
+			} else {
+				logger.warn("Different DBConnection: requested=[{}] current=[{}]", dbConnId, info.dbConnId);
+				closeCurrentConnection();
+			}
+		}
+
 		int retry = 0;
 		Connection result = null;
 		Exception last = null;
@@ -517,6 +547,9 @@ public class DBConnectionService implements IDBConnectionService {
 		if (result == null) {
 			throw new MetisException(MetisErrorCode.DBConnection, String.format("%s (%s)", dbConnId, last), last);
 		}
+
+		logger.debug("Setting current connection: {}", dbConnId);
+		currentConnection.set(new ConnectionInfo(dbConnId, result));
 
 		return result;
 	}
@@ -557,6 +590,37 @@ public class DBConnectionService implements IDBConnectionService {
 			//TODO assert safely closing
 			pool.close();
 			CONNECTION_POOL_MAP.remove(dbConnId);
+		}
+	}
+
+	private void closeCurrentConnection() {
+		ConnectionInfo info = currentConnection.get();
+
+		try {
+			if (info != null) {
+				if (!info.connection.isClosed()) {
+					logger.debug("Closing current connection: {}", info.dbConnId);
+					info.connection.close();
+				} else {
+					logger.warn("There is current connection, but not closed, dbConnId=[{}]", info.dbConnId);
+				}
+			}
+		} catch (SQLException e) {
+			logger.warn("DBConnectionService.closeCurrentConnection: ", e);
+		}
+
+		currentConnection.remove();
+	}
+
+	// ------------------------------
+
+	private class ConnectionInfo {
+		private long dbConnId = -123;
+		private Connection connection;
+
+		private ConnectionInfo(long dbConnId, Connection connection) {
+			this.dbConnId = dbConnId;
+			this.connection = connection;
 		}
 	}
 }
