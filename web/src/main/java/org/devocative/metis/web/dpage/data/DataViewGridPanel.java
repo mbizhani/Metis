@@ -373,13 +373,18 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			webParams.get(MetisWebParam.DISABLE_SORT_COLUMN) :
 			Collections.<String>emptyList();
 
+		boolean disableAllSorts = false;
+		if (webParams.containsKey(MetisWebParam.DISABLE_SORT_ALL_COLUMN)) {
+			disableAllSorts = "1".equals(webParams.get(MetisWebParam.DISABLE_SORT_ALL_COLUMN).get(0));
+		}
+
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
 
 		for (DataFieldVO fieldVO : dataVO.getFields()) {
 			OColumn<Map<String, Object>> column;
 			if (XDSFieldResultType.Shown.equals(fieldVO.getResultType())) {
 				column = new OPropertyColumn<>(new Model<>(fieldVO.getTitleOrName()), fieldVO.getName());
-				column.setSortable(!disabledSortColumns.contains(fieldVO.getName()));
+				column.setSortable(!disabledSortColumns.contains(fieldVO.getName()) && !disableAllSorts);
 
 				if (fieldVO.getColumnWidth() != null) {
 					column.setWidth(OSize.fixed(fieldVO.getColumnWidth()));
