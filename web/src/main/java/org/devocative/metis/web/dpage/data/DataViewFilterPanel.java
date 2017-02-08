@@ -88,6 +88,10 @@ public class DataViewFilterPanel extends DPanel {
 	protected void onInitialize() {
 		super.onInitialize();
 
+		if (filterWithDefAndReqOrDis == null) {
+			filterWithDefAndReqOrDis = Collections.emptySet();
+		}
+
 		try {
 			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, webParams, sentDBConnection);
 		} catch (Exception e) {

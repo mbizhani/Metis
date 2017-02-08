@@ -49,4 +49,6 @@ public interface IDataService {
 		List<DataAbstractFieldVO> fields,
 		Map<String, Object> filter,
 		String sentDBConnection);
+
+	void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row);
 }

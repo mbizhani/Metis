@@ -10,6 +10,9 @@ import org.devocative.demeter.iservice.FileStoreHandler;
 import org.devocative.demeter.iservice.IFileStoreService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.demeter.iservice.template.IStringTemplate;
+import org.devocative.demeter.iservice.template.IStringTemplateService;
+import org.devocative.demeter.iservice.template.TemplateEngineType;
 import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -61,6 +64,9 @@ public class DataService implements IDataService {
 
 	@Autowired
 	private IFileStoreService fileStoreService;
+
+	@Autowired
+	private IStringTemplateService stringTemplateService;
 
 	// ------------------------------ PUBLIC METHODS
 
@@ -656,6 +662,31 @@ public class DataService implements IDataService {
 		}
 
 		return result;
+	}
+
+	// ---------------
+
+	@Override
+	public void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row) {
+		Map<String, Object> bindings = new HashMap<>();
+		bindings.put("filter", filter);
+		bindings.put("params", params);
+		if (row != null) {
+			bindings.put("row", row);
+		}
+		bindings.put("user", securityService.getCurrentUser());
+
+		StringBuilder finalScript = new StringBuilder();
+		finalScript
+			.append("def range(l,u){new org.devocative.adroit.vo.RangeVO(l,u)}\n")
+			.append("def now(){new Date()}\n")
+			.append("def list(Object... p){def list=[]; p.each{list.add(it)}; return list}\n")
+			.append(script);
+
+		IStringTemplate stringTemplate = stringTemplateService
+			.create(finalScript.toString(), TemplateEngineType.GroovyShell);
+
+		stringTemplate.process(bindings);
 	}
 
 	// ------------------------------ PRIVATE METHODS

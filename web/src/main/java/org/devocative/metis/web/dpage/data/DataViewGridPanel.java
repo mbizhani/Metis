@@ -9,9 +9,6 @@ import org.apache.wicket.model.Model;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.entity.EFileStatus;
 import org.devocative.demeter.iservice.ISecurityService;
-import org.devocative.demeter.iservice.template.IStringTemplate;
-import org.devocative.demeter.iservice.template.IStringTemplateService;
-import org.devocative.demeter.iservice.template.TemplateEngineType;
 import org.devocative.demeter.vo.filter.FileStoreFVO;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.demeter.web.UrlUtil;
@@ -22,6 +19,7 @@ import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.entity.data.config.XDVLink;
+import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
@@ -68,10 +66,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private IDataViewService dataViewService;
 
 	@Inject
-	private IStringTemplateService stringTemplateService;
+	private ISecurityService securityService;
 
 	@Inject
-	private ISecurityService securityService;
+	private IDataService dataService;
 
 	private DataVO dataVO;
 	private Map<String, Object> filter;
@@ -446,22 +444,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							Map<String, Object> rowMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 							rowMap.putAll(rowData.getObject());
 
-							Map<String, Object> params = new HashMap<>();
-							params.put("row", rowMap);
-							params.put("params", paramsMap);
-							params.put("filter", targetFilter);
-
-							StringBuilder script = new StringBuilder();
-							script
-								.append("def range(l,u){new org.devocative.adroit.vo.RangeVO(l,u)}\n")
-								.append("def now(){new Date()}\n")
-								.append("def list(Object... p){def list=[]; p.each{list.add(it)}; return list}\n")
-								.append(xdvLink.getSentData());
-
-							IStringTemplate stringTemplate = stringTemplateService
-								.create(script.toString(), TemplateEngineType.GroovyShell);
-
-							stringTemplate.process(params);
+							dataService.processDynamicFilterAndParam(xdvLink.getSentData(), targetFilter, paramsMap, rowMap);
 
 							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetFilter);
 
