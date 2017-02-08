@@ -99,6 +99,7 @@ public class DataViewFilterPanel extends DPanel {
 			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter(webParams)", e);
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
 		}
+		filterWithDefAndReqOrDis.addAll(filter.keySet());
 
 		Map<String, List<String>> defaultValue = findDefaultValue();
 		filterWithDef.addAll(defaultValue.keySet());

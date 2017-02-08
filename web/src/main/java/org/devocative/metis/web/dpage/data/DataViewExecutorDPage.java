@@ -46,6 +46,9 @@ public class DataViewExecutorDPage extends DPage {
 	private String selectionJSCallback;
 	private boolean considerWebParams = true;
 
+	private boolean searchOnStart = false;
+	private DAjaxButton search;
+
 	@Inject
 	private IDataService dataService;
 
@@ -166,7 +169,7 @@ public class DataViewExecutorDPage extends DPage {
 					.setWebParams(webParams)
 					.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
 			);
-			form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+			search = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 				private static final long serialVersionUID = -8066384058553336246L;
 
 				@Override
@@ -175,7 +178,14 @@ public class DataViewExecutorDPage extends DPage {
 					mainGrid.loadData(target);
 					target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
 				}
-			});
+			};
+			search.setOutputMarkupId(true);
+			form.add(search);
+
+			if (webParams.containsKey(MetisWebParam.SEARCH_ON_START)) {
+				searchOnStart = "1".equals(webParams.get(MetisWebParam.SEARCH_ON_START).get(0));
+			}
+
 			mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
 			mainGrid
 				.setMultiSelect(multiSelect)
@@ -196,5 +206,10 @@ public class DataViewExecutorDPage extends DPage {
 		super.onAfterRender();
 
 		WMessager.writeErrorsInAfterRender(this);
+
+		if (searchOnStart) {
+			String script = String.format("$('#%s').click();", search.getMarkupId());
+			WebUtil.writeJQueryCall(script, true);
+		}
 	}
 }

@@ -9,9 +9,11 @@ import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IReportService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.web.MetisIcon;
+import org.devocative.metis.web.MetisWebParam;
 import org.devocative.metis.web.dpage.data.DataViewFilterPanel;
 import org.devocative.metis.web.dpage.data.DataViewGridPanel;
 import org.devocative.wickomp.WPanel;
+import org.devocative.wickomp.WebUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,9 @@ public class ReportExecutorPanel extends WPanel {
 
 	private DataViewGridPanel mainGrid;
 	private Long reportId;
+
+	private boolean searchOnStart = false;
+	private DAjaxButton search;
 
 	@Inject
 	private IReportService reportService;
@@ -73,7 +78,8 @@ public class ReportExecutorPanel extends WPanel {
 				.setWebParams(targetParam)
 				.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
 		);
-		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+
+		search = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 			private static final long serialVersionUID = -8066384058553336246L;
 
 			@Override
@@ -82,10 +88,27 @@ public class ReportExecutorPanel extends WPanel {
 				mainGrid.loadData(target);
 				target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
 			}
-		});
+		};
+		search.setOutputMarkupId(true);
+		form.add(search);
+
+		if (targetParam.containsKey(MetisWebParam.SEARCH_ON_START)) {
+			searchOnStart = "1".equals(targetParam.get(MetisWebParam.SEARCH_ON_START).get(0));
+		}
+
 		mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
 		mainGrid.setWebParams(targetParam);
 
 		add(mainGrid);
+	}
+
+	@Override
+	protected void onAfterRender() {
+		super.onAfterRender();
+
+		if (searchOnStart) {
+			String script = String.format("$('#%s').click();", search.getMarkupId());
+			WebUtil.writeJQueryCall(script, true);
+		}
 	}
 }

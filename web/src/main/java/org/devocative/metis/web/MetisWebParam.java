@@ -10,4 +10,5 @@ public interface MetisWebParam {
 	String DISABLE_SORT_ALL_COLUMN = "$disableAllSorts";
 	String REQUIRED_FILTER_INPUT = "$required";
 	String DEFAULT_FILTER_VALUE = "$default";
+	String SEARCH_ON_START = "$searchOnStart";
 }
