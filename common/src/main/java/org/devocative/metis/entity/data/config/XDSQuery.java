@@ -19,6 +19,8 @@ public class XDSQuery implements Serializable {
 
 	private String text;
 
+	private String after;
+
 	public XDSQueryMode getMode() {
 		return mode;
 	}
@@ -49,5 +51,13 @@ public class XDSQuery implements Serializable {
 
 	public void setText(String text) {
 		this.text = text;
+	}
+
+	public String getAfter() {
+		return after;
+	}
+
+	public void setAfter(String after) {
+		this.after = after;
 	}
 }

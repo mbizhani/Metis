@@ -48,4 +48,6 @@ public interface IDataSourceService {
 	DsQueryRVO<Long> execute(CountQueryQVO queryQVO);
 
 	DsQueryRVO<List<Map<String, Object>>> execute(AggregateQueryQVO queryQVO);
+
+	List<QueryExecInfoRVO> executeAfterIfAny(Long dsId, String sentDBConnection);
 }

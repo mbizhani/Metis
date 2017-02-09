@@ -270,6 +270,7 @@ public class DataService implements IDataService {
 
 		DataViewRVO result = new DataViewRVO();
 
+
 		// --------------- SELECT
 
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
@@ -309,6 +310,14 @@ public class DataService implements IDataService {
 			result.setFooter(footerRVO.getResult());
 			result.addQueryExecInfo(footerRVO.getQueryExecInfoList());
 		}
+
+		// --------------- Check After of DataSource
+
+		result.addQueryExecInfo(
+			dataSourceService.executeAfterIfAny(xDataView.getDataSourceId(), request.getSentDBConnection())
+		);
+
+		// ---------------
 
 		logger.info("Executed DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}] Res#=[{}] Cnt=[{}] Ftr=[{}]",
 			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(),

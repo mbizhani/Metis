@@ -662,6 +662,27 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		return new DsQueryRVO<>(finalList, list.getQueryExecInfoList());
 	}
 
+	@Override
+	public List<QueryExecInfoRVO> executeAfterIfAny(Long dsId, String sentDBConnection) {
+		DataSource dataSource = load(dsId);
+		XDataSource xDataSource = getXDataSource(dataSource);
+
+		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
+		String comment = String.format("AF_DsExc[%s]", dataSource.getName());
+
+		List<QueryExecInfoRVO> afterExecInfo = new ArrayList<>();
+		if (xDataSource.getQuery().getAfter() != null) {
+			String[] queries = xDataSource.getQuery().getAfter().split("[;]");
+			for (String query : queries) {
+				if (!query.isEmpty()) {
+					afterExecInfo.add(dbConnectionService.execute(dbConnId, query, comment, new HashMap<String, Object>()));
+				}
+			}
+		}
+
+		return afterExecInfo;
+	}
+
 	// ------------------------------ PRIVATE METHODS
 
 	private void checkDuplicateDataSource(String name) {

@@ -2,6 +2,7 @@ package org.devocative.metis.web.dpage.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
@@ -99,6 +100,10 @@ class QueryStep extends WWizardStepPanel {
 		add(new WCodeInput("query", new PropertyModel<String>(dataVO.getQuery(), "text"), oCode)
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.query"))
+				.setEnabled(dataVO.isDataSourceEditable())
+		);
+
+		add(new TextArea<>("after", new PropertyModel<String>(dataVO.getQuery(), "after"))
 				.setEnabled(dataVO.isDataSourceEditable())
 		);
 
