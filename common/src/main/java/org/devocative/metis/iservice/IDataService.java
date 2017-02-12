@@ -51,5 +51,5 @@ public interface IDataService {
 		Map<String, Object> filter,
 		String sentDBConnection);
 
-	void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row);
+	void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams);
 }

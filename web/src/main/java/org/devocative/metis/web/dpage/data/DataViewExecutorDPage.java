@@ -39,6 +39,7 @@ public class DataViewExecutorDPage extends DPage {
 	private Map<String, Object> filter = new HashMap<>();
 	private String filterParams;
 	private Set<String> filterWithDefAndReqOrDis = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+	private Map<String, List<String>> webParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
 	private IModel<String> title;
 	private boolean hasDataVO = true;
@@ -108,6 +109,12 @@ public class DataViewExecutorDPage extends DPage {
 		return this;
 	}
 
+	public DataViewExecutorDPage setWebParams(Map<String, List<String>> webParams) {
+		this.webParams.putAll(webParams);
+		filterWithDefAndReqOrDis.addAll(webParams.keySet());
+		return this;
+	}
+
 	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
 		Map<String, Object> map = dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
 			filter, sentDBConnection);
@@ -144,17 +151,13 @@ public class DataViewExecutorDPage extends DPage {
 		add(form);
 
 		if (hasDataVO) {
-			Map<String, List<String>> webParams;
-
 			if (considerWebParams) {
 				if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
 					List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
-					webParams = WebUtil.toMap(true, true, ignoredValues);
+					webParams.putAll(WebUtil.toMap(true, true, ignoredValues));
 				} else {
-					webParams = WebUtil.toMap(true, true);
+					webParams.putAll(WebUtil.toMap(true, true));
 				}
-			} else {
-				webParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 			}
 
 			if (filterParams != null) {

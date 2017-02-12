@@ -59,7 +59,7 @@ public class ReportExecutorPanel extends WPanel {
 		Map<String, Object> targetFilter = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 		Map<String, List<String>> targetParam = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-		dataService.processDynamicFilterAndParam(report.getConfig(), targetFilter, targetParam, null);
+		dataService.processDynamicFilterAndParam(report.getConfig(), targetFilter, targetParam, null, null);
 
 		filter.putAll(dataService.convertFilterToFilter(
 			dataVO.getDataSourceId(),

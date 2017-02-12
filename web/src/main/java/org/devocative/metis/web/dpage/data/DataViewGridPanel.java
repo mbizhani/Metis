@@ -440,16 +440,17 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					@Override
 					public void onClick(AjaxRequestTarget target, IModel<Map<String, Object>> rowData) {
 						try {
-							Map<String, Object> paramsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-							paramsMap.putAll(webParams);
-							paramsMap.putAll(filter);
-
-							Map<String, Object> targetFilter = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+							Map<String, Object> prevParamsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+							prevParamsMap.putAll(webParams);
+							prevParamsMap.putAll(filter);
 
 							Map<String, Object> rowMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 							rowMap.putAll(rowData.getObject());
 
-							dataService.processDynamicFilterAndParam(xdvLink.getSentData(), targetFilter, paramsMap, rowMap);
+							Map<String, Object> targetFilter = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+							Map<String, List<String>> targetParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+							dataService.processDynamicFilterAndParam(xdvLink.getSentData(), targetFilter, targetParams, rowMap, prevParamsMap);
 
 							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetFilter);
 
@@ -457,6 +458,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							dPage
 								.setSentDBConnection(sentDBConnection)
 								.setConsiderWebParams(false)
+								.setWebParams(targetParams)
 								.addToFilter(targetFilter);
 
 							modalWindow.setContent(dPage);

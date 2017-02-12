@@ -686,13 +686,17 @@ public class DataService implements IDataService {
 	// ---------------
 
 	@Override
-	public void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row) {
+	public void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams) {
 		Map<String, Object> bindings = new HashMap<>();
 		bindings.put("filter", filter);
 		bindings.put("params", params);
 		if (row != null) {
 			bindings.put("row", row);
 		}
+		if (prevParams != null) {
+			bindings.put("prevParams", prevParams);
+		}
+
 		bindings.put("user", securityService.getCurrentUser());
 
 		StringBuilder finalScript = new StringBuilder();
@@ -926,8 +930,6 @@ public class DataService implements IDataService {
 					logger.error("FilterTargetDS has parameter sent as range with invalid filter type: field=[{}] filter=[{}]",
 						xdsField.getName(), filter);
 				}
-			} else {
-				logger.error("Wrong 'else' execution: DataService.createMapOfFilterTargetDS()");
 			}
 		}
 
