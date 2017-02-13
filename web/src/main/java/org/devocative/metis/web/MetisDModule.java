@@ -6,7 +6,6 @@ import org.devocative.wickomp.async.AsyncToken;
 import org.devocative.wickomp.async.IAsyncRequestHandler;
 
 import javax.inject.Inject;
-import java.io.Serializable;
 
 public class MetisDModule extends WebDModule {
 	public static final String EXEC_DATA_VIEW = "EXEC_DATA_VIEW";
@@ -20,26 +19,14 @@ public class MetisDModule extends WebDModule {
 		registerAsyncHandler(EXEC_DATA_VIEW, new IAsyncRequestHandler() {
 			@Override
 			public void onRequest(AsyncToken asyncToken, Object requestPayLoad) {
-				storeAsyncToken(asyncToken);
-				taskService.start("mtsExecuteDataSourceDTask", asyncToken.getId(), requestPayLoad, MetisDModule.this);
+				taskService.start("mtsExecuteDataSourceDTask", asyncToken, requestPayLoad, MetisDModule.this);
 			}
 		});
 		registerAsyncHandler(EXEC_DATA_VIEW_CHILDREN, new IAsyncRequestHandler() {
 			@Override
 			public void onRequest(AsyncToken asyncToken, Object requestPayLoad) {
-				storeAsyncToken(asyncToken);
-				taskService.start("mtsExecuteDataSourceDTask", asyncToken.getId(), requestPayLoad, MetisDModule.this);
+				taskService.start("mtsExecuteDataSourceDTask", asyncToken, requestPayLoad, MetisDModule.this);
 			}
 		});
-	}
-
-	@Override
-	public void onTaskResult(String id, Object result) {
-		pushResponseToPage(getAndRemove(id), (Serializable) result);
-	}
-
-	@Override
-	public void onTaskError(String id, Exception e) {
-		pushErrorToPage(getAndRemove(id), e);
 	}
 }
