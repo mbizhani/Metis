@@ -1,8 +1,6 @@
 package org.devocative.metis.service.data;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.core.util.QuickWriter;
-import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import org.devocative.adroit.CalendarUtil;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
@@ -11,6 +9,7 @@ import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
+import org.devocative.adroit.xml.AdroitXStream;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
@@ -37,8 +36,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -72,10 +69,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@PostConstruct
 	public void initDataSourceService() {
-		xstream = new XStream();
+		xstream = new AdroitXStream();
 		xstream.processAnnotations(XDataSource.class);
 
-		dataSourceCache = cacheService.create("MTS_DATA_SOURCE", 50);
+		dataSourceCache = cacheService.create("MTS_DATA_SOURCE", 70);
 		dataSourceCache.setMissedHitHandler(this);
 	}
 
@@ -97,6 +94,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				.addWhere("and ent.name = :name")
 				.addParam("name", name)
 				.object();
+			ds.setXDataSource((XDataSource) xstream.fromXML(ds.getConfig().getValue()));
 			dataSourceCache.put(ds.getId(), ds);
 		}
 		return ds;
@@ -105,13 +103,17 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	// IMissedHitHandler
 	@Override
 	public DataSource loadForCache(Long key) {
-		return persistorService
+		DataSource ds = persistorService
 			.createQueryBuilder()
 			.addFrom(DataSource.class, "ent")
 			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
 			.addWhere("and ent.id = :id")
 			.addParam("id", key)
 			.object();
+
+		ds.setXDataSource((XDataSource) xstream.fromXML(ds.getConfig().getValue()));
+
+		return ds;
 	}
 
 	@Override
@@ -201,14 +203,14 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 		}
 
-		String query = xDataSource.getQuery().getText().trim();
+		/*String query = xDataSource.getQuery().getText().trim();
 		if (!query.contains("<![CDATA[")) {
 			xDataSource.getQuery().setText(String.format("\n<![CDATA[\n%s\n]]>\n", query));
 		}
 
 		StringWriter writer = new StringWriter();
-		xstream.marshal(xDataSource, new MyWriter(writer));
-		config.setValue(writer.toString());
+		xstream.marshal(xDataSource, new MyWriter(writer));*/
+		config.setValue(xstream.toXML(xDataSource));
 
 		dataSource.setConfig(config);
 
@@ -218,6 +220,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			persistorService.saveOrUpdate(relation);
 		}
 
+		dataSource.setXDataSource(xDataSource);
 		dataSourceCache.update(dataSource.getId(), dataSource);
 
 		return dataSource;
@@ -252,17 +255,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.addFrom(DataSource.class, "ent")
 			.addWhere("and ent.keyField is not null")
 			.list();
-	}
-
-	@Override
-	public XDataSource getXDataSource(DataSource dataSource) {
-		return (XDataSource) xstream.fromXML(dataSource.getConfig().getValue());
-	}
-
-	@Override
-	public XDataSource getXDataSource(String name) {
-		DataSource dataSource = loadByName(name);
-		return getXDataSource(dataSource);
 	}
 
 	// ---------------
@@ -447,7 +439,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	@Override
 	public DsQueryRVO<List<Map<String, Object>>> execute(SelectQueryQVO queryQVO) {
 		DataSource dataSource = load(queryQVO.getDataSourceId());
-		XDataSource xDataSource = getXDataSource(dataSource);
+		XDataSource xDataSource = dataSource.getXDataSource();
 
 		DSQueryBuilder queryBuilder = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
 			.appendSelect(queryQVO.getSelectFields())
@@ -511,7 +503,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		DataSource dataSource = load(dataSourceId);
 		DataSource targetDataSource = load(targetDataSourceId);
 
-		XDataSource targetXDataSource = getXDataSource(targetDataSource);
+		XDataSource targetXDataSource = targetDataSource.getXDataSource();
 
 		List<String> select = new ArrayList<>();
 		select.add(targetDataSource.getKeyField());
@@ -539,7 +531,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	@Override
 	public DsQueryRVO<List<Map<String, Object>>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId) {
 		DataSource dataSource = load(queryQVO.getDataSourceId());
-		XDataSource xDataSource = getXDataSource(dataSource);
+		XDataSource xDataSource = dataSource.getXDataSource();
 
 		Map<String, Object> params = new HashMap<>();
 		params.put("parentId", parentId);
@@ -571,7 +563,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	@Override
 	public DsQueryRVO<Long> execute(CountQueryQVO queryQVO) {
 		DataSource dataSource = load(queryQVO.getDataSourceId());
-		XDataSource xDataSource = getXDataSource(dataSource);
+		XDataSource xDataSource = dataSource.getXDataSource();
 
 		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
 			.appendSelect(Collections.singletonList("count(1) as cnt"))
@@ -603,7 +595,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	@Override
 	public DsQueryRVO<List<Map<String, Object>>> execute(AggregateQueryQVO queryQVO) {
 		DataSource dataSource = load(queryQVO.getDataSourceId());
-		XDataSource xDataSource = getXDataSource(dataSource);
+		XDataSource xDataSource = dataSource.getXDataSource();
 
 		List<String> select = new ArrayList<>();
 		for (Map.Entry<String, List<XDVAggregatorFunction>> entry : queryQVO.getSelectFields().entrySet()) {
@@ -665,7 +657,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	@Override
 	public List<QueryExecInfoRVO> executeAfterIfAny(Long dsId, String sentDBConnection) {
 		DataSource dataSource = load(dsId);
-		XDataSource xDataSource = getXDataSource(dataSource);
+		XDataSource xDataSource = dataSource.getXDataSource();
 
 		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
 		String comment = String.format("AF_DsExc[%s]", dataSource.getName());
@@ -767,7 +759,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 														SelectQueryQVO queryQVO,
 														Set<Object> parentIds) {
 
-		XDataSource xDataSource = getXDataSource(dataSource);
+		XDataSource xDataSource = dataSource.getXDataSource();
 
 		queryQVO.setFilterExpression(dataSource.getKeyField() + " in (:ids)");
 
@@ -812,7 +804,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	// ------------------------------ PRIVATE INNER CLASS
 
-	private class MyWriter extends PrettyPrintWriter {
+	/*private class MyWriter extends PrettyPrintWriter {
 		public MyWriter(Writer writer) {
 			super(writer);
 		}
@@ -821,7 +813,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		protected void writeText(QuickWriter writer, String text) {
 			writer.write(text);
 		}
-	}
+	}*/
 
 	private class DSQueryBuilder {
 		private StringBuilder query = new StringBuilder();

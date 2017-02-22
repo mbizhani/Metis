@@ -3,6 +3,7 @@ package org.devocative.metis.entity.data;
 import org.devocative.demeter.entity.*;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.data.config.XDataSource;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -57,7 +58,7 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "f_connection", insertable = false, updatable = false)
 	private Long connectionId;
 
-	// ----------------------------- CREATE / MODIFY
+	// --------------- CREATE / MODIFY
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -88,6 +89,11 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Version
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
+
+	// ---------------
+
+	@Transient
+	private XDataSource xDataSource;
 
 	// ----------------------------- CONSTRUCTORS
 
@@ -179,7 +185,7 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 		return connectionId;
 	}
 
-	// ----------------------------- CREATE / MODIFY ACCESSORS
+	// --------------- CREATE / MODIFY ACCESSORS
 
 	@Override
 	public Date getCreationDate() {
@@ -239,7 +245,18 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 		this.version = version;
 	}
 
-	// ----------------------------- OBJECT METHODS
+	// ---------------
+
+	public XDataSource getXDataSource() {
+		return xDataSource;
+	}
+
+	public DataSource setXDataSource(XDataSource xDataSource) {
+		this.xDataSource = xDataSource;
+		return this;
+	}
+
+	// --------------- OBJECT METHODS
 
 	@Override
 	public boolean equals(Object o) {

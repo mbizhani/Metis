@@ -26,11 +26,8 @@ public interface IDataSourceService {
 
 	List<DataSource> getAllDataSourcesAsLookup();
 
-	XDataSource getXDataSource(DataSource dataSource);
-
-	XDataSource getXDataSource(String name);
-
 	// ---------------
+
 	String processQuery(Long dbConnId, String query, XDSQueryMode mode);
 
 	EQLMetaDataVO processEntityQuery(Long dbConnId, String query);

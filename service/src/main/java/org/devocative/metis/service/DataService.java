@@ -345,7 +345,7 @@ public class DataService implements IDataService {
 		XDataView xDataView = dataViewService.getXDataView(dataView);
 
 		DataSource dataSource = dataSourceService.load(xDataView.getDataSourceId());
-		XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
+		XDataSource xDataSource = dataSource.getXDataSource();
 
 		List<String> titleFields = new ArrayList<>();
 		for (XDVField xdvField : xDataView.getFields()) {
@@ -547,7 +547,7 @@ public class DataService implements IDataService {
 						case List:
 						case Search:
 							DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
-							XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
+							XDataSource targetXDS = targetDS.getXDataSource();
 
 							Map<String, Object> lookUpFilter = new HashMap<>();
 
@@ -597,7 +597,7 @@ public class DataService implements IDataService {
 					}
 				} else if (fieldVO.getTargetDSFilter() != null && fieldVO.getFilterType() == XDSFieldFilterType.List) { //NOTE: before fieldVO.getType() == XDSFieldType.LookUp
 					DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
-					XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
+					XDataSource targetXDS = targetDS.getXDataSource();
 					Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getAllFields());
 					List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
 						dataSourceId,
@@ -655,7 +655,7 @@ public class DataService implements IDataService {
 						case List:
 						case Search:
 							DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
-							XDataSource targetXDS = dataSourceService.getXDataSource(targetDS);
+							XDataSource targetXDS = targetDS.getXDataSource();
 
 							Map<String, Object> lookUpFilter = new HashMap<>();
 
@@ -756,7 +756,7 @@ public class DataService implements IDataService {
 
 	private void updateDataVOByDataSource(DataVO dataVO, Long dsId) {
 		DataSource dataSource = dataSourceService.load(dsId);
-		XDataSource xDataSource = dataSourceService.getXDataSource(dataSource);
+		XDataSource xDataSource = dataSource.getXDataSource();
 
 		dataVO.setDataSourceId(dataSource.getId());
 		dataVO.setConnectionId(dataSource.getConnection().getId());
