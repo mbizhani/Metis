@@ -52,4 +52,6 @@ public interface IDataService {
 		String sentDBConnection);
 
 	void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams);
+
+	void addDataEventHandler(IDataEventHandler handler);
 }

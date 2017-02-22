@@ -6,24 +6,30 @@ import org.apache.olingo.odata2.api.edm.provider.*;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.ISecurityService;
+import org.devocative.metis.iservice.IDataEventHandler;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IDataViewService;
+import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-public class MetisEdmProvider extends EdmProvider {
+public class MetisEdmProvider extends EdmProvider implements IDataEventHandler {
 	private static final Logger logger = LoggerFactory.getLogger(MetisEdmProvider.class);
 
 	private static final String NAMESPACE = "Metis";
 	private static final String ENTITY_CONTAINER = "MetisEntityContainer";
 
 	private static MetisEdmProvider INSTANCE;
+
+	private List<Schema> SCHEMA;
+	private ODataException creationException;
+
+	private Map<String, EntityType> ENTITY_TYPE_MAP = new LinkedHashMap<>();
+	private Map<String, EntitySet> ENTITY_SET_MAP = new LinkedHashMap<>();
 
 	private IDataService dataService;
 	private IDataViewService dataViewService;
@@ -33,9 +39,17 @@ public class MetisEdmProvider extends EdmProvider {
 
 	private MetisEdmProvider() {
 		dataService = ModuleLoader.getApplicationContext().getBean(IDataService.class);
-		dataViewService = ModuleLoader.getApplicationContext().getBean(IDataViewService.class);
+		dataService.addDataEventHandler(this);
 
+		dataViewService = ModuleLoader.getApplicationContext().getBean(IDataViewService.class);
 		securityService = ModuleLoader.getApplicationContext().getBean(ISecurityService.class);
+
+		try {
+			createSchema();
+		} catch (ODataException e) {
+			logger.error("MetisEdmProvider()", e);
+			creationException = e;
+		}
 	}
 
 	// ------------------------------
@@ -53,84 +67,17 @@ public class MetisEdmProvider extends EdmProvider {
 	public List<Schema> getSchemas() throws ODataException {
 		logger.info("OData: GetSchema: User=[{}]", securityService.getCurrentUser());
 
-		try {
-			EntityContainer entityContainer = new EntityContainer()
-				.setName(ENTITY_CONTAINER)
-				.setDefaultEntityContainer(true);
-
-			List<EntityType> entityTypeList = new ArrayList<>();
-			List<EntitySet> entitySetList = new ArrayList<>();
-
-			List<String> dataViewsForOData = dataViewService.listForOData();
-			for (String dataViewName : dataViewsForOData) {
-				try {
-					FullQualifiedName edmFQName = new FullQualifiedName(NAMESPACE, dataViewName);
-
-					EntityType entityType = getEntityType(edmFQName);
-					entityTypeList.add(entityType);
-
-					entitySetList.add(getEntitySet(ENTITY_CONTAINER, dataViewName));
-				} catch (Exception e) {
-					logger.error("OData: GetSchema: EntityType(DataView) addition problem = " + dataViewName, e);
-				}
-			}
-
-			entityContainer.setEntitySets(entitySetList);
-
-			Schema schema = new Schema()
-				.setNamespace(NAMESPACE)
-				.setEntityTypes(entityTypeList)
-				.setEntityContainers(Collections.singletonList(entityContainer));
-			return Collections.singletonList(schema);
-
-		} catch (Exception e) {
-			logger.error("OData: GetSchema", e);
-			throw new ODataException(e);
+		if (creationException != null) {
+			throw creationException;
 		}
+
+		return SCHEMA;
 	}
 
 	@Override
 	public EntityType getEntityType(FullQualifiedName edmFQName) throws ODataException {
 		if (NAMESPACE.equals(edmFQName.getNamespace())) {
-			DataVO dataVO = dataService.loadDataVO(edmFQName.getName());
-			if (dataVO != null) {
-				List<Property> properties = new ArrayList<>();
-
-				PropertyRef key = new PropertyRef().setName(dataVO.getFields().get(0).getName());
-
-				for (DataFieldVO fieldVO : dataVO.getFields()) {
-					EdmSimpleTypeKind type = EdmSimpleTypeKind.String;
-
-					switch (fieldVO.getType()) {
-						case Integer:
-							type = EdmSimpleTypeKind.Decimal;
-							break;
-						case Real:
-							type = EdmSimpleTypeKind.Double;
-							break;
-						case Date:
-						case DateTime:
-							type = EdmSimpleTypeKind.DateTime;
-							break;
-					}
-
-					Property property = new SimpleProperty()
-						.setName(fieldVO.getName())
-						.setType(type);
-					properties.add(property);
-
-					// TODO Navigation Properties
-
-					if (fieldVO.getIsKeyFieldSafely()) {
-						key.setName(fieldVO.getName());
-					}
-				}
-
-				return new EntityType()
-					.setName(dataVO.getName())
-					.setProperties(properties)
-					.setKey(new Key().setKeys(Collections.singletonList(key)));
-			}
+			return ENTITY_TYPE_MAP.get(edmFQName.getName());
 		}
 		return null;
 	}
@@ -138,9 +85,7 @@ public class MetisEdmProvider extends EdmProvider {
 	@Override
 	public EntitySet getEntitySet(final String entityContainer, final String name) throws ODataException {
 		if (ENTITY_CONTAINER.equals(entityContainer)) {
-			return new EntitySet()
-				.setName(name)
-				.setEntityType(new FullQualifiedName(NAMESPACE, name));
+			return ENTITY_SET_MAP.get(name);
 		}
 		return null;
 	}
@@ -150,5 +95,107 @@ public class MetisEdmProvider extends EdmProvider {
 		return new EntityContainerInfo()
 			.setName(ENTITY_CONTAINER)
 			.setDefaultEntityContainer(true);
+	}
+
+	// ---------------
+
+	@Override
+	public void handleDataVoSaved(DataVO dataVO) {
+		logger.info("MetisEdmProvider.DataViewChanged: {}", dataVO.getName());
+
+		ENTITY_TYPE_MAP.put(dataVO.getName(), getEntityType(dataVO));
+
+		if (!ENTITY_SET_MAP.containsKey(dataVO.getName())) {
+			ENTITY_SET_MAP.put(dataVO.getName(), getEntitySet(dataVO.getName()));
+		}
+
+		createAndSetSchemaObject();
+	}
+
+	// ------------------------------
+
+	private void createSchema() throws ODataException {
+		try {
+			List<String> dataViewsForOData = dataViewService.listForOData();
+			for (String dataViewName : dataViewsForOData) {
+				try {
+					DataVO dataVO = dataService.loadDataVO(dataViewName);
+					EntityType entityType = getEntityType(dataVO);
+					ENTITY_TYPE_MAP.put(dataViewName, entityType);
+
+					ENTITY_SET_MAP.put(dataViewName, getEntitySet(dataViewName));
+				} catch (Exception e) {
+					logger.error("OData: GetSchema: EntityType(DataView) addition problem = {}", dataViewName, e);
+				}
+			}
+
+			createAndSetSchemaObject();
+		} catch (Exception e) {
+			logger.error("OData: GetSchema", e);
+			throw new ODataException(e);
+		}
+	}
+
+	private void createAndSetSchemaObject() {
+		EntityContainer entityContainer = new EntityContainer()
+			.setName(ENTITY_CONTAINER)
+			.setDefaultEntityContainer(true)
+			.setEntitySets(new ArrayList<>(ENTITY_SET_MAP.values()));
+
+		Schema schema = new Schema()
+			.setNamespace(NAMESPACE)
+			.setEntityTypes(new ArrayList<>(ENTITY_TYPE_MAP.values()))
+			.setEntityContainers(Collections.singletonList(entityContainer));
+		SCHEMA = Collections.singletonList(schema);
+	}
+
+	private EntityType getEntityType(DataVO dataVO) {
+		List<Property> properties = new ArrayList<>();
+
+		PropertyRef key = new PropertyRef().setName(dataVO.getFields().get(0).getName());
+
+		for (DataAbstractFieldVO fieldVO : dataVO.getAllFields()) {
+			EdmSimpleTypeKind type = EdmSimpleTypeKind.String;
+
+			switch (fieldVO.getType()) {
+				case Integer:
+					type = EdmSimpleTypeKind.Decimal;
+					break;
+				case Real:
+					type = EdmSimpleTypeKind.Double;
+					break;
+				case Date:
+				case DateTime:
+					type = EdmSimpleTypeKind.DateTime;
+					break;
+			}
+
+			Property property = new SimpleProperty()
+				.setName(fieldVO.getName())
+				.setType(type);
+			properties.add(property);
+
+			// TODO Navigation Properties
+
+			if (fieldVO instanceof DataFieldVO) {
+				DataFieldVO dataFieldVO = (DataFieldVO) fieldVO;
+				if (dataFieldVO.getIsKeyFieldSafely()) {
+					key.setName(dataFieldVO.getName());
+				}
+			} else {
+				property.setDocumentation(new Documentation().setSummary("SQL Parameter"));
+			}
+		}
+
+		return new EntityType()
+			.setName(dataVO.getName())
+			.setProperties(properties)
+			.setKey(new Key().setKeys(Collections.singletonList(key)));
+	}
+
+	private EntitySet getEntitySet(String name) {
+		return new EntitySet()
+			.setName(name)
+			.setEntityType(new FullQualifiedName(NAMESPACE, name));
 	}
 }

@@ -19,6 +19,7 @@ import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.*;
+import org.devocative.metis.iservice.IDataEventHandler;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
@@ -46,6 +47,8 @@ public class DataService implements IDataService {
 
 	private static final String DATE_PATTERN = "yyyyMMdd";
 	private static final String DATE_TIME_PATTERN = "yyyyMMddHHmmss";
+
+	private List<IDataEventHandler> handlers = Collections.synchronizedList(new ArrayList<IDataEventHandler>());
 
 	@Autowired
 	private IPersistorService persistorService;
@@ -253,6 +256,10 @@ public class DataService implements IDataService {
 		dataViewService.saveOrUpdate(dataVO.getDataViewId(), dataVO.getTitle(), xDataView, dataVO.getGroups());
 
 		persistorService.commitOrRollback();
+
+		for (IDataEventHandler handler : handlers) {
+			handler.handleDataVoSaved(dataVO);
+		}
 	}
 
 	// ---------------
@@ -454,6 +461,9 @@ public class DataService implements IDataService {
 				request.getName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
 
 			return list;
+		} catch (MetisException e) {
+			logger.error("Execute OData Error: DV=" + request.getName(), e);
+			throw new RuntimeException(e.getCause());
 		} catch (RuntimeException e) {
 			logger.error("Execute OData Error: DV=" + request.getName(), e);
 			throw e;
@@ -712,33 +722,35 @@ public class DataService implements IDataService {
 		stringTemplate.process(bindings);
 	}
 
+	@Override
+	public void addDataEventHandler(IDataEventHandler handler) {
+		handlers.add(handler);
+	}
+
 	// ------------------------------ PRIVATE METHODS
 
 	private DataVO loadDataVOByDataView(DataView dataView) {
 		logger.info("Loading DataView data: DV=[{}] Usr=[{}]", dataView.getName(), securityService.getCurrentUser());
 
-		DataVO result = null;
-		if (dataView != null) {
-			result = new DataVO();
+		DataVO result = new DataVO();
 
-			XDataView xDataView = dataViewService.getXDataView(dataView);
+		XDataView xDataView = dataViewService.getXDataView(dataView);
 
-			if (dataView.getDataSourceId() == null || !dataView.getDataSourceId().equals(xDataView.getDataSourceId())) {
-				throw new MetisException(MetisErrorCode.InvalidDataViewState);
-			}
-
-			result.setTitle(dataView.getTitle());
-			result.setGroups(dataView.getGroups());
-
-			updateDataVOByDataSource(result, dataView.getDataSourceId());
-			result.setDataViewId(dataView.getId());
-
-			result.fromXDataView(xDataView);
-
-			result.setDataSourceEditable(
-				result.getName() != null && result.getName().equals(result.getDataSourceName())
-			);
+		if (dataView.getDataSourceId() == null || !dataView.getDataSourceId().equals(xDataView.getDataSourceId())) {
+			throw new MetisException(MetisErrorCode.InvalidDataViewState);
 		}
+
+		result.setTitle(dataView.getTitle());
+		result.setGroups(dataView.getGroups());
+
+		updateDataVOByDataSource(result, dataView.getDataSourceId());
+		result.setDataViewId(dataView.getId());
+
+		result.fromXDataView(xDataView);
+
+		result.setDataSourceEditable(
+			result.getName() != null && result.getName().equals(result.getDataSourceName())
+		);
 		return result;
 	}
 

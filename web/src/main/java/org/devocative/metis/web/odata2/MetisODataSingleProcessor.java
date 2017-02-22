@@ -11,14 +11,13 @@ import org.apache.olingo.odata2.api.uri.info.*;
 import org.devocative.demeter.core.ModuleLoader;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
+import org.devocative.metis.vo.DataParameterVO;
+import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.query.ODataQVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MetisODataSingleProcessor extends ODataSingleProcessor {
 	private static final Logger logger = LoggerFactory.getLogger(MetisODataSingleProcessor.class);
@@ -80,7 +79,14 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		Map<String, Object> inputParams = new HashMap<>();
 
 		if (uriInfo.getFilter() != null) {
-			SQLExpressionVisitor visitor = new SQLExpressionVisitor(inputParams);
+			DataVO dataVO = dataService.loadDataVO(entitySet.getEntityType().getName());
+			List<DataParameterVO> params = dataVO.getParams();
+			List<String> mainQueryParams = new ArrayList<>();
+			for (DataParameterVO param : params) {
+				mainQueryParams.add(param.getName());
+			}
+
+			SQLExpressionVisitor visitor = new SQLExpressionVisitor(inputParams, mainQueryParams);
 			Object accept = uriInfo.getFilter().accept(visitor);
 
 			logger.info("\tOData: Filter Expr=[{}] Params=[{}]", accept, visitor.getParamsValue());
@@ -145,7 +151,14 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		Map<String, Object> inputParams = new HashMap<>();
 
 		if (uriInfo.getFilter() != null) {
-			SQLExpressionVisitor visitor = new SQLExpressionVisitor(inputParams);
+			DataVO dataVO = dataService.loadDataVO(entitySet.getEntityType().getName());
+			List<DataParameterVO> params = dataVO.getParams();
+			List<String> mainQueryParams = new ArrayList<>();
+			for (DataParameterVO param : params) {
+				mainQueryParams.add(param.getName());
+			}
+
+			SQLExpressionVisitor visitor = new SQLExpressionVisitor(inputParams, mainQueryParams);
 			Object accept = uriInfo.getFilter().accept(visitor);
 
 			logger.info("\tOData Count: Filter Expr=[{}] Params=[{}]", accept, visitor.getParamsValue());

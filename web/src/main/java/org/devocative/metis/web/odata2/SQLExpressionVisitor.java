@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,16 +48,13 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 
 	private Map<String, Object> paramsValue;
 	private int paramIndex = 0;
+	private List<String> mainQueryParams;
 
 	// ------------------------------
 
-	public SQLExpressionVisitor() {
-		this(new HashMap<String, Object>());
-	}
-
-	// Main Constructor
-	public SQLExpressionVisitor(Map<String, Object> paramsValue) {
+	public SQLExpressionVisitor(Map<String, Object> paramsValue, List<String> mainQueryParams) {
 		this.paramsValue = paramsValue;
+		this.mainQueryParams = mainQueryParams;
 	}
 
 	// ------------------------------
@@ -139,7 +135,23 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 		String left = createOperand(binaryExpression.getLeftOperand(), leftSide);
 		String right = createOperand(binaryExpression.getRightOperand(), rightSide);
 
-		if (isOperator) {
+		if (mainQueryParams.contains(left)) {
+			if (right.startsWith(":")) {
+				Object realValue = paramsValue.get(right.substring(1));
+				paramsValue.put(left, realValue);
+				return "1=1";
+			} else {
+				throw new RuntimeException("Using parameter as a column: " + left);
+			}
+		} else if (mainQueryParams.contains(right)) {
+			if (left.startsWith(":")) {
+				Object realValue = paramsValue.get(left.substring(1));
+				paramsValue.put(right, realValue);
+				return "1=1";
+			} else {
+				throw new RuntimeException("Using parameter as a column: " + right);
+			}
+		} else if (isOperator) {
 			return String.format("(%s %s %s)", left, sqlOpr, right);
 		} else {
 			return String.format("%s(%s,%s)", sqlOpr, left, right);
