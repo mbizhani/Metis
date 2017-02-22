@@ -12,7 +12,6 @@ import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.iservice.data.IReportService;
 import org.devocative.wickomp.WPanel;
-import org.devocative.wickomp.async.AsyncBehavior;
 import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.tab.OTab;
 import org.devocative.wickomp.html.tab.WTabbedPanel;
@@ -38,9 +37,6 @@ public class ReportMenuDPage extends DPage {
 			new ResourceModel("Report.menu.tab", "Reports List"));
 
 		add(tabPanel);
-
-		// TODO
-		add(new AsyncBehavior());
 	}
 
 	// ------------------------------
