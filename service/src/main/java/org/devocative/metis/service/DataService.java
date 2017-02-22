@@ -271,7 +271,7 @@ public class DataService implements IDataService {
 		long start = System.currentTimeMillis();
 
 		DataView dataView = dataViewService.loadByName(request.getName());
-		XDataView xDataView = dataViewService.getXDataView(dataView);
+		XDataView xDataView = dataView.getXDataView();
 
 		List<String> selectFields = getSelectedFields(xDataView, true);
 
@@ -342,7 +342,7 @@ public class DataService implements IDataService {
 		long start = System.currentTimeMillis();
 
 		DataView dataView = dataViewService.loadByName(request.getName());
-		XDataView xDataView = dataViewService.getXDataView(dataView);
+		XDataView xDataView = dataView.getXDataView();
 
 		DataSource dataSource = dataSourceService.load(xDataView.getDataSourceId());
 		XDataSource xDataSource = dataSource.getXDataSource();
@@ -409,7 +409,7 @@ public class DataService implements IDataService {
 		long start = System.currentTimeMillis();
 
 		DataView dataView = dataViewService.loadByName(request.getName());
-		XDataView xDataView = dataViewService.getXDataView(dataView);
+		XDataView xDataView = dataView.getXDataView();
 
 		List<String> selectFields = getSelectedFields(xDataView, true);
 
@@ -437,7 +437,7 @@ public class DataService implements IDataService {
 
 		try {
 			DataView dataView = dataViewService.loadByName(request.getName());
-			XDataView xDataView = dataViewService.getXDataView(dataView);
+			XDataView xDataView = dataView.getXDataView();
 
 			List<String> selectFields = getSelectedFields(xDataView, false);
 
@@ -477,7 +477,7 @@ public class DataService implements IDataService {
 
 		try {
 			DataView dataView = dataViewService.loadByName(request.getName());
-			XDataView xDataView = dataViewService.getXDataView(dataView);
+			XDataView xDataView = dataView.getXDataView();
 
 			Map<String, Object> inputParams = new HashMap<>();
 			if (request.getInputParams() != null) {
@@ -734,7 +734,7 @@ public class DataService implements IDataService {
 
 		DataVO result = new DataVO();
 
-		XDataView xDataView = dataViewService.getXDataView(dataView);
+		XDataView xDataView = dataView.getXDataView();
 
 		if (dataView.getDataSourceId() == null || !dataView.getDataSourceId().equals(xDataView.getDataSourceId())) {
 			throw new MetisException(MetisErrorCode.InvalidDataViewState);

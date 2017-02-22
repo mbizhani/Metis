@@ -309,14 +309,16 @@ public class DataViewFilterPanel extends DPanel {
 			List<String> defaults = webParams.get(MetisWebParam.DEFAULT_FILTER_VALUE);
 			for (String def : defaults) {
 				int i = def.indexOf("~");
-				String field = def.substring(0, i);
-				String value = def.substring(i + 1);
+				if (i > 0) {
+					String field = def.substring(0, i);
+					String value = def.substring(i + 1);
 
-				if (!result.containsKey(field)) {
-					result.put(field, new ArrayList<String>());
+					if (!result.containsKey(field)) {
+						result.put(field, new ArrayList<String>());
+					}
+
+					result.get(field).add(value);
 				}
-
-				result.get(field).add(value);
 			}
 		}
 		return result;

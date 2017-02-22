@@ -2,6 +2,7 @@ package org.devocative.metis.entity.data;
 
 import org.devocative.demeter.entity.*;
 import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.data.config.XDataView;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -58,7 +59,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		inverseForeignKey = @ForeignKey(name = "dataview_group2group"))
 	private List<DataGroup> groups;
 
-	// ----------------------------- CREATE / MODIFY
+	// --------------- CREATE / MODIFY
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -90,7 +91,12 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
-	// ----------------------------- CONSTRUCTORS
+	// ---------------
+
+	@Transient
+	private XDataView xDataView;
+
+	// ------------------------------
 
 	public DataView() {
 	}
@@ -103,7 +109,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		this.name = name;
 	}
 
-	// ----------------------------- ACCESSORS
+	// ------------------------------
 
 	public Long getId() {
 		return id;
@@ -161,7 +167,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		this.groups = groups;
 	}
 
-	// ----------------------------- CREATE / MODIFY ACCESSORS
+	// ---------------
 
 	@Override
 	public Date getCreationDate() {
@@ -221,7 +227,17 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		this.version = version;
 	}
 
-	// ----------------------------- OBJECT METHODS
+	// ---------------
+
+	public XDataView getXDataView() {
+		return xDataView;
+	}
+
+	public void setXDataView(XDataView xDataView) {
+		this.xDataView = xDataView;
+	}
+
+	// ---------------
 
 	@Override
 	public boolean equals(Object o) {

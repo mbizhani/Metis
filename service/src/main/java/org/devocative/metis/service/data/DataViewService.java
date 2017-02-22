@@ -3,6 +3,7 @@ package org.devocative.metis.service.data;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
+import org.devocative.adroit.xml.AdroitXStream;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
@@ -37,7 +38,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 
 	@PostConstruct
 	public void initDataViewService() {
-		xStream = new XStream();
+		xStream = new AdroitXStream();
 		xStream.processAnnotations(XDataView.class);
 
 		dataViewCache = cacheService.create("MTS_DATA_VIEW", 50);
@@ -68,6 +69,9 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 				.addWhere("and ent.name = :name")
 				.addParam("name", name)
 				.object();
+
+			dv.setXDataView((XDataView) xStream.fromXML(dv.getConfig().getValue()));
+
 			dataViewCache.put(dv.getId(), dv);
 		}
 		return dv;
@@ -123,7 +127,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 	// IMissedHitHandler
 	@Override
 	public DataView loadForCache(Long key) {
-		return persistorService
+		DataView dv = persistorService
 			.createQueryBuilder()
 			.addFrom(DataView.class, "ent")
 			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
@@ -131,11 +135,8 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 			.addWhere("and ent.id = :id")
 			.addParam("id", key)
 			.object();
-	}
-
-	@Override
-	public XDataView getXDataView(DataView dataView) {
-		return (XDataView) xStream.fromXML(dataView.getConfig().getValue());
+		dv.setXDataView((XDataView) xStream.fromXML(dv.getConfig().getValue()));
+		return dv;
 	}
 
 	@Override
@@ -162,6 +163,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataView);
 
+		dataView.setXDataView(xDataView);
 		dataViewCache.update(dataView.getId(), dataView);
 	}
 

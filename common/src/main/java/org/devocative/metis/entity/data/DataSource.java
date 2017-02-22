@@ -251,9 +251,8 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 		return xDataSource;
 	}
 
-	public DataSource setXDataSource(XDataSource xDataSource) {
+	public void setXDataSource(XDataSource xDataSource) {
 		this.xDataSource = xDataSource;
-		return this;
 	}
 
 	// --------------- OBJECT METHODS
