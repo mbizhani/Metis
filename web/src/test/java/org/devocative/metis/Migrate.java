@@ -3,7 +3,7 @@ package org.devocative.metis;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
-import org.devocative.demeter.core.ModuleLoader;
+import org.devocative.demeter.core.DemeterCore;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.data.DataSource;
@@ -25,9 +25,9 @@ public class Migrate {
 
 		ConfigUtil.addKey("dmt.db.interceptor", "none", false);
 
-		ModuleLoader.init();
+		DemeterCore.init();
 
-		ApplicationContext ctx = ModuleLoader.getApplicationContext();
+		ApplicationContext ctx = DemeterCore.getApplicationContext();
 
 		persistorService = ctx.getBean(IPersistorService.class);
 
@@ -72,7 +72,7 @@ public class Migrate {
 		}
 
 		persistorService.endSession();
-		ModuleLoader.shutdown();
+		DemeterCore.shutdown();
 	}
 
 	private static XDataView create(DataSource dataSource, XDataSource xDataSource) {

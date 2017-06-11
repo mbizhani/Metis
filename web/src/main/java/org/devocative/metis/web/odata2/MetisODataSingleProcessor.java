@@ -8,7 +8,7 @@ import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.expression.OrderExpression;
 import org.apache.olingo.odata2.api.uri.info.*;
-import org.devocative.demeter.core.ModuleLoader;
+import org.devocative.demeter.core.DemeterCore;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataParameterVO;
@@ -30,8 +30,8 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 	// ------------------------------
 
 	private MetisODataSingleProcessor() {
-		dataService = ModuleLoader.getApplicationContext().getBean(IDataService.class);
-		securityService = ModuleLoader.getApplicationContext().getBean(ISecurityService.class);
+		dataService = DemeterCore.getApplicationContext().getBean(IDataService.class);
+		securityService = DemeterCore.getApplicationContext().getBean(ISecurityService.class);
 	}
 
 	// ------------------------------

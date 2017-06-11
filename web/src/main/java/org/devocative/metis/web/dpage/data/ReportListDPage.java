@@ -98,7 +98,7 @@ public class ReportListDPage extends DPage implements IGridDataSource<Report> {
 		});
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
-		floatTable.setEqualWidth(true);
+		//floatTable.setEqualWidth(true);
 		floatTable.add(new WTextInput("title")
 			.setLabel(new ResourceModel("Report.title")));
 		floatTable.add(new WSelectionInput("dataView", reportService.getDataViewList(), true)

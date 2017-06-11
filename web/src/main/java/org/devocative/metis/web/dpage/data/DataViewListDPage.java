@@ -82,7 +82,7 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 		super.onInitialize();
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
-		floatTable.setEqualWidth(true);
+		//floatTable.setEqualWidth(true);
 		floatTable.add(new WTextInput("name")
 			.setLabel(new ResourceModel("DataView.name")));
 		floatTable.add(new WTextInput("title")

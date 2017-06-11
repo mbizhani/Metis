@@ -121,7 +121,7 @@ public class DataViewFilterPanel extends DPanel {
 			Collections.<String>emptyList();
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
-		floatTable.setEqualWidth(true);
+		//floatTable.setEqualWidth(true);
 		add(floatTable);
 
 		floatTable.add(new ListView<DataAbstractFieldVO>("fields", dataService.findFilteringFields(fields)) {

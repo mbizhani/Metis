@@ -4,7 +4,7 @@ import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
 import org.apache.olingo.odata2.api.edm.FullQualifiedName;
 import org.apache.olingo.odata2.api.edm.provider.*;
 import org.apache.olingo.odata2.api.exception.ODataException;
-import org.devocative.demeter.core.ModuleLoader;
+import org.devocative.demeter.core.DemeterCore;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataEventHandler;
 import org.devocative.metis.iservice.IDataService;
@@ -38,11 +38,11 @@ public class MetisEdmProvider extends EdmProvider implements IDataEventHandler {
 	// ------------------------------
 
 	private MetisEdmProvider() {
-		dataService = ModuleLoader.getApplicationContext().getBean(IDataService.class);
+		dataService = DemeterCore.getApplicationContext().getBean(IDataService.class);
 		dataService.addDataEventHandler(this);
 
-		dataViewService = ModuleLoader.getApplicationContext().getBean(IDataViewService.class);
-		securityService = ModuleLoader.getApplicationContext().getBean(ISecurityService.class);
+		dataViewService = DemeterCore.getApplicationContext().getBean(IDataViewService.class);
+		securityService = DemeterCore.getApplicationContext().getBean(ISecurityService.class);
 
 		try {
 			createSchema();

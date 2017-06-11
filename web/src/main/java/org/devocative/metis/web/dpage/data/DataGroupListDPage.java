@@ -98,7 +98,7 @@ public class DataGroupListDPage extends DPage implements IGridDataSource<DataGro
 		});
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
-		floatTable.setEqualWidth(true);
+		//floatTable.setEqualWidth(true);
 		floatTable.add(new WTextInput("name")
 			.setLabel(new ResourceModel("DataGroup.name")));
 		floatTable.add(new WDateRangeInput("creationDate")

@@ -59,7 +59,7 @@ public class DataSourceListDPage extends DPage {
 
 		Form<DataSourceFVO> form = new Form<>("form", new CompoundPropertyModel<>(filter));
 		WFloatTable floatTable = new WFloatTable("floatTable");
-		floatTable.setEqualWidth(true);
+		//floatTable.setEqualWidth(true);
 		floatTable.add(new WTextInput("name").setLabel(new ResourceModel("DataSource.name")));
 		floatTable.add(new WTextInput("title").setLabel(new ResourceModel("DataSource.title")));
 		floatTable.add(new WSelectionInput("connection", dbConnectionService.list(), true).setLabel(new ResourceModel("DataSource.connection")));

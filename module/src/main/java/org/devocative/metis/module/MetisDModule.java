@@ -14,6 +14,6 @@ public class MetisDModule implements DModule {
 
 	@Override
 	public ApplicationLifecyclePriority getLifecyclePriority() {
-		return ApplicationLifecyclePriority.Low;
+		return ApplicationLifecyclePriority.Fourth;
 	}
 }

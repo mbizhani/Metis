@@ -124,7 +124,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@Override
 	public ApplicationLifecyclePriority getLifecyclePriority() {
-		return ApplicationLifecyclePriority.Medium;
+		return ApplicationLifecyclePriority.Third;
 	}
 
 	// ------------------------------ IRequestLifecycle
