@@ -52,7 +52,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	//TODO relation to itself for LookUp & Details
 
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "mt_dataview_group",
+	@JoinTable(name = "mt_mts_dataview_group",
 		joinColumns = {@JoinColumn(name = "f_data_view")},
 		inverseJoinColumns = {@JoinColumn(name = "f_group")},
 		foreignKey = @ForeignKey(name = "dataview_group2dataview"),

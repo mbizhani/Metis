@@ -39,7 +39,7 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 	private Long dataViewId;
 
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "mt_report_group",
+	@JoinTable(name = "mt_mts_report_group",
 		joinColumns = {@JoinColumn(name = "f_report")},
 		inverseJoinColumns = {@JoinColumn(name = "f_group")},
 		foreignKey = @ForeignKey(name = "report_group2report"),

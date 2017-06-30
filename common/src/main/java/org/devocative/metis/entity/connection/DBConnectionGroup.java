@@ -10,7 +10,9 @@ import java.util.Date;
 
 @Audited
 @Entity
-@Table(name = "t_mts_db_conn_grp")
+@Table(name = "t_mts_db_conn_grp", uniqueConstraints = {
+	@UniqueConstraint(name = "uk_mts_dbconngrp_name", columnNames = {"c_name"})
+})
 public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	private static final long serialVersionUID = -2484087648382976449L;
 
@@ -25,7 +27,7 @@ public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModifica
 		})
 	private Long id;
 
-	@Column(name = "c_name", nullable = false, unique = true)
+	@Column(name = "c_name", nullable = false)
 	private String name;
 
 	@Column(name = "c_driver")

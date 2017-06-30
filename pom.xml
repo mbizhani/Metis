@@ -48,14 +48,14 @@
 	</scm>
 
 	<properties>
-		<lang.level>1.7</lang.level>
+		<lang.level>1.8</lang.level>
 		<jetty.port>8080</jetty.port>
 		<jetty.context>/ctx</jetty.context>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<d.xstream.ver>1.4.9</d.xstream.ver>
 		<d.demeter.ver>1.0-SNAPSHOT</d.demeter.ver>
-		<d.spring.ver>4.3.3.RELEASE</d.spring.ver>
+		<d.spring.ver>4.3.9.RELEASE</d.spring.ver>
 		<d.servlet.ver>3.1.0</d.servlet.ver>
 
 		<p.jetty.ver>9.2.15.v20160210</p.jetty.ver>

@@ -8,7 +8,7 @@
 		shortName="MTS"
 		mainClass="org.devocative.metis.module.MetisDModule"
 		mainResource="org.devocative.metis.web.MetisDModule"
-		configKeysClass="org.devocative.metis.MetisConfigKey">
+		configKeyClass="org.devocative.metis.MetisConfigKey">
 
 	<entities>
 		<entity type="org.devocative.metis.entity.ConfigLob"/>
