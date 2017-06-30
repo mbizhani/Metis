@@ -8,6 +8,7 @@
 		shortName="MTS"
 		mainClass="org.devocative.metis.module.MetisDModule"
 		mainResource="org.devocative.metis.web.MetisDModule"
+		privilegeKeyClass="org.devocative.metis.MetisPrivilegeKey"
 		configKeyClass="org.devocative.metis.MetisConfigKey">
 
 	<entities>
@@ -32,47 +33,73 @@
 		<dPage type="org.devocative.metis.web.dpage.data.form.DataViewFormDPage"
 			   title="KEY:dPage.mts.DataViewForm"
 			   uri="/dvForm"
-			   inMenu="true"/>
+			   inMenu="true"
+			   roles="User"
+				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataViewExecutorDPage"
 			   title="KEY:dPage.mts.DataViewExecutor"
 			   uri="/dvExec"
-			   inMenu="false"/>
+			   inMenu="false"
+			   roles="User"
+				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataViewListDPage"
 			   title="KEY:dPage.mts.DataViewList"
 			   uri="/dvList"
-			   inMenu="true"/>
+			   inMenu="true"
+			   roles="User"
+				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataSourceListDPage"
 			   title="KEY:dPage.mts.DataSourceList"
 			   uri="/dsList"
-			   inMenu="true"/>
+			   inMenu="true"
+			   roles="User"
+				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataGroupListDPage"
 			   title="KEY:dPage.mts.DataGroupList"
 			   uri="/dgList"
-			   inMenu="true"/>
+			   inMenu="true"
+			   roles="User"
+				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.ReportListDPage"
 			   title="KEY:dPage.mts.ReportList"
 			   uri="/reports"
-			   inMenu="true"/>
+			   inMenu="true"
+			   roles="User"
+				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.menu.ReportMenuDPage"
 			   title="KEY:dPage.mts.ReportMenu"
 			   uri="/rptmenu"
-			   inMenu="true"/>
+			   inMenu="true"
+			   roles="User"
+				/>
 
+		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionGroupListDPage"
+			   title="KEY:dPage.mts.DBConnectionGroupList"
+			   uri="/connGroups"
+			   inMenu="true"
+			   roles="User"
+				/>
 
+		<!-- TODO: DEPRECATED -->
 		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionForm"
 			   title="KEY:dPage.mts.DBConnectionForm"
 			   uri="/dbcForm"
-			   inMenu="true"/>
+			   inMenu="true"
+			   roles="User"
+				/>
 
+		<!-- TODO: DEPRECATED -->
 		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionGroupForm"
 			   title="KEY:dPage.mts.DBConnectionGroupForm"
 			   uri="/dbcGrpForm"
-			   inMenu="true"/>
+			   inMenu="true"
+			   roles="User"
+				/>
 	</dPages>
 </module>

@@ -1,17 +1,29 @@
 package org.devocative.metis.iservice.connection;
 
+import org.devocative.demeter.entity.User;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
+import org.devocative.metis.vo.filter.connection.DBConnectionGroupFVO;
 
 import java.util.List;
 
 public interface IDBConnectionGroupService {
-	List<DBConnectionGroup> search(long pageIndex, long pageSize);
+	void saveOrUpdate(DBConnectionGroup entity);
 
-	long count();
+	DBConnectionGroup load(Long id);
 
-	void saveOrUpdate(DBConnectionGroup dbConnectionGroup, String mappingXML);
-
-	DBConnectionGroup getByName(String name);
+	DBConnectionGroup loadByName(String name);
 
 	List<DBConnectionGroup> list();
+
+	List<DBConnectionGroup> search(DBConnectionGroupFVO filter, long pageIndex, long pageSize);
+
+	long count(DBConnectionGroupFVO filter);
+
+	List<User> getCreatorUserList();
+
+	List<User> getModifierUserList();
+
+	// ==============================
+
+	void saveOrUpdate(DBConnectionGroup dbConnectionGroup, String mappingXML);
 }

@@ -13,6 +13,7 @@ import org.devocative.demeter.web.component.DButton;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.iservice.connection.IDBConnectionGroupService;
+import org.devocative.metis.vo.filter.connection.DBConnectionGroupFVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.form.WTextInput;
@@ -30,6 +31,7 @@ import org.devocative.wickomp.opt.OHorizontalAlign;
 import javax.inject.Inject;
 import java.util.List;
 
+@Deprecated
 public class DBConnectionGroupForm extends DPage {
 	private static final long serialVersionUID = -1203339338350100077L;
 
@@ -48,7 +50,7 @@ public class DBConnectionGroupForm extends DPage {
 
 		DBConnectionGroup dbConnectionGroup = params.size() == 0 ?
 			new DBConnectionGroup() :
-			connectionGroupService.getByName(params.get(0));
+			connectionGroupService.loadByName(params.get(0));
 
 		final Form<DBConnectionGroup> form = new Form<>("form", new CompoundPropertyModel<>(dbConnectionGroup));
 		form.setMultiPart(true);
@@ -83,9 +85,9 @@ public class DBConnectionGroupForm extends DPage {
 		west.add(form);
 
 		OColumnList<DBConnectionGroup> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("DBConnection.name"), "name"));
-		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("DBConnection.driver"), "driver"));
-		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("DBConnection.url"), "url"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.name"), "name"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.driver"), "driver"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.url"), "url"));
 		columnList.add(new OColumn<DBConnectionGroup>(new ResourceModel("DBConnection.testQuery")) {
 			private static final long serialVersionUID = -6779049575847536279L;
 
@@ -114,12 +116,12 @@ public class DBConnectionGroupForm extends DPage {
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("entity.creationDate", "Creation Date"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
-		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("entity.creatorUser", "Creator User"), "creatorUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.creatorUser", "Creator User"), "creatorUser"));
 		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("entity.modificationDate", "Modification Date"), "modificationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
-		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("entity.modifierUser", "Modifier User"), "modifierUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.modifierUser", "Modifier User"), "modifierUser"));
 
-		columnList.add(new ORESTLinkColumn<DBConnectionGroup>(new Model<String>(), DBConnectionGroupForm.class, "name", MetisIcon.EDIT));
+		columnList.add(new ORESTLinkColumn<>(new Model<>(), DBConnectionGroupForm.class, "name", MetisIcon.EDIT));
 
 		OGrid<DBConnectionGroup> oGrid = new OGrid<>();
 		oGrid
@@ -132,12 +134,12 @@ public class DBConnectionGroupForm extends DPage {
 
 			@Override
 			public List<DBConnectionGroup> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
-				return connectionGroupService.search(pageIndex, pageSize);
+				return connectionGroupService.search(new DBConnectionGroupFVO(), pageIndex, pageSize);
 			}
 
 			@Override
 			public long count() {
-				return connectionGroupService.count();
+				return connectionGroupService.count(new DBConnectionGroupFVO());
 			}
 
 			@Override
