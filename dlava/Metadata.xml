@@ -8,7 +8,7 @@
 	<filterClass>targetClass.entity</filterClass>
 	<classes>
 		<class fqn="org.devocative.metis.entity.ConfigLob">
-			<cinfo/>
+			<cinfo ignore="true"/>
 			<id ref="id"/>
 			<fields>
 				<field name="id">
@@ -60,25 +60,25 @@
 					<finfo/>
 				</field>
 				<field name="password">
-					<finfo/>
+					<finfo hasFVO="false" hasList="false"/>
 				</field>
 				<field name="schema">
 					<finfo/>
 				</field>
 				<field name="testQuery">
-					<finfo/>
+					<finfo hasList="false" hasFVO="false"/>
 				</field>
 				<field name="group">
 					<finfo/>
 				</field>
 				<field name="groupId">
-					<finfo/>
+					<finfo ignore="true"/>
 				</field>
 				<field name="config">
-					<finfo/>
+					<finfo ignore="true"/>
 				</field>
 				<field name="configId">
-					<finfo/>
+					<finfo ignore="true"/>
 				</field>
 				<field name="creationDate">
 					<finfo hasForm="false" hasTimePart="true"/>
@@ -120,7 +120,7 @@
 					<finfo/>
 				</field>
 				<field name="testQuery">
-					<finfo/>
+					<finfo hasList="false" hasFVO="false"/>
 				</field>
 				<field name="config">
 					<finfo ignore="true"/>
@@ -245,6 +245,9 @@
 				<field name="version">
 					<finfo hasForm="false" hasFVO="false"/>
 				</field>
+				<field name="xDataSource">
+					<finfo ignore="true"/>
+				</field>
 			</fields>
 		</class>
 		<class fqn="org.devocative.metis.entity.data.DataSourceRelation">
@@ -349,6 +352,9 @@
 				</field>
 				<field name="version">
 					<finfo hasForm="false" hasFVO="false"/>
+				</field>
+				<field name="xDataView">
+					<finfo ignore="true"/>
 				</field>
 			</fields>
 		</class>

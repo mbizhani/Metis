@@ -10,14 +10,15 @@
 			def params = [
 				moduleShortName : "MTS".toLowerCase(),
 				ajaxEditColumn  : true,
-				iconClass       : org.devocative.metis.web.MetisIcon
+				iconClass       : org.devocative.metis.web.MetisIcon,
+				privilegeClass  : org.devocative.metis.MetisPrivilegeKey
 			]
 		]]>
 	</pre>
 
 	<packageMap>
 		<!-- DataGroup,DataView, -->
-		<from pkg="org.devocative.metis.entity" includeSubPackages="true" includePattern="Report">
+		<from pkg="org.devocative.metis.entity" includeSubPackages="true" includePattern=".*DBConnection">
 			<to pkgReplace="entity:vo.filter" generatorRef="FVO" genDir="common/src/main/java"/>
 
 			<to pkgReplace="entity:iservice" generatorRef="ServiceI" genDir="common/src/main/java"/>

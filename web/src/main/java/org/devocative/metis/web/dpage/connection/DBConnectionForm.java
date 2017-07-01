@@ -19,6 +19,7 @@ import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.iservice.connection.IDBConnectionGroupService;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
+import org.devocative.metis.vo.filter.connection.DBConnectionFVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.form.WSelectionInput;
@@ -40,6 +41,7 @@ import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 
+@Deprecated
 public class DBConnectionForm extends DPage {
 
 	private static final long serialVersionUID = 6767061177987559239L;
@@ -145,7 +147,7 @@ public class DBConnectionForm extends DPage {
 					error(getString("Required", getMapModel("DBConnection.testQuery")));
 				}
 				if (valid) {
-					connectionService.saveOrUpdate(modelObject, mappingXML);
+					connectionService.saveOrUpdate(modelObject, mappingXML, null);
 				}
 			}
 		});
@@ -155,12 +157,12 @@ public class DBConnectionForm extends DPage {
 		form.add(new EqualPasswordInputValidator(password, password2));
 
 		OColumnList<DBConnection> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.name"), "name"));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.group"), "group"));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.driver"), "safeDriver"));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.url"), "safeUrl"));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.username"), "username"));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.schema"), "schema"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.name"), "name"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.group"), "group"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.driver"), "safeDriver"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.url"), "safeUrl"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.username"), "username"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.schema"), "schema"));
 		columnList.add(new OColumn<DBConnection>(new ResourceModel("DBConnection.testQuery")) {
 			private static final long serialVersionUID = 1282233385153044702L;
 
@@ -189,13 +191,13 @@ public class DBConnectionForm extends DPage {
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creationDate", "Creation Date"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creatorUser", "Creator User"), "creatorUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.creatorUser", "Creator User"), "creatorUser"));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.modificationDate", "Modification Date"), "modificationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.modifierUser", "Modifier User"), "modifierUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.modifierUser", "Modifier User"), "modifierUser"));
 
-		columnList.add(new ORESTLinkColumn<DBConnection>(new Model<String>(), DBConnectionForm.class, "name", MetisIcon.EDIT));
-		columnList.add(new OAjaxLinkColumn<DBConnection>(new Model<String>(), MetisIcon.CHECK_CONNECTION) {
+		columnList.add(new ORESTLinkColumn<>(new Model<>(), DBConnectionForm.class, "name", MetisIcon.EDIT));
+		columnList.add(new OAjaxLinkColumn<DBConnection>(new Model<>(), MetisIcon.CHECK_CONNECTION) {
 			private static final long serialVersionUID = 2470902620673067344L;
 
 			@Override
@@ -205,7 +207,7 @@ public class DBConnectionForm extends DPage {
 				target.appendJavaScript(String.format("alert('%s');", msg));
 			}
 		});
-		columnList.add(new OAjaxLinkColumn<DBConnection>(new Model<String>(), MetisIcon.DEFAULT_CONNECTION) {
+		columnList.add(new OAjaxLinkColumn<DBConnection>(new Model<>(), MetisIcon.DEFAULT_CONNECTION) {
 			private static final long serialVersionUID = 4438846282287451624L;
 
 			@Override
@@ -233,12 +235,12 @@ public class DBConnectionForm extends DPage {
 
 			@Override
 			public List<DBConnection> list(long pageIndex, long pageSize, List<WSortField> sortFields) {
-				return connectionService.search(pageIndex, pageSize);
+				return connectionService.search(new DBConnectionFVO(), pageIndex, pageSize);
 			}
 
 			@Override
 			public long count() {
-				return connectionService.count();
+				return connectionService.count(new DBConnectionFVO());
 			}
 
 			@Override
