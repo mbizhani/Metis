@@ -11,7 +11,10 @@ public enum MetisConfigKey implements IConfigKey {
 	ShowSearchDebugger("mts.search.debugger.visible", true, Arrays.asList(true, false)),
 	IgnoreParameterValues("mts.ignore.param.values"),
 
-	ExportReportExpireDays("mts.export.days", 3)
+	ExportReportExpireDays("mts.export.days", 3),
+
+	ConnectionEncryptPassword("mts.conn.enc.pass", false, Arrays.asList(true, false)),
+	ConnectionCheckUserPassOnSave("mts.conn.check.onsave", true, Arrays.asList(true, false)),
 	;
 	private String key;
 	private boolean validate = false;

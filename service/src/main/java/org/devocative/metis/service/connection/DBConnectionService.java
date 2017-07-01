@@ -2,15 +2,18 @@ package org.devocative.metis.service.connection;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.thoughtworks.xstream.XStream;
+import org.devocative.adroit.ConfigUtil;
+import org.devocative.adroit.StringEncryptorUtil;
 import org.devocative.adroit.cache.ICache;
-import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ApplicationLifecyclePriority;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.IRequestLifecycle;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.demeter.vo.UserVO;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
@@ -26,6 +29,7 @@ import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.vo.DataFieldVO;
+import org.devocative.metis.vo.filter.connection.DBConnectionFVO;
 import org.devocative.metis.vo.query.DbQueryRVO;
 import org.devocative.metis.vo.query.PaginationQVO;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
@@ -85,29 +89,21 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		xstream.processAnnotations(XOne2Many.class);
 
 		dbConnectionCache = cacheService.create("MTS_DB_CONNECTION", 20);
-		dbConnectionCache.setMissedHitHandler(new IMissedHitHandler<Long, DBConnection>() {
-			@Override
-			public DBConnection loadForCache(Long key) {
-				return persistorService.get(DBConnection.class, key);
-			}
-		});
+		dbConnectionCache.setMissedHitHandler(key -> persistorService.get(DBConnection.class, key));
 
 		xSchemaCache = cacheService.create("MTS_DB_X_SCHEMA", 5);
-		xSchemaCache.setMissedHitHandler(new IMissedHitHandler<Long, XSchema>() {
-			@Override
-			public XSchema loadForCache(Long key) {
-				String config = persistorService.createQueryBuilder()
-					.addSelect("select ent.value")
-					.addFrom(ConfigLob.class, "ent")
-					.addWhere("and ent.id = :id")
-					.addParam("id", key)
-					.object();
+		xSchemaCache.setMissedHitHandler(key -> {
+			String config = persistorService.createQueryBuilder()
+				.addSelect("select ent.value")
+				.addFrom(ConfigLob.class, "ent")
+				.addWhere("and ent.id = :id")
+				.addParam("id", key)
+				.object();
 
-				if (config != null) {
-					return (XSchema) xstream.fromXML(config);
-				}
-				return null;
+			if (config != null) {
+				return (XSchema) xstream.fromXML(config);
 			}
+			return null;
 		});
 	}
 
@@ -141,54 +137,13 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	// ------------------------------
 
 	@Override
+	public void saveOrUpdate(DBConnection entity) {
+		persistorService.saveOrUpdate(entity);
+	}
+
+	@Override
 	public DBConnection load(Long id) {
 		return dbConnectionCache.get(id);
-	}
-
-	@Override
-	public List<DBConnection> search(long pageIndex, long pageSize) {
-		return persistorService
-			.createQueryBuilder()
-			.addFrom(DBConnection.class, "ent")
-			.setOrderBy("ent.name")
-			.list((pageIndex - 1) * pageSize, pageSize);
-	}
-
-	@Override
-	public long count() {
-		return persistorService
-			.createQueryBuilder()
-			.addSelect("select count(1)")
-			.addFrom(DBConnection.class, "ent")
-			.object();
-	}
-
-	@Override
-	public void saveOrUpdate(DBConnection dbConnection, String mappingXML) {
-		if (mappingXML != null) {
-			ConfigLob configLob = dbConnection.getConfigId() == null ?
-				new ConfigLob() :
-				persistorService.get(ConfigLob.class, dbConnection.getConfigId());
-			configLob.setValue(mappingXML);
-			persistorService.saveOrUpdate(configLob);
-			dbConnection.setConfig(configLob);
-
-			xSchemaCache.update(configLob.getId(), (XSchema) xstream.fromXML(mappingXML));
-		}
-
-		//TODO encrypt database password before save
-
-		persistorService.saveOrUpdate(dbConnection);
-		persistorService.commitOrRollback();
-
-		dbConnectionCache.update(dbConnection.getId(), dbConnection);
-
-		connectionChanged(dbConnection.getId());
-	}
-
-	@Override
-	public List<DBConnection> list() {
-		return persistorService.list(DBConnection.class);
 	}
 
 	@Override
@@ -206,6 +161,85 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public List<DBConnection> list() {
+		return persistorService.list(DBConnection.class);
+	}
+
+	@Override
+	public List<DBConnection> search(DBConnectionFVO filter, long pageIndex, long pageSize) {
+		return persistorService
+			.createQueryBuilder()
+			.addSelect("select ent")
+			.addFrom(DBConnection.class, "ent")
+			.applyFilter(DBConnection.class, "ent", filter)
+			.list((pageIndex - 1) * pageSize, pageSize);
+	}
+
+	@Override
+	public long count(DBConnectionFVO filter) {
+		return persistorService
+			.createQueryBuilder()
+			.addSelect("select count(1)")
+			.addFrom(DBConnection.class, "ent")
+			.applyFilter(DBConnection.class, "ent", filter)
+			.object();
+	}
+
+	@Override
+	public List<DBConnectionGroup> getGroupList() {
+		return persistorService.list(DBConnectionGroup.class);
+	}
+
+	@Override
+	public List<User> getCreatorUserList() {
+		return persistorService.list(User.class);
+	}
+
+	@Override
+	public List<User> getModifierUserList() {
+		return persistorService.list(User.class);
+	}
+
+	// ==============================
+
+	@Override
+	public void saveOrUpdate(DBConnection dbConnection, String mappingXML, String password) {
+		if (password != null) {
+			if (ConfigUtil.getBoolean(MetisConfigKey.ConnectionEncryptPassword)) {
+				password = StringEncryptorUtil.encrypt(password);
+			}
+			dbConnection.setPassword(password);
+		}
+
+		if (ConfigUtil.getBoolean(MetisConfigKey.ConnectionCheckUserPassOnSave)) {
+			try (Connection simpleConnection = createSimpleConnection(dbConnection)) {
+				Statement statement = simpleConnection.createStatement();
+				statement.executeQuery(dbConnection.getSafeTestQuery());
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		if (mappingXML != null) {
+			ConfigLob configLob = dbConnection.getConfigId() == null ?
+				new ConfigLob() :
+				persistorService.get(ConfigLob.class, dbConnection.getConfigId());
+			configLob.setValue(mappingXML);
+			persistorService.saveOrUpdate(configLob);
+			dbConnection.setConfig(configLob);
+
+			xSchemaCache.update(configLob.getId(), (XSchema) xstream.fromXML(mappingXML));
+		}
+
+		saveOrUpdate(dbConnection);
+		persistorService.commitOrRollback();
+
+		dbConnectionCache.update(dbConnection.getId(), dbConnection);
+
+		connectionChanged(dbConnection.getId());
 	}
 
 	// ---------------
@@ -561,7 +595,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			cpds.setDriverClass(dbConnection.getSafeDriver());
 			cpds.setJdbcUrl(dbConnection.getSafeUrl());
 			cpds.setUser(dbConnection.getUsername());
-			cpds.setPassword(dbConnection.getPassword());
+			cpds.setPassword(getPasswordOf(dbConnection));
 
 			CONNECTION_POOL_MAP.put(dbConnId, cpds);
 		}
@@ -610,6 +644,18 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		}
 
 		currentConnection.remove();
+	}
+
+	private Connection createSimpleConnection(DBConnection dbConnection) throws ClassNotFoundException, SQLException {
+		Class.forName(dbConnection.getSafeDriver());
+
+		return DriverManager.getConnection(dbConnection.getSafeUrl(), dbConnection.getUsername(), getPasswordOf(dbConnection));
+	}
+
+	private String getPasswordOf(DBConnection dbConnection) {
+		return ConfigUtil.getBoolean(MetisConfigKey.ConnectionEncryptPassword) ?
+			StringEncryptorUtil.decrypt(dbConnection.getPassword()) :
+			dbConnection.getPassword();
 	}
 
 	// ------------------------------

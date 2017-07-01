@@ -1,10 +1,12 @@
 package org.devocative.metis.iservice.connection;
 
+import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.IApplicationLifecycle;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.vo.DataFieldVO;
+import org.devocative.metis.vo.filter.connection.DBConnectionFVO;
 import org.devocative.metis.vo.query.DbQueryRVO;
 import org.devocative.metis.vo.query.PaginationQVO;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
@@ -13,17 +15,27 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDBConnectionService extends IApplicationLifecycle {
+	void saveOrUpdate(DBConnection entity);
+
 	DBConnection load(Long id);
 
-	List<DBConnection> search(long pageIndex, long pageSize);
-
-	long count();
-
-	void saveOrUpdate(DBConnection dbConnection, String mappingXML);
+	DBConnection loadByName(String name);
 
 	List<DBConnection> list();
 
-	DBConnection loadByName(String name);
+	List<DBConnection> search(DBConnectionFVO filter, long pageIndex, long pageSize);
+
+	long count(DBConnectionFVO filter);
+
+	List<DBConnectionGroup> getGroupList();
+
+	List<User> getCreatorUserList();
+
+	List<User> getModifierUserList();
+
+	// ==============================
+
+	void saveOrUpdate(DBConnection dbConnection, String mappingXML, String password);
 
 	List<DataFieldVO> findFields(Long id, String sql, Map<String, Object> params);
 

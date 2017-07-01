@@ -4,18 +4,22 @@ package org.devocative.metis.vo.filter.connection;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.persistor.Filterer;
+import org.devocative.metis.entity.connection.DBConnectionGroup;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
 @Filterer
-public class DBConnectionGroupFVO implements Serializable {
-	private static final long serialVersionUID = -1238155173L;
+public class DBConnectionFVO implements Serializable {
+	private static final long serialVersionUID = -1366165756L;
 
 	private String name;
 	private String driver;
 	private String url;
+	private String username;
+	private String schema;
+	private List<DBConnectionGroup> group;
 	private RangeVO<Date> creationDate;
 	private List<User> creatorUser;
 	private RangeVO<Date> modificationDate;
@@ -45,6 +49,30 @@ public class DBConnectionGroupFVO implements Serializable {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getSchema() {
+		return schema;
+	}
+
+	public void setSchema(String schema) {
+		this.schema = schema;
+	}
+
+	public List<DBConnectionGroup> getGroup() {
+		return group;
+	}
+
+	public void setGroup(List<DBConnectionGroup> group) {
+		this.group = group;
 	}
 
 	public RangeVO<Date> getCreationDate() {

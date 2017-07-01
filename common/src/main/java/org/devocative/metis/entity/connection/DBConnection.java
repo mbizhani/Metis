@@ -63,7 +63,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "f_config", insertable = false, updatable = false)
 	private Long configId;
 
-	//----------------------------- CREATE / MODIFY
+	// ---------------
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -95,7 +95,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
-	//----------------------------- CONSTRUCTORS
+	// ------------------------------
 
 	public DBConnection() {
 	}
@@ -104,7 +104,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 		this.id = id;
 	}
 
-	//----------------------------- ACCESSORS
+	// ------------------------------
 
 	public Long getId() {
 		return id;
@@ -197,29 +197,34 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 		return configId;
 	}
 
-	// ------------ Safe Getter
+	// ---------------
+
+	public DBConnectionGroup getSafeGroup() {
+		return getGroup() != null ? getGroup() : new DBConnectionGroup();
+	}
 
 	public String getSafeDriver() {
-		return getDriver() != null ? getDriver() : getGroup().getDriver();
+		return getDriver() != null ? getDriver() : getSafeGroup().getDriver();
 	}
 
 	public String getSafeUrl() {
-		return getUrl() != null ? getUrl() : getGroup().getUrl();
+		return getUrl() != null ? getUrl() : getSafeGroup().getUrl();
 	}
 
 	public String getSafeTestQuery() {
-		return getTestQuery() != null ? getTestQuery() : getGroup().getTestQuery();
+		return getTestQuery() != null ? getTestQuery() : getSafeGroup().getTestQuery();
 	}
 
 	public ConfigLob getSafeConfig() {
-		return getConfig() != null ? getConfig() : getGroup().getConfig();
+		return getConfig() != null ? getConfig() : getSafeGroup().getConfig();
 	}
 
 	public Long getSafeConfigId() {
-		return getConfigId() != null ? getConfigId() : getGroup().getConfigId();
+		return getConfigId() != null ? getConfigId() : getSafeGroup().getConfigId();
 	}
 
-	// ------------ Create/Modify Methods
+	// ---------------
+
 	@Override
 	public Date getCreationDate() {
 		return creationDate;
@@ -277,6 +282,8 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	public void setVersion(Integer version) {
 		this.version = version;
 	}
+
+	// ---------------
 
 	@Override
 	public boolean equals(Object o) {

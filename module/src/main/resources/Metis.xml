@@ -86,6 +86,13 @@
 			   roles="User"
 				/>
 
+		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionListDPage"
+			   title="KEY:dPage.mts.DBConnectionList"
+			   uri="/connections"
+			   inMenu="true"
+			   roles="User"
+				/>
+
 		<!-- TODO: DEPRECATED -->
 		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionForm"
 			   title="KEY:dPage.mts.DBConnectionForm"

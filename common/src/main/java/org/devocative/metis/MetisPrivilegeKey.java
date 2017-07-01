@@ -3,7 +3,8 @@ package org.devocative.metis;
 import org.devocative.demeter.entity.IPrivilegeKey;
 
 public enum MetisPrivilegeKey implements IPrivilegeKey {
-	DBConnectionGroupAdd, DBConnectionGroupEdit;
+	DBConnectionGroupAdd, DBConnectionGroupEdit,
+	DBConnectionAdd, DBConnectionEdit;
 
 	private String name;
 
