@@ -27,6 +27,7 @@ public class ReportExecutorPanel extends WPanel {
 
 	private DataViewGridPanel mainGrid;
 	private Long reportId;
+	private String sentDBConnection;
 
 	private boolean searchOnStart = false;
 	private DAjaxButton search;
@@ -39,10 +40,11 @@ public class ReportExecutorPanel extends WPanel {
 
 	// ------------------------------
 
-	public ReportExecutorPanel(String id, Long reportId) {
+	public ReportExecutorPanel(String id, Long reportId, String sentDBConnection) {
 		super(id);
 
 		this.reportId = reportId;
+		this.sentDBConnection = sentDBConnection;
 	}
 
 	// ------------------------------
@@ -76,6 +78,7 @@ public class ReportExecutorPanel extends WPanel {
 			new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
 				.setWebParams(targetParam)
 				.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
+				.setSentDBConnection(sentDBConnection)
 		);
 
 		search = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
@@ -96,7 +99,9 @@ public class ReportExecutorPanel extends WPanel {
 		}
 
 		mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
-		mainGrid.setWebParams(targetParam);
+		mainGrid
+			.setSentDBConnection(sentDBConnection)
+			.setWebParams(targetParam);
 
 		add(mainGrid);
 	}

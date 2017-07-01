@@ -7,7 +7,9 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.DPage;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.iservice.data.IReportService;
@@ -15,6 +17,7 @@ import org.devocative.wickomp.WPanel;
 import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.tab.OTab;
 import org.devocative.wickomp.html.tab.WTabbedPanel;
+import org.devocative.wickomp.wrcs.CommonBehavior;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +31,7 @@ public class ReportMenuDPage extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(ReportMenuDPage.class);
 
 	private WTabbedPanel tabPanel;
+	private String sentDBConnection;
 
 	public ReportMenuDPage(String id, List<String> params) {
 		super(id, params);
@@ -37,6 +41,9 @@ public class ReportMenuDPage extends DPage {
 			new ResourceModel("Report.menu.tab", "Reports List"));
 
 		add(tabPanel);
+
+		// TODO: the common.css must be after d_dmt.css (at first it is not in the page, and later added by ajax)
+		add(new CommonBehavior());
 	}
 
 	// ------------------------------
@@ -54,6 +61,14 @@ public class ReportMenuDPage extends DPage {
 		@Override
 		protected void onInitialize() {
 			super.onInitialize();
+
+			if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
+				sentDBConnection = getWebRequest()
+					.getRequestParameters()
+					.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
+					.toOptionalString();
+			}
+
 
 			final Map<DataGroup, List<Report>> listPerGroup = reportService.listPerGroup();
 
@@ -82,7 +97,8 @@ public class ReportMenuDPage extends DPage {
 									try {
 										tabPanel.addTab(target, new ReportExecutorPanel(
 												tabPanel.getTabContentId(),
-												report.getId()),
+												report.getId(),
+												sentDBConnection),
 											new OTab(new Model<>(report.getTitle()), true));
 									} catch (Exception e) {
 										logger.error("Showing Report: ", e);
