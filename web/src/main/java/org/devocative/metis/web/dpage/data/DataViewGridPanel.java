@@ -44,7 +44,6 @@ import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
 import org.devocative.wickomp.grid.toolbar.OAjaxLinkButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
-import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.WMessager;
 import org.devocative.wickomp.html.icon.IconFont;
 import org.devocative.wickomp.html.window.WModalWindow;
@@ -84,7 +83,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private List<QueryExecInfoRVO> queryExecInfoList;
 	private WModalWindow modalWindow;
-	private WAjaxLink info;
 
 	// ------------------------------
 
@@ -123,11 +121,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	public void loadData(AjaxRequestTarget target) {
 		grid.setEnabled(true);
 		grid.loadData(target);
-
-		if (!info.isEnabled()) {
-			info.setEnabled(true);
-			target.add(info);
-		}
 	}
 
 	public String getGridHtmlId() {
@@ -241,7 +234,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			OGrid<Map<String, Object>> gridOptions = new OGrid<>();
 			gridOptions
 				.setGroupStyle("background-color:#dddddd")
-				.addToolbarButton(new OGridGroupingButton<Map<String, Object>>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
+				.addToolbarButton(new OGridGroupingButton<>(MetisIcon.EXPAND, MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
 			grid = new WDataGrid<>("grid", gridOptions, this);
@@ -250,7 +243,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			gridOptions
 				.setParentIdField(selfRelPointerField.getName())
 				.setTreeField(titleField != null ? titleField.getName() : null)
-				.addToolbarButton(new OTreeGridClientButton<Map<String, Object>>(MetisIcon.COLLAPSE));
+				.addToolbarButton(new OTreeGridClientButton<>(MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
 			grid = new WTreeGrid<>("grid", gridOptions, this);
@@ -289,14 +282,56 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					WMessager.show("Info", getString("msg.file.under.construction"), target);
 				}
 			})
+			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.ATTACHMENT) {
+				private static final long serialVersionUID = 8420976618508397333L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					FileStoreFVO fvo = new FileStoreFVO();
+					fvo.setTag(dataVO.getName());
+					fvo.setCreatorUser(Collections.singletonList(securityService.getCurrentUser().toUser()));
+					fvo.setStatus(Collections.singletonList(EFileStatus.VALID));
+
+					modalWindow.setContent(
+						new FileStoreListDPage(modalWindow.getContentId(), fvo)
+							.setGridFit(true)
+							.setFormVisible(false)
+							.setRemoveColumns("mimeType", "storage", "status", "fileId",
+								"creatorUser", "modificationDate", "modifierUser", "version", "EDIT")
+					);
+					modalWindow.getOptions()
+						.setFit(null)
+						.setWidth(OSize.fixed(700))
+						.setHeight(OSize.fixed(400));
+					modalWindow.show(target);
+				}
+			})
 			.setReturnField(returnField)
-			.setHeight(OSize.fixed(dataVO.getGridHeightSafely().getHeight()))
-			.setWidth(OSize.percent(100))
+			.setFit(true)
 		;
+
+		if (ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)) {
+			oBaseGrid.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.INFO) {
+				private static final long serialVersionUID = 8420976618508397333L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					modalWindow.setContent(new SearchDebugPanel(modalWindow.getContentId(), queryExecInfoList));
+					modalWindow.getOptions()
+						.setFit(null)
+						.setWidth(OSize.fixed(900))
+						.setHeight(OSize.fixed(600));
+					modalWindow.show(target);
+				}
+			});
+		}
 
 		if (selectionJSCallback != null) {
 			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
 		} else if (webParams.containsKey(MetisWebParam.WINDOW)) {
+
+			//TODO wrap return object {type="search" data={}}
+
 			if (dataVO.getSelectionValidationJS() == null) {
 				oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
 			} else {
@@ -321,49 +356,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 		add(grid);
 		grid.setEnabled(false);
-
-		info = new WAjaxLink("info", MetisIcon.INFO) {
-			private static final long serialVersionUID = 3303989238841000829L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				modalWindow.setContent(new SearchDebugPanel(modalWindow.getContentId(), queryExecInfoList));
-				modalWindow.getOptions()
-					.setFit(null)
-					.setWidth(OSize.fixed(900))
-					.setHeight(OSize.fixed(600));
-				modalWindow.show(target);
-			}
-		};
-		info.setEnabled(false)
-			.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger))
-			.setOutputMarkupId(true);
-		add(info);
-
-		add(new WAjaxLink("attachment", MetisIcon.ATTACHMENT) {
-			private static final long serialVersionUID = 2236601403443810728L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				FileStoreFVO fvo = new FileStoreFVO();
-				fvo.setTag(dataVO.getName());
-				fvo.setCreatorUser(Collections.singletonList(securityService.getCurrentUser().toUser()));
-				fvo.setStatus(Collections.singletonList(EFileStatus.VALID));
-
-				modalWindow.setContent(
-					new FileStoreListDPage(modalWindow.getContentId(), fvo)
-						.setGridFit(true)
-						.setFormVisible(false)
-						.setRemoveColumns("mimeType", "storage", "status", "fileId",
-							"creatorUser", "modificationDate", "modifierUser", "version", "EDIT")
-				);
-				modalWindow.getOptions()
-					.setFit(null)
-					.setWidth(OSize.fixed(700))
-					.setHeight(OSize.fixed(400));
-				modalWindow.show(target);
-			}
-		});
 	}
 
 	// ------------------------------
