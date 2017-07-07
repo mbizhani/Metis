@@ -312,7 +312,6 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		String query,
 		String comment,
 		Map<String, Object> params) {
-
 		return executeQuery(dbConnId, query, comment, params, null);
 	}
 
@@ -393,17 +392,19 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 				result.addRow(row);
 			}
 
-			logger.info("Executed Query: Cmnt=[{}] User=[{}] Conn=[{}] Dur=[{}] Res#=[{}]",
-				comment, securityService.getCurrentUser(), load(dbConnId).getName(),
-				result.getQueryExecInfo().getDuration(), result.getRows().size());
-
 			result.getQueryExecInfo()
 				.fromNamedParameterStatement(nps)
 				.setDuration(System.currentTimeMillis() - start);
 
+			logger.info("Executed Query: Cmnt=[{}] User=[{}] Conn=[{}] Dur=[{}] Res#=[{}]",
+				comment, securityService.getCurrentUser(), dbConnName,
+				result.getQueryExecInfo().getDuration(), result.getRows().size());
+
 			return result;
 		} catch (SQLException e) {
-			logger.error("executeQuery: " + comment, e);
+			logger.error("Execute Query: Cmnt=[{}] User=[{}] Conn=[{}]",
+				comment, securityService.getCurrentUser(), dbConnName, e);
+
 			result.getQueryExecInfo()
 				.setException(e)
 				.fromNamedParameterStatement(nps);
@@ -419,8 +420,16 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 									String comment,
 									Map<String, Object> params) {
 		long start = System.currentTimeMillis();
+
 		NamedParameterStatement nps = null;
+
+		String dbConnName = load(dbConnId).getName();
+
 		QueryExecInfoRVO execInfo = new QueryExecInfoRVO();
+		execInfo.setDbConnName(dbConnName);
+
+		logger.info("Executing SQL: Cmnt=[{}] User=[{}] Conn=[{}]",
+			comment, securityService.getCurrentUser(), dbConnName);
 
 		try {
 			Connection connection = getConnection(dbConnId);
@@ -436,14 +445,23 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 			nps.executeQuery();
 
-			execInfo.fromNamedParameterStatement(nps);
-			execInfo.setDuration(System.currentTimeMillis() - start);
+			execInfo
+				.fromNamedParameterStatement(nps)
+				.setDuration(System.currentTimeMillis() - start);
+
+			logger.info("Executed SQL: Cmnt=[{}] User=[{}] Conn=[{}] Dur=[{}]",
+				comment, securityService.getCurrentUser(), dbConnName,
+				execInfo.getDuration());
 
 			return execInfo;
 		} catch (SQLException e) {
-			logger.error("executeQuery: " + comment, e);
-			execInfo.setException(e);
-			execInfo.fromNamedParameterStatement(nps);
+			logger.error("Execute SQL: Cmnt=[{}] User=[{}] Conn=[{}]",
+				comment, securityService.getCurrentUser(), dbConnName, e);
+
+			execInfo
+				.setException(e)
+				.fromNamedParameterStatement(nps);
+
 			throw new MetisException(MetisErrorCode.SQLExecution, e)
 				.setExecInfoList(execInfo);
 		}
@@ -494,9 +512,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			.addParam("groupId", group.getId())
 			.list();
 
-		for (Long id : ids) {
-			connectionChanged(id);
-		}
+		ids.forEach(this::connectionChanged);
 		logger.info(" DBConnectionGroup changed = [{}] => DBConnection(s) updated = [{}] ", group.getName(), ids.size());
 	}
 
@@ -570,8 +586,8 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 				result = getUnsureConnection(dbConnId);
 				break;
 			} catch (Exception e) {
-				logger.error(String.format("Get Connection: Conn=[%s] User=[%s]",
-					load(dbConnId).getName(), securityService.getCurrentUser()), e);
+				logger.error("Get Connection: Conn=[{}] User=[{}]",
+					load(dbConnId).getName(), securityService.getCurrentUser(), e);
 				last = e;
 				retry++;
 				closePoolSafely(dbConnId);
