@@ -45,7 +45,7 @@ public class DBConnectionGroupForm extends DPage {
 
 		WebMarkupContainer west = new WebMarkupContainer("west");
 		WEasyLayout layout = new WEasyLayout("layout");
-		layout.setWest(west);
+		layout.setWestOfLTRDir(west);
 		add(layout);
 
 		DBConnectionGroup dbConnectionGroup = params.size() == 0 ?

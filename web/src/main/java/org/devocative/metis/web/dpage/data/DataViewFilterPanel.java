@@ -251,7 +251,7 @@ public class DataViewFilterPanel extends DPanel {
 								dataSourceId,
 								fieldVO.getTargetDSId(),
 								sentDBConnection,
-								new HashMap<String, Object>()
+								new HashMap<>()
 							).getResult();
 						}
 					} catch (Exception e) {
@@ -261,7 +261,7 @@ public class DataViewFilterPanel extends DPanel {
 						error(String.format("%s: %s", fieldVO.getTitle(), err));
 
 						lookUpList = new ArrayList<>();
-						lookUpList.add(new KeyValueVO<Serializable, String>("?", "-- Err: " + err));
+						lookUpList.add(new KeyValueVO<>("?", "-- Err: " + err));
 					}
 
 					fieldFormItem = new WSelectionInput(fieldVO.getName(), lookUpList, multiple);
@@ -270,7 +270,9 @@ public class DataViewFilterPanel extends DPanel {
 						private static final long serialVersionUID = 9122156586999811309L;
 
 						{
-							getModalWindowOptions().setWidth(OSize.percent(80));
+							getModalWindowOptions()
+								.setWidth(OSize.percent(80))
+								.setHeight(OSize.percent(80));
 						}
 
 						@Override

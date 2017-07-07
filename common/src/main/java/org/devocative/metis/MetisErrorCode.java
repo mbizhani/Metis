@@ -19,6 +19,9 @@ public enum MetisErrorCode implements DErrorCode {
 
 	InvalidDBConnection("Invalid DB Connection"),
 
+	InvalidDataViewName("Invalid data view name"),
+	NoDataViewName("No data view name"),
+
 	InvalidDataViewState("Invalid DataView State"),
 
 	InvalidFilterValue("Invalid filter value")

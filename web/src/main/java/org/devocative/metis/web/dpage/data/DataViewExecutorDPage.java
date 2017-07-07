@@ -1,8 +1,7 @@
 package org.devocative.metis.web.dpage.data;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -10,10 +9,13 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.adroit.ConfigUtil;
+import org.devocative.demeter.DemeterConfigKey;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.MetisConfigKey;
+import org.devocative.metis.MetisErrorCode;
+import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
@@ -21,6 +23,7 @@ import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.metis.web.dpage.data.form.DataViewFormDPage;
 import org.devocative.wickomp.WebUtil;
+import org.devocative.wickomp.html.WEasyLayout;
 import org.devocative.wickomp.html.WMessager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +45,6 @@ public class DataViewExecutorDPage extends DPage {
 	private Map<String, List<String>> webParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
 	private IModel<String> title;
-	private boolean hasDataVO = true;
 	private boolean multiSelect;
 	private String selectionJSCallback;
 	private boolean considerWebParams = true;
@@ -63,22 +65,12 @@ public class DataViewExecutorDPage extends DPage {
 	public DataViewExecutorDPage(String id, List<String> params) {
 		super(id, params);
 
-		if (params.size() > 0) {
+		if (!params.isEmpty() && !params.get(0).isEmpty()) {
 			dataVO = dataService.loadDataVO(params.get(0));
-		}
-
-		if (dataVO == null) {
-			title = params.size() > 0 ?
-				new ResourceModel("DataView.err.invalid.name", "Invalid DataView") :
-				new ResourceModel("DataView.err.no.param", "No DataView Name");
-
-			dataVO = new DataVO();
-			dataVO.setName(params.size() > 0 ? params.get(0) : "-");
-
-			hasDataVO = false;
-		} else {
 			title = new Model<>(dataVO.getTitle());
 			multiSelect = XDVGridSelectionMode.Multiple.equals(dataVO.getSelectionModeSafely());
+		} else {
+			throw new MetisException(MetisErrorCode.NoDataViewName);
 		}
 	}
 
@@ -138,68 +130,66 @@ public class DataViewExecutorDPage extends DPage {
 				.toOptionalString();
 		}
 
-		String color = hasDataVO ? "color:inherit;" : "color:red;";
+		if (considerWebParams) {
+			if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
+				List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
+				webParams.putAll(WebUtil.toMap(true, true, ignoredValues));
+			} else {
+				webParams.putAll(WebUtil.toMap(true, true));
+			}
+		}
 
-		add(new Label("dvTitle", title).add(new AttributeModifier("style", color)));
-		add(new Label("dvName", dataVO.getName()).add(new AttributeModifier("style", color)));
-		add(new ExternalLink("edit", String.format("%s/%s", UrlUtil.createUri(DataViewFormDPage.class, true), dataVO.getName()))
-				.setVisible(getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.WINDOW).isEmpty() && hasDataVO)
-		);
+		if (filterParams != null) {
+			webParams.putAll(WebUtil.toMap(filterParams, true, true));
+		}
+
+		WebMarkupContainer north = new WebMarkupContainer("north");
+		north.add(new Label("dvTitle", title));
+		north.add(new Label("dvName", dataVO.getName()));
+		north.add(new ExternalLink("edit", String.format("%s/%s", UrlUtil.createUri(DataViewFormDPage.class, true), dataVO.getName())));
+		north.setVisible(!ConfigUtil.getBoolean(DemeterConfigKey.DeploymentMode));
 
 		Form<Map<String, Object>> form = new Form<>("form");
-		form.setVisible(hasDataVO);
-		add(form);
-
-		if (hasDataVO) {
-			if (considerWebParams) {
-				if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
-					List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
-					webParams.putAll(WebUtil.toMap(true, true, ignoredValues));
-				} else {
-					webParams.putAll(WebUtil.toMap(true, true));
-				}
-			}
-
-			if (filterParams != null) {
-				webParams.putAll(WebUtil.toMap(filterParams, true, true));
-			}
-
-			form.add(
-				new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
-					.setSentDBConnection(sentDBConnection)
-					.setWebParams(webParams)
-					.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
-			);
-			search = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
-				private static final long serialVersionUID = -8066384058553336246L;
-
-				@Override
-				protected void onSubmit(AjaxRequestTarget target) {
-					logger.debug("filter = {}", filter);
-					mainGrid.loadData(target);
-					target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
-				}
-			};
-			search.setOutputMarkupId(true);
-			form.add(search);
-
-			if (webParams.containsKey(MetisWebParam.SEARCH_ON_START)) {
-				searchOnStart = "1".equals(webParams.get(MetisWebParam.SEARCH_ON_START).get(0));
-			}
-
-			mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
-			mainGrid
-				.setMultiSelect(multiSelect)
-				.setSelectionJSCallback(selectionJSCallback)
+		form.add(
+			new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
 				.setSentDBConnection(sentDBConnection)
-				.setWebParams(webParams);
-			add(mainGrid);
-		} else {
-			form.add(new WebComponent("filterPanel"));
-			form.add(new WebComponent("search"));
+				.setWebParams(webParams)
+				.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
+		);
+		search = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
+			private static final long serialVersionUID = -8066384058553336246L;
 
-			add(new WebComponent("mainGrid"));
+			@Override
+			protected void onSubmit(AjaxRequestTarget target) {
+				logger.debug("filter = {}", filter);
+				mainGrid.loadData(target);
+				target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
+			}
+		};
+		search.setOutputMarkupId(true);
+		form.add(search);
+
+		if (webParams.containsKey(MetisWebParam.SEARCH_ON_START)) {
+			searchOnStart = "1".equals(webParams.get(MetisWebParam.SEARCH_ON_START).get(0));
 		}
+
+		mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
+		mainGrid
+			.setMultiSelect(multiSelect)
+			.setSelectionJSCallback(selectionJSCallback)
+			.setSentDBConnection(sentDBConnection)
+			.setWebParams(webParams);
+		add(mainGrid);
+
+		WebMarkupContainer filterPanel = new WebMarkupContainer("filterPanel");
+		filterPanel.add(form);
+
+		WEasyLayout layout = new WEasyLayout("layout");
+		layout.add(north);
+		layout.add(filterPanel);
+		layout.add(mainGrid);
+		layout.setWestOfLTRDir(filterPanel);
+		add(layout);
 	}
 
 	@Override

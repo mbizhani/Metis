@@ -60,7 +60,7 @@ public class DBConnectionForm extends DPage {
 
 		WebMarkupContainer west = new WebMarkupContainer("west");
 		WEasyLayout layout = new WEasyLayout("layout");
-		layout.setWest(west);
+		layout.setWestOfLTRDir(west);
 		add(layout);
 
 		final DBConnection defaultConn = connectionService.getDefaultConnectionOfCurrentUser();

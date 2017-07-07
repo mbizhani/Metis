@@ -1,38 +1,50 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<table style="border: 1px solid black">
-		<tr>
-			<th>
-				<wicket:message key="DataView.title"/>
-			</th>
-			<th>:</th>
-			<td>
-				<div wicket:id="dvTitle"></div>
-			</td>
-			<td>(</td>
-			<td>
-				<div wicket:id="dvName"></div>
-			</td>
-			<td>)</td>
-			<td>
-				<button wicket:id="edit" type="button"><i class="fa fa-pencil"></i></button>
-			</td>
-		</tr>
-	</table>
 
-	<form wicket:id="form">
-		<div class="dmt-form">
-			<div wicket:id="filterPanel"></div>
-			<div>
-				<button wicket:id="search"></button>
-				<button type="reset">
-					<wicket:message key="label.reset"/>
-					<i class="fa fa-history"></i>
-				</button>
-			</div>
+	<div wicket:id="layout" data-options="fit:true">
+		<div wicket:id="north" data-options="region:'north',border:false" style="height:40px">
+			<table style="border: 1px solid black">
+				<tr>
+					<th>
+						<wicket:message key="DataView.title"/>
+					</th>
+					<th>:</th>
+					<td>
+						<div wicket:id="dvTitle"></div>
+					</td>
+					<td>(</td>
+					<td>
+						<div wicket:id="dvName"></div>
+					</td>
+					<td>)</td>
+					<td>
+						<button wicket:id="edit" type="button"><i class="fa fa-pencil"></i></button>
+					</td>
+				</tr>
+			</table>
 		</div>
-	</form>
 
-	<div wicket:id="mainGrid"></div>
+		<div wicket:id="filterPanel" wicket:message="title:label.filter" style="width:400px;">
+			<form wicket:id="form">
+
+				<div style="position:absolute;">
+					<button wicket:id="search"></button>
+					<button type="reset">
+						<wicket:message key="label.reset"/>
+						<i class="fa fa-history"></i>
+					</button>
+				</div>
+
+				<div style="padding-top:50px; margin:0;">
+					<div wicket:id="filterPanel"></div>
+				</div>
+			</form>
+		</div>
+
+		<div wicket:message="title:label.result" data-options="region:'center'">
+			<wicket:container wicket:id="mainGrid"></wicket:container>
+		</div>
+	</div>
+
 </wicket:panel>
 </html>

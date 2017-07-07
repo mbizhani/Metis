@@ -8,6 +8,8 @@ import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.MetisErrorCode;
+import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataSource;
@@ -70,9 +72,12 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 				.addParam("name", name)
 				.object();
 
-			dv.setXDataView((XDataView) xStream.fromXML(dv.getConfig().getValue()));
-
-			dataViewCache.put(dv.getId(), dv);
+			if (dv != null) {
+				dv.setXDataView((XDataView) xStream.fromXML(dv.getConfig().getValue()));
+				dataViewCache.put(dv.getId(), dv);
+			} else {
+				throw new MetisException(MetisErrorCode.InvalidDataViewName, name);
+			}
 		}
 		return dv;
 	}
