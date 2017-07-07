@@ -1,6 +1,7 @@
 package org.devocative.metis.web.dpage.data.menu;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.component.DAjaxButton;
@@ -14,6 +15,7 @@ import org.devocative.metis.web.dpage.data.DataViewFilterPanel;
 import org.devocative.metis.web.dpage.data.DataViewGridPanel;
 import org.devocative.wickomp.WPanel;
 import org.devocative.wickomp.WebUtil;
+import org.devocative.wickomp.html.WEasyLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,12 +70,10 @@ public class ReportExecutorPanel extends WPanel {
 			dataVO.getAllFields(),
 			targetFilter, null));
 
-		Form<Map<String, Object>> form = new Form<>("form");
-		add(form);
-
 		Set<String> filterWithDefAndReqOrDis = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 		filterWithDefAndReqOrDis.addAll(filter.keySet());
 
+		Form<Map<String, Object>> form = new Form<>("form");
 		form.add(
 			new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
 				.setWebParams(targetParam)
@@ -103,7 +103,14 @@ public class ReportExecutorPanel extends WPanel {
 			.setSentDBConnection(sentDBConnection)
 			.setWebParams(targetParam);
 
-		add(mainGrid);
+		WebMarkupContainer filterPanel = new WebMarkupContainer("filterPanel");
+		filterPanel.add(form);
+
+		WEasyLayout layout = new WEasyLayout("layout");
+		layout.add(filterPanel);
+		layout.add(mainGrid);
+		layout.setWestOfLTRDir(filterPanel);
+		add(layout);
 	}
 
 	@Override
