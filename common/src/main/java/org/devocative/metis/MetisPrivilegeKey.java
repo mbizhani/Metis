@@ -4,7 +4,8 @@ import org.devocative.demeter.entity.IPrivilegeKey;
 
 public enum MetisPrivilegeKey implements IPrivilegeKey {
 	DBConnectionGroupAdd, DBConnectionGroupEdit,
-	DBConnectionAdd, DBConnectionEdit;
+	DBConnectionAdd, DBConnectionEdit,
+	DataViewExportImport;
 
 	private String name;
 

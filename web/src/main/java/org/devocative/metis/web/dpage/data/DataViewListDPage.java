@@ -9,11 +9,13 @@ import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.demeter.web.component.grid.ORESTLinkColumn;
+import org.devocative.metis.MetisPrivilegeKey;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.filter.data.DataViewFVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.dpage.data.form.DataViewFormDPage;
+import org.devocative.metis.web.panel.ExportImportPanel;
 import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WTextInput;
@@ -26,7 +28,9 @@ import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.WSortField;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
+import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.WFloatTable;
+import org.devocative.wickomp.html.window.WModalWindow;
 import org.devocative.wickomp.opt.OSize;
 
 import javax.inject.Inject;
@@ -50,6 +54,8 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 	private boolean gridEnabled = false;
 	private OSize gridHeight = OSize.fixed(500);
 	private OSize gridWidth = OSize.percent(100);
+
+	private WModalWindow modalWindow;
 
 	// ------------------------------
 
@@ -80,6 +86,9 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
+
+		modalWindow = new WModalWindow("modalWindow");
+		add(modalWindow);
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		//floatTable.setEqualWidth(true);
@@ -162,6 +171,18 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 				columnList.removeColumn(column);
 			}
 		}
+
+		// ---------------
+
+		add(new WAjaxLink("exportImport", MetisIcon.EXPORT_IMPORT) {
+			private static final long serialVersionUID = -1334810219991176112L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				modalWindow.setContent(new ExportImportPanel(modalWindow.getContentId()));
+				modalWindow.show(target);
+			}
+		}.setVisible(hasPermission(MetisPrivilegeKey.DataViewExportImport)));
 	}
 
 	// ------------------------------
