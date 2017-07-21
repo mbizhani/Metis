@@ -161,9 +161,10 @@ public class DataViewExecutorDPage extends DPage {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
+				target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
 				logger.debug("filter = {}", filter);
 				mainGrid.loadData(target);
-				target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
+				//WebUtil.sendByWebSocket(this, new WebSocketJavascriptResult(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId())));
 			}
 		};
 		search.setOutputMarkupId(true);

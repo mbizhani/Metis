@@ -130,7 +130,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------ IAsyncResponseHandler
 
 	@Override
-	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Serializable result) {
+	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Object result) {
 		DataViewRVO dataViewRVO = (DataViewRVO) result;
 
 		queryExecInfoList = dataViewRVO.getQueryExecInfoList();
