@@ -1,13 +1,18 @@
 package org.devocative.metis.service.data;
 
 import com.thoughtworks.xstream.XStream;
+import org.devocative.adroit.CalendarUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.xml.AdroitXStream;
 import org.devocative.demeter.ei.ExportImportHelper;
 import org.devocative.demeter.ei.Importer;
+import org.devocative.demeter.entity.EFileStorage;
+import org.devocative.demeter.entity.EMimeType;
 import org.devocative.demeter.entity.User;
+import org.devocative.demeter.iservice.FileStoreHandler;
 import org.devocative.demeter.iservice.ICacheService;
+import org.devocative.demeter.iservice.IFileStoreService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
@@ -28,7 +33,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -53,6 +57,9 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 
 	@Autowired
 	private ISecurityService securityService;
+
+	@Autowired
+	private IFileStoreService fileStoreService;
 
 	// ------------------------------
 
@@ -199,7 +206,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 	}
 
 	@Override
-	public void exportAll(OutputStream stream) {
+	public String exportAll() {
 		logger.info("**");
 		logger.info("*** Exporting DataView Start: user=[{}]", securityService.getCurrentUser());
 
@@ -286,13 +293,26 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 					"  f_group " +
 					"from mt_mts_dataview_group");
 
-			helper.exportTo(stream);
-
+			Date now = new Date();
+			//TODO using calendar from User
+			String fileName = String.format("exportDataView-%s.xml", CalendarUtil.toPersian(now, "yyyyMMdd"));
+			FileStoreHandler fileStoreHandler = fileStoreService.create(
+				fileName,
+				EFileStorage.DISK,
+				EMimeType.XML,
+				CalendarUtil.add(now, Calendar.DATE, 15),
+				"exportDataView"
+			);
+			helper.exportTo(fileStoreHandler);
+			fileStoreHandler.close();
 			connection.close();
 
 			logger.info("*** Exporting DataView Finished: user=[{}]", securityService.getCurrentUser());
 			logger.info("**");
-		} catch (SQLException e) {
+
+			return fileStoreHandler.getFileStore().getFileId();
+		} catch (Exception e) {
+			logger.error("exportAll", e);
 			throw new RuntimeException(e);
 		}
 	}

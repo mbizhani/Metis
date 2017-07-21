@@ -8,7 +8,6 @@ import org.devocative.metis.entity.data.config.XDataView;
 import org.devocative.metis.vo.filter.data.DataViewFVO;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 
 public interface IDataViewService {
@@ -38,7 +37,7 @@ public interface IDataViewService {
 
 	List<String> listForOData();
 
-	void exportAll(OutputStream stream);
+	String exportAll();
 
 	void importAll(InputStream stream);
 }
