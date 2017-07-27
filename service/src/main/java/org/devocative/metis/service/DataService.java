@@ -4,6 +4,7 @@ import org.devocative.adroit.*;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
+import org.devocative.demeter.DLogCtx;
 import org.devocative.demeter.entity.EFileStorage;
 import org.devocative.demeter.entity.EMimeType;
 import org.devocative.demeter.iservice.FileStoreHandler;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("mtsDataService")
 public class DataService implements IDataService {
@@ -48,7 +50,7 @@ public class DataService implements IDataService {
 	private static final String DATE_PATTERN = "yyyyMMdd";
 	private static final String DATE_TIME_PATTERN = "yyyyMMddHHmmss";
 
-	private List<IDataEventHandler> handlers = Collections.synchronizedList(new ArrayList<IDataEventHandler>());
+	private List<IDataEventHandler> handlers = Collections.synchronizedList(new ArrayList<>());
 
 	@Autowired
 	private IPersistorService persistorService;
@@ -266,6 +268,11 @@ public class DataService implements IDataService {
 
 	@Override
 	public DataViewRVO executeDataView(DataViewQVO request) {
+		DLogCtx
+			.put("action", "execute")
+			.put("dataView", request.getName())
+			.put("sentDB", request.getSentDBConnection());
+
 		logger.info("Executing DataView: DV=[{}] Usr=[{}] SentDB=[{}]",
 			request.getName(), securityService.getCurrentUser(), request.getSentDBConnection());
 		long start = System.currentTimeMillis();
@@ -303,12 +310,12 @@ public class DataService implements IDataService {
 		// --------------- FOOTER (AGG)
 
 		Map<String, List<XDVAggregatorFunction>> agrFields = new HashMap<>();
-		for (XDVField xdvField : xDataView.getFields()) {
-			if (xdvField.getFooter() != null && xdvField.getFooter().size() > 0) {
-				agrFields.put(xdvField.getName(), xdvField.getFooter());
-			}
-		}
-		if (agrFields.size() > 0) {
+		xDataView
+			.getFields()
+			.stream()
+			.filter(xdvField -> xdvField.getFooter() != null && !xdvField.getFooter().isEmpty())
+			.forEach(xdvField -> agrFields.put(xdvField.getName(), xdvField.getFooter()));
+		if (!agrFields.isEmpty()) {
 			AggregateQueryQVO agrQVO = new AggregateQueryQVO(xDataView.getDataSourceId(), agrFields);
 			agrQVO
 				.setInputParams(request.getFilter())
@@ -326,9 +333,11 @@ public class DataService implements IDataService {
 
 		// ---------------
 
+		long dur = System.currentTimeMillis() - start;
+		DLogCtx.put("duration", dur);
 		logger.info("Executed DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}] Res#=[{}] Cnt=[{}] Ftr=[{}]",
 			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(),
-			System.currentTimeMillis() - start, result.getList().size(), result.getCount(),
+			dur, result.getList().size(), result.getCount(),
 			result.getFooter() != null ? result.getFooter().size() : null);
 
 		return result;
@@ -336,6 +345,11 @@ public class DataService implements IDataService {
 
 	@Override
 	public DataViewRVO exportDataView(DataViewQVO request) {
+		DLogCtx
+			.put("action", "export")
+			.put("dataView", request.getName())
+			.put("sentDB", request.getSentDBConnection());
+
 		logger.info("Exporting DataView: DV=[{}] Usr=[{}] SentDB=[{}]",
 			request.getName(), securityService.getCurrentUser(), request.getSentDBConnection());
 
@@ -347,14 +361,11 @@ public class DataService implements IDataService {
 		DataSource dataSource = dataSourceService.load(xDataView.getDataSourceId());
 		XDataSource xDataSource = dataSource.getXDataSource();
 
-		List<String> titleFields = new ArrayList<>();
-		for (XDVField xdvField : xDataView.getFields()) {
-			if (xdvField.getResultType() != null) {
-				if (xdvField.getResultType() == XDSFieldResultType.Shown) {
-					titleFields.add(xDataSource.getField(xdvField.getName()).getSafeTitle());
-				}
-			}
-		}
+		List<String> titleFields = xDataView.getFields()
+			.stream()
+			.filter(xdvField -> XDSFieldResultType.Shown.equals(xdvField.getResultType()))
+			.map(xdvField -> xDataSource.getField(xdvField.getName()).getSafeTitle())
+			.collect(Collectors.toList());
 
 		List<String> selectFields = getSelectedFields(xDataView, false);
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
@@ -370,10 +381,10 @@ public class DataService implements IDataService {
 		exporter.setColumnsHeader(titleFields);
 
 		for (Map<String, Object> map : listRVO.getResult()) {
-			List<Object> row = new ArrayList<>();
-			for (String field : selectFields) {
-				row.add(map.get(field));
-			}
+			List<Object> row = selectFields
+				.stream()
+				.map(map::get)
+				.collect(Collectors.toList());
 			exporter.addRowData(row);
 		}
 
@@ -395,15 +406,21 @@ public class DataService implements IDataService {
 			throw new RuntimeException(e);
 		}
 
+		long dur = System.currentTimeMillis() - start;
+		DLogCtx.put("duration", dur);
 		logger.info("Exported DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}]",
-			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(),
-			System.currentTimeMillis() - start);
+			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(), dur);
 
 		return new DataViewRVO().setFileId(fileStoreHandler.getFileStore().getFileId());
 	}
 
 	@Override
 	public DataViewRVO executeDataViewForParent(DataViewQVO request) {
+		DLogCtx
+			.put("action", "execOfParent")
+			.put("dataView", request.getName())
+			.put("sentDB", request.getSentDBConnection());
+
 		logger.info("Executing DataView of Parent: DV=[{}] Prnt=[{}] Usr=[{}]",
 			request.getName(), request.getParentId(), securityService.getCurrentUser());
 		long start = System.currentTimeMillis();
@@ -424,15 +441,22 @@ public class DataService implements IDataService {
 		result.setList(list);
 		result.setParentId(request.getParentId().toString());
 
+		long dur = System.currentTimeMillis() - start;
+		DLogCtx.put("duration", dur);
 		logger.info("Executed DataView of Parent: DV=[{}] Prnt=[{}] Usr=[{}] Dur=[{}]",
-			request.getName(), request.getParentId(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
+			request.getName(), request.getParentId(), securityService.getCurrentUser(), dur);
 
 		return result;
 	}
 
 	@Override
 	public List<Map<String, Object>> executeOData(ODataQVO request) {
+		DLogCtx
+			.put("action", "odata")
+			.put("dataView", request.getName());
+
 		logger.info("Executing OData: DV=[{}] Usr=[{}]", request.getName(), securityService.getCurrentUser());
+
 		long start = System.currentTimeMillis();
 
 		try {
@@ -457,8 +481,10 @@ public class DataService implements IDataService {
 
 			List<Map<String, Object>> list = dataSourceService.execute(selectQVO).getResult();
 
+			long dur = System.currentTimeMillis() - start;
+			DLogCtx.put("duration", dur);
 			logger.info("Executed OData: DV=[{}] Usr=[{}] Dur=[{}]",
-				request.getName(), securityService.getCurrentUser(), System.currentTimeMillis() - start);
+				request.getName(), securityService.getCurrentUser(), dur);
 
 			return list;
 		} catch (MetisException e) {
@@ -472,6 +498,10 @@ public class DataService implements IDataService {
 
 	@Override
 	public Long executeODataCount(ODataQVO request) {
+		DLogCtx
+			.put("action", "odataCount")
+			.put("dataView", request.getName());
+
 		logger.info("Executing OData Count: DV=[{}] Usr=[{}]", request.getName(), securityService.getCurrentUser());
 		long start = System.currentTimeMillis();
 

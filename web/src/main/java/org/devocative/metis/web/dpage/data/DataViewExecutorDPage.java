@@ -9,6 +9,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.adroit.ConfigUtil;
+import org.devocative.demeter.DLogCtx;
 import org.devocative.demeter.DemeterConfigKey;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
@@ -143,6 +144,10 @@ public class DataViewExecutorDPage extends DPage {
 			webParams.putAll(WebUtil.toMap(filterParams, true, true));
 		}
 
+		DLogCtx
+			.put("dataView", dataVO.getName())
+			.put("webParams", webParams);
+
 		WebMarkupContainer north = new WebMarkupContainer("north");
 		north.add(new Label("dvTitle", title));
 		north.add(new Label("dvName", dataVO.getName()));
@@ -203,5 +208,10 @@ public class DataViewExecutorDPage extends DPage {
 			String script = String.format("$('#%s').click();", search.getMarkupId());
 			WebUtil.writeJQueryCall(script, true);
 		}
+
+		DLogCtx
+			.remove("dataView")
+			.remove("webParams")
+		;
 	}
 }

@@ -6,6 +6,7 @@ import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.StringEncryptorUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.demeter.DLogCtx;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ApplicationLifecyclePriority;
 import org.devocative.demeter.iservice.ICacheService;
@@ -342,6 +343,10 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		logger.info("Executing Query: Cmnt=[{}] User=[{}] Conn=[{}]",
 			comment, securityService.getCurrentUser(), dbConnName);
 
+		DLogCtx
+			.put("dbConnName", dbConnName)
+			.put("sqlComment", comment);
+
 		try {
 			Connection connection = getConnection(dbConnId);
 			query = String.format("/*%s*/ %s", comment, query);
@@ -411,6 +416,10 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 			throw new MetisException(MetisErrorCode.SQLExecution, e)
 				.setExecInfoList(result.getQueryExecInfo());
+		} finally {
+			DLogCtx
+				.remove("dbConnName")
+				.remove("sqlComment");
 		}
 	}
 

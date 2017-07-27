@@ -489,16 +489,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, List<?> keys) {
-		Map<String, Object> filter = new HashMap<>();
-		if (!keys.isEmpty()) {
-			DataSource targetDataSource = load(targetDataSourceId);
-			filter.put(targetDataSource.getKeyField(), keys);
-		}
-		return executeLookUp(dataSourceId, targetDataSourceId, sentDBConnection, filter);
-	}
-
-	@Override
 	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, Map<String, Object> filter) {
 		DataSource dataSource = load(dataSourceId);
 		DataSource targetDataSource = load(targetDataSourceId);
