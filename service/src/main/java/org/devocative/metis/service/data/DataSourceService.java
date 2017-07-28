@@ -75,7 +75,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		xstream = new AdroitXStream();
 		xstream.processAnnotations(XDataSource.class);
 
-		dataSourceCache = cacheService.create("MTS_DATA_SOURCE", 70);
+		dataSourceCache = cacheService.create(CACHE_KEY, 70);
 		dataSourceCache.setMissedHitHandler(this);
 	}
 
@@ -210,22 +210,13 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 		}
 
-		/*String query = xDataSource.getQuery().getText().trim();
-		if (!query.contains("<![CDATA[")) {
-			xDataSource.getQuery().setText(String.format("\n<![CDATA[\n%s\n]]>\n", query));
-		}
-
-		StringWriter writer = new StringWriter();
-		xstream.marshal(xDataSource, new MyWriter(writer));*/
 		config.setValue(xstream.toXML(xDataSource));
 
 		dataSource.setConfig(config);
 
 		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataSource);
-		for (DataSourceRelation relation : newRelations) {
-			persistorService.saveOrUpdate(relation);
-		}
+		newRelations.forEach(persistorService::saveOrUpdate);
 
 		dataSource.setXDataSource(xDataSource);
 		dataSourceCache.update(dataSource.getId(), dataSource);

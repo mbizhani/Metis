@@ -16,6 +16,7 @@ import org.devocative.demeter.iservice.IFileStoreService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
@@ -23,6 +24,7 @@ import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDataView;
+import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.filter.data.DataViewFVO;
@@ -68,7 +70,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		xStream = new AdroitXStream();
 		xStream.processAnnotations(XDataView.class);
 
-		dataViewCache = cacheService.create("MTS_DATA_VIEW", 50);
+		dataViewCache = cacheService.create(CACHE_KEY, 50);
 		dataViewCache.setMissedHitHandler(this);
 	}
 
@@ -226,7 +228,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 					"  cfg.c_value " +
 					"from t_mts_db_conn_grp grp " +
 					"join t_mts_cfg_lob cfg on cfg.id = grp.f_config " +
-					"where grp.c_name='MidRP'");
+					"where grp.c_name='MidRP'"); //TODO: MidRP is hard-coded!!!
 
 			helper.exportBySql("dataSource",
 				"select " +
@@ -237,6 +239,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 					"  ds.c_title_field, " +
 					"  ds.c_key_field, " +
 					"  ds.c_self_rel_pointer_field, " +
+					"  ds.e_conn_selection, " +
 					"  ds.f_config, " +
 					"  cfg.c_value " +
 					"from t_mts_data_src ds " +
@@ -351,6 +354,12 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 
 			connection.commit();
 
+			cacheService.clear(IDataSourceService.CACHE_KEY);
+			cacheService.clear(IDataViewService.CACHE_KEY);
+			cacheService.clear(IDBConnectionService.CACHE_KEY_DB_CONNECTION);
+			cacheService.clear(IDBConnectionService.CACHE_KEY_X_SCHEMA);
+			cacheService.clear(IStringTemplateService.CACHE_KEY);
+
 			logger.info("*** Importing DataView Finished: user=[{}]", securityService.getCurrentUser());
 			logger.info("**");
 		} catch (SQLException e) {
@@ -367,13 +376,13 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		Importer dbConnGrp = helper.createImporter("t_mts_db_conn_grp",
 			Arrays.asList("id", "n_version", "c_name", "c_driver", "c_test_query", "f_config", "d_creation", "f_creator_user"),
 			Arrays.asList("n_version", "c_name", "c_driver", "c_test_query", "f_config", "d_modification", "f_modifier_user"),
-			Arrays.asList("id")
+			Collections.singletonList("id")
 		);
 
 		Importer dbConnGrpLob = helper.createImporter("t_mts_cfg_lob",
 			Arrays.asList("f_config:id", "n_version", "c_value", "d_creation", "f_creator_user"),
 			Arrays.asList("n_version", "c_value", "d_modification", "f_modifier_user"),
-			Arrays.asList("f_config:id")
+			Collections.singletonList("f_config:id")
 		);
 
 		helper.merge("dbConnGrp", "id", "n_version", currentDbConnGrp, dbConnGrpLob, dbConnGrp);
@@ -406,15 +415,15 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		logger.info("Current DataSrc: size=[{}]", currentDataSrc.size());
 
 		Importer dataSrc = helper.createImporter("t_mts_data_src",
-			Arrays.asList("id", "n_version", "c_name", "c_title", "c_title_field", "c_key_field", "c_self_rel_pointer_field", "f_config", "f_connection", "d_creation", "f_creator_user"),
-			Arrays.asList("n_version", "c_name", "c_title", "c_title_field", "c_key_field", "c_self_rel_pointer_field", "f_connection", "d_modification", "f_modifier_user"),
-			Arrays.asList("id")
+			Arrays.asList("id", "n_version", "c_name", "c_title", "c_title_field", "c_key_field", "c_self_rel_pointer_field", "e_conn_selection", "f_config", "f_connection", "d_creation", "f_creator_user"),
+			Arrays.asList("n_version", "c_name", "c_title", "c_title_field", "c_key_field", "c_self_rel_pointer_field", "e_conn_selection", "d_modification", "f_modifier_user"),
+			Collections.singletonList("id")
 		);
 
 		Importer dataSrcLob = helper.createImporter("t_mts_cfg_lob",
 			Arrays.asList("f_config:id", "n_version", "c_value", "d_creation", "f_creator_user"),
 			Arrays.asList("n_version", "c_value", "d_modification", "f_modifier_user"),
-			Arrays.asList("f_config:id")
+			Collections.singletonList("f_config:id")
 		);
 
 		helper.merge("dataSource", "id", "n_version", currentDataSrc, dataSrcLob, dataSrc);
@@ -441,13 +450,13 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		Importer dataView = helper.createImporter("t_mts_data_view",
 			Arrays.asList("id", "n_version", "c_name", "c_title", "f_config", "f_data_src", "d_creation", "f_creator_user"),
 			Arrays.asList("n_version", "c_name", "c_title", "d_modification", "f_modifier_user"),
-			Arrays.asList("id")
+			Collections.singletonList("id")
 		);
 
 		Importer dataViewLob = helper.createImporter("t_mts_cfg_lob",
 			Arrays.asList("f_config:id", "n_version", "c_value", "d_creation", "f_creator_user"),
 			Arrays.asList("n_version", "c_value", "d_modification", "f_modifier_user"),
-			Arrays.asList("f_config:id")
+			Collections.singletonList("f_config:id")
 		);
 
 		helper.merge("dataView", "id", "n_version", currentDataView, dataViewLob, dataView);
@@ -460,7 +469,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		Importer report = helper.createImporter("t_mts_report",
 			Arrays.asList("id", "n_version", "c_title", "c_config", "f_data_view", "d_creation", "f_creator_user"),
 			Arrays.asList("n_version", "c_title", "c_config", "f_data_view", "d_modification", "f_modifier_user"),
-			Arrays.asList("id")
+			Collections.singletonList("id")
 		);
 
 		helper.merge("report", "id", "n_version", currentReport, report);
@@ -473,7 +482,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 		Importer group = helper.createImporter("t_mts_data_group",
 			Arrays.asList("id", "n_version", "c_name", "d_creation", "f_creator_user"),
 			Arrays.asList("n_version", "c_name", "d_modification", "f_modifier_user"),
-			Arrays.asList("id")
+			Collections.singletonList("id")
 		);
 
 		helper.merge("group", "id", "n_version", currentGroup, group);

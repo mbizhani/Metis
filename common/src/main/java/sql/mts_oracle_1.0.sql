@@ -48,6 +48,7 @@ CREATE TABLE a_t_mts_data_src (
 	c_self_rel_pointer_field VARCHAR2(255 CHAR),
 	c_title                  VARCHAR2(255 CHAR),
 	c_title_field            VARCHAR2(255 CHAR),
+	e_conn_selection NUMBER(10, 0),
 	PRIMARY KEY (id, r_num)
 );
 
@@ -171,6 +172,7 @@ CREATE TABLE t_mts_data_src (
 	c_self_rel_pointer_field VARCHAR2(255 CHAR),
 	c_title                  VARCHAR2(255 CHAR) NOT NULL,
 	c_title_field            VARCHAR2(255 CHAR),
+	e_conn_selection NUMBER(10, 0) NOT NULL,
 	n_version                NUMBER(10, 0)      NOT NULL,
 	PRIMARY KEY (id)
 );

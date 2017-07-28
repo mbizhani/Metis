@@ -15,6 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDBConnectionService extends IApplicationLifecycle {
+	String CACHE_KEY_DB_CONNECTION = "MTS_DB_CONNECTION";
+	String CACHE_KEY_X_SCHEMA = "MTS_DB_X_SCHEMA";
+
+	// ---------------
+
 	void saveOrUpdate(DBConnection entity);
 
 	DBConnection load(Long id);

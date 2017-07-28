@@ -11,6 +11,10 @@ import java.io.InputStream;
 import java.util.List;
 
 public interface IDataViewService {
+	String CACHE_KEY = "MTS_DATA_VIEW";
+
+	// ---------------
+
 	void saveOrUpdate(DataView entity);
 
 	DataView load(Long id);

@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDataSourceService {
+	String CACHE_KEY = "MTS_DATA_SOURCE";
+
+	// ---------------
+
 	DataSource load(Long id);
 
 	DataSource loadByName(String name);

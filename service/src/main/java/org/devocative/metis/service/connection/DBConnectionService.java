@@ -89,10 +89,10 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		xstream.processAnnotations(XMany2One.class);
 		xstream.processAnnotations(XOne2Many.class);
 
-		dbConnectionCache = cacheService.create("MTS_DB_CONNECTION", 20);
+		dbConnectionCache = cacheService.create(CACHE_KEY_DB_CONNECTION, 20);
 		dbConnectionCache.setMissedHitHandler(key -> persistorService.get(DBConnection.class, key));
 
-		xSchemaCache = cacheService.create("MTS_DB_X_SCHEMA", 5);
+		xSchemaCache = cacheService.create(CACHE_KEY_X_SCHEMA, 5);
 		xSchemaCache.setMissedHitHandler(key -> {
 			String config = persistorService.createQueryBuilder()
 				.addSelect("select ent.value")
