@@ -242,12 +242,13 @@ public class DataService implements IDataService {
 	@Override
 	public void saveOrUpdate(DataVO dataVO) {
 		if (dataVO.isDataSourceEditable()) {
-			XDataSource xDataSource = dataVO.toXDataSource();
+			/*XDataSource xDataSource = dataVO.toXDataSource();
 			DataSource dataSource = dataSourceService.saveOrUpdate(
 				dataVO.getDataSourceId(),
 				dataVO.getConnectionId(),
 				dataVO.getTitle(),
-				xDataSource);
+				xDataSource);*/
+			DataSource dataSource = dataSourceService.saveOrUpdate(dataVO);
 			dataVO.setDataSourceId(dataSource.getId());
 			dataVO.setDataSourceName(dataSource.getName());
 		}
@@ -790,6 +791,7 @@ public class DataService implements IDataService {
 
 		dataVO.setDataSourceId(dataSource.getId());
 		dataVO.setConnectionId(dataSource.getConnection().getId());
+		dataVO.setConnectionSelection(dataSource.getConnectionSelection());
 		dataVO.setConnectionHasMapping(dataSource.getConnection().getSafeConfigId() != null);
 
 		dataVO.fromXDataSource(xDataSource);

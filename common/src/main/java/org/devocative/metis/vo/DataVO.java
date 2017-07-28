@@ -2,6 +2,7 @@ package org.devocative.metis.vo;
 
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.data.DataGroup;
+import org.devocative.metis.entity.data.EConnectionSelection;
 import org.devocative.metis.entity.data.config.*;
 
 import java.io.Serializable;
@@ -22,6 +23,11 @@ public class DataVO implements Serializable {
 	 * DataSource.id
 	 */
 	private Long dataSourceId;
+
+	/**
+	 * DataSource.connectionSelection
+	 */
+	private EConnectionSelection connectionSelection;
 
 	/**
 	 * DataSource.connectionId
@@ -128,6 +134,14 @@ public class DataVO implements Serializable {
 
 	public void setConnectionId(Long connectionId) {
 		this.connectionId = connectionId;
+	}
+
+	public EConnectionSelection getConnectionSelection() {
+		return connectionSelection;
+	}
+
+	public void setConnectionSelection(EConnectionSelection connectionSelection) {
+		this.connectionSelection = connectionSelection;
 	}
 
 	public Boolean getConnectionHasMapping() {

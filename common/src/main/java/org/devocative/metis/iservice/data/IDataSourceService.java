@@ -3,7 +3,7 @@ package org.devocative.metis.iservice.data;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
-import org.devocative.metis.entity.data.config.XDataSource;
+import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.filter.data.DataSourceFVO;
 import org.devocative.metis.vo.query.*;
 
@@ -18,7 +18,7 @@ public interface IDataSourceService {
 
 	List<DataSource> list();
 
-	DataSource saveOrUpdate(Long dataSourceId, Long dbConnId, String title, XDataSource xDataSource);
+	DataSource saveOrUpdate(DataVO dataVO);
 
 	List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize);
 

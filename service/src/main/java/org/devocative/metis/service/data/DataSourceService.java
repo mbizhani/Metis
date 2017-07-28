@@ -10,6 +10,7 @@ import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.adroit.xml.AdroitXStream;
+import org.devocative.demeter.DLogCtx;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
@@ -24,9 +25,11 @@ import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.mapping.*;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataSourceRelation;
+import org.devocative.metis.entity.data.EConnectionSelection;
 import org.devocative.metis.entity.data.config.*;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
+import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.filter.data.DataSourceFVO;
 import org.devocative.metis.vo.query.*;
 import org.slf4j.Logger;
@@ -122,7 +125,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public DataSource saveOrUpdate(Long dataSourceId, Long dbConnId, String title, XDataSource xDataSource) {
+	public DataSource saveOrUpdate(DataVO dataVO) {
+		Long dataSourceId = dataVO.getDataSourceId();
+		XDataSource xDataSource = dataVO.toXDataSource();
+
 		DataSource dataSource;
 		ConfigLob config;
 
@@ -135,8 +141,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		}
 
 		dataSource.setName(xDataSource.getName());
-		dataSource.setTitle(title);
-		dataSource.setConnection(dbConnectionService.load(dbConnId));
+		dataSource.setTitle(dataVO.getTitle());
+		dataSource.setConnection(dbConnectionService.load(dataVO.getConnectionId()));
+		dataSource.setConnectionSelection(dataVO.getConnectionSelection());
 
 		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
 		List<DataSourceRelation> newRelations = new ArrayList<>();
@@ -712,20 +719,29 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	private Long findProperDBConnection(String sentDBConn, DataSource dataSource) {
-		if (sentDBConn != null) {
-			logger.info("Sent DB Conn: User=[{}] Conn=[{}]", securityService.getCurrentUser(), sentDBConn);
+		DLogCtx.put("connSelection", dataSource.getConnectionSelection());
 
-			DBConnection dbConnection = dbConnectionService.loadByName(sentDBConn);
-			if (dbConnection == null) {
-				logger.error("Invalid sent db connection: {}", sentDBConn);
-				throw new MetisException(MetisErrorCode.InvalidDBConnection, sentDBConn);
-			} else {
-				return dbConnection.getId();
+		if (EConnectionSelection.THREE_STEPS.equals(dataSource.getConnectionSelection())) {
+			if (sentDBConn != null) {
+				logger.info("Sent DB Conn: User=[{}] Conn=[{}]", securityService.getCurrentUser(), sentDBConn);
+
+				DBConnection dbConnection = dbConnectionService.loadByName(sentDBConn);
+				if (dbConnection == null) {
+					logger.error("Invalid sent db connection: {}", sentDBConn);
+					throw new MetisException(MetisErrorCode.InvalidDBConnection, sentDBConn);
+				} else {
+					return dbConnection.getId();
+				}
 			}
-		}
 
-		DBConnection defaultConnection = dbConnectionService.getDefaultConnectionOfCurrentUser();
-		return defaultConnection != null ? defaultConnection.getId() : dataSource.getConnectionId();
+			DBConnection defaultConnection = dbConnectionService.getDefaultConnectionOfCurrentUser();
+			return defaultConnection != null ? defaultConnection.getId() : dataSource.getConnectionId();
+		} else if (EConnectionSelection.FIXED.equals(dataSource.getConnectionSelection())) {
+			return dataSource.getConnectionId();
+		} else {
+			throw new RuntimeException(String.format("Invalid connection selection: dataSource=[%s] value=[%s]",
+				dataSource.getName(), dataSource.getConnectionSelection()));
+		}
 	}
 
 	private XEntity findXEntity(Map<String, XEntity> map, String alias) {
@@ -793,17 +809,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	// ------------------------------ PRIVATE INNER CLASS
-
-	/*private class MyWriter extends PrettyPrintWriter {
-		public MyWriter(Writer writer) {
-			super(writer);
-		}
-
-		@Override
-		protected void writeText(QuickWriter writer, String text) {
-			writer.write(text);
-		}
-	}*/
 
 	private class DSQueryBuilder {
 		private StringBuilder query = new StringBuilder();

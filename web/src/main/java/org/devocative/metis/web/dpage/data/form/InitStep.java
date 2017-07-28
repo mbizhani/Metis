@@ -6,6 +6,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.data.EConnectionSelection;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.entity.data.config.XDVGridHeight;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
@@ -46,20 +47,20 @@ class InitStep extends WWizardStepPanel {
 		dataSourceLabelRow.add(new Label("dataSourceLabel", dataVO.getDataSourceName()));
 		add(dataSourceLabelRow);
 
-		add(new WTextInput("name", new PropertyModel<String>(dataVO, "name"))
+		add(new WTextInput("name", new PropertyModel<>(dataVO, "name"))
 				.setLabelVisible(false)
 				.add(new WAsciiIdentifierValidator())
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.name"))
 		);
 
-		add(new WTextInput("title", new PropertyModel<String>(dataVO, "title"))
+		add(new WTextInput("title", new PropertyModel<>(dataVO, "title"))
 			.setLabelVisible(false)
 			.setRequired(true)
 			.setLabel(new ResourceModel("DataSource.title")));
 
 		add(connection = new WSelectionInput("connection",
-			new PropertyModel<String>(dataVO, "connection"),
+			new PropertyModel<>(dataVO, "connection"),
 			connectionService.list(),
 			false
 		));
@@ -69,11 +70,20 @@ class InitStep extends WWizardStepPanel {
 			.setLabel(new ResourceModel("DataSource.connection"))
 			.setEnabled(dataVO.isDataSourceEditable());
 
+		add(new WSelectionInput("connectionSelection",
+				new PropertyModel<>(dataVO, "connectionSelection"),
+				EConnectionSelection.list(),
+				false)
+				.setLabelVisible(false)
+				.setRequired(true).setLabel(new ResourceModel("DataSource.connectionSelection"))
+				.setEnabled(dataVO.isDataSourceEditable())
+		);
+
 		List<XDSQueryMode> modes = dataVO.getConnectionHasMapping() ?
 			Arrays.asList(XDSQueryMode.values()) :
 			Arrays.asList(XDSQueryMode.Sql);
 
-		add(queryMode = new WSelectionInput("queryMode", new PropertyModel(dataVO, "query.mode"), modes, false));
+		add(queryMode = new WSelectionInput("queryMode", new PropertyModel<>(dataVO, "query.mode"), modes, false));
 		queryMode
 			.setLabelVisible(false)
 			.setRequired(true)
@@ -91,17 +101,17 @@ class InitStep extends WWizardStepPanel {
 				.setEnabled(dataVO.isDataSourceEditable())
 		);*/
 
-		add(new WSelectionInput("groups", new PropertyModel(dataVO, "groups"), dataGroupService.list(), true)
+		add(new WSelectionInput("groups", new PropertyModel<>(dataVO, "groups"), dataGroupService.list(), true)
 			.setLabelVisible(false)
 			.setLabel(new ResourceModel("DataView.groups")));
 
-		add(new WSelectionInput("selectionMode", new PropertyModel(dataVO, "selectionMode"),
+		add(new WSelectionInput("selectionMode", new PropertyModel<>(dataVO, "selectionMode"),
 			Arrays.asList(XDVGridSelectionMode.values()), false)
 			.setLabelVisible(false)
 			.setRequired(true)
 			.setLabel(new ResourceModel("DataView.selectionMode")));
 
-		add(new WSelectionInput("gridHeight", new PropertyModel(dataVO, "gridHeight"),
+		add(new WSelectionInput("gridHeight", new PropertyModel<>(dataVO, "gridHeight"),
 			Arrays.asList(XDVGridHeight.values()), false)
 			.setLabelVisible(false)
 			.setRequired(true).setLabel(new ResourceModel("DataView.gridHeight")));

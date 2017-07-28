@@ -44,6 +44,10 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "c_self_rel_pointer_field")
 	private String selfRelPointerField;
 
+	@Embedded
+	@AttributeOverride(name = "id", column = @Column(name = "e_conn_selection", nullable = false))
+	private EConnectionSelection connectionSelection = EConnectionSelection.THREE_STEPS;
+
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "datasrc2cfglob"))
 	private ConfigLob config;
@@ -156,6 +160,14 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	public void setSelfRelPointerField(String selfRelPointerField) {
 		this.selfRelPointerField = selfRelPointerField;
+	}
+
+	public EConnectionSelection getConnectionSelection() {
+		return connectionSelection;
+	}
+
+	public void setConnectionSelection(EConnectionSelection connectionSelection) {
+		this.connectionSelection = connectionSelection;
 	}
 
 	public ConfigLob getConfig() {

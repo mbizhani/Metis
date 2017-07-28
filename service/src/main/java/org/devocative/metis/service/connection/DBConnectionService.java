@@ -419,7 +419,8 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		} finally {
 			DLogCtx
 				.remove("dbConnName")
-				.remove("sqlComment");
+				.remove("sqlComment")
+				.remove("connSelection"); // this key is set in DataSourceService.findProperDBConnection()
 		}
 	}
 
