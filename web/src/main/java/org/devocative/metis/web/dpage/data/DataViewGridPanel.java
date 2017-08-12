@@ -11,6 +11,7 @@ import org.devocative.demeter.entity.EFileStatus;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.vo.filter.FileStoreFVO;
 import org.devocative.demeter.web.DPanel;
+import org.devocative.demeter.web.DTaskBehavior;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.dpage.FileStoreListDPage;
 import org.devocative.metis.MetisConfigKey;
@@ -26,12 +27,10 @@ import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
-import org.devocative.metis.web.MetisDModule;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WModel;
-import org.devocative.wickomp.async.AsyncBehavior;
-import org.devocative.wickomp.async.IAsyncResponseHandler;
+import org.devocative.wickomp.async.IAsyncResponse;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
 import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.formatter.ONumberFormatter;
@@ -56,7 +55,7 @@ import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.*;
 
-public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSource<Map<String, Object>>, IAsyncResponseHandler {
+public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSource<Map<String, Object>>, IAsyncResponse {
 	private static final long serialVersionUID = 6957270102281915596L;
 
 	private static final Logger logger = LoggerFactory.getLogger(DataViewGridPanel.class);
@@ -73,7 +72,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private DataVO dataVO;
 	private Map<String, Object> filter;
 	private Map<String, String> sortFieldsMap;
-	private AsyncBehavior asyncBehavior;
+	private DTaskBehavior taskBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
 
 	private String sentDBConnection;
@@ -91,9 +90,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 		this.dataVO = dataVO;
 		this.filter = filter;
-
-		asyncBehavior = new AsyncBehavior(this);
-		add(asyncBehavior);
 	}
 
 	// ------------------------------
@@ -130,25 +126,23 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------ IAsyncResponseHandler
 
 	@Override
-	public void onAsyncResult(String handlerId, IPartialPageRequestHandler handler, Object result) {
+	public void onAsyncResult(IPartialPageRequestHandler handler, Object result) {
 		DataViewRVO dataViewRVO = (DataViewRVO) result;
 
 		queryExecInfoList = dataViewRVO.getQueryExecInfoList();
 
-		if (MetisDModule.EXEC_DATA_VIEW.equals(handlerId)) {
-			if (dataViewRVO.getFileId() == null) {
-				grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount(), dataViewRVO.getFooter());
-			} else {
-				//TODO
-				handler.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(dataViewRVO.getFileId())));
-			}
-		} else if (MetisDModule.EXEC_DATA_VIEW_CHILDREN.equals(handlerId)) {
+		if (dataViewRVO.getParentId() != null) {
 			((WTreeGrid<Map<String, Object>>) grid).pushChildren(handler, dataViewRVO.getParentId(), dataViewRVO.getList());
+		} else if (dataViewRVO.getFileId() == null) {
+			grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount(), dataViewRVO.getFooter());
+		} else {
+			//TODO
+			handler.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(dataViewRVO.getFileId())));
 		}
 	}
 
 	@Override
-	public void onAsyncError(String handlerId, IPartialPageRequestHandler handler, Exception error) {
+	public void onAsyncError(IPartialPageRequestHandler handler, Exception error) {
 		if (error instanceof MetisException) {
 			queryExecInfoList = ((MetisException) error).getExecInfoList();
 		}
@@ -171,7 +165,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setFilter(getFilterMap())
 			.setSentDBConnection(sentDBConnection);
 
-		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW, dataViewQVO);
+		dataService.executeDTask(dataViewQVO, taskBehavior);
 	}
 
 	// ------------------------------ ITreeGridAsyncDataSource
@@ -185,7 +179,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setSortFieldList(sortFieldsMap)
 			.setSentDBConnection(sentDBConnection);
 
-		asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW_CHILDREN, dataViewQVO);
+		dataService.executeDTask(dataViewQVO, taskBehavior);
 	}
 
 	@Override
@@ -277,7 +271,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						.setSentDBConnection(sentDBConnection)
 						.setDoExport(true);
 
-					asyncBehavior.sendAsyncRequest(MetisDModule.EXEC_DATA_VIEW, dataViewQVO);
+					dataService.executeDTask(dataViewQVO, taskBehavior);
 
 					WMessager.show("Info", getString("msg.file.under.construction"), target);
 				}
@@ -356,6 +350,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 		add(grid);
 		grid.setEnabled(false);
+
+		taskBehavior = new DTaskBehavior(this);
+		add(taskBehavior);
 	}
 
 	// ------------------------------

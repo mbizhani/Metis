@@ -1,5 +1,6 @@
 package org.devocative.metis.iservice;
 
+import org.devocative.demeter.iservice.task.ITaskResultCallback;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
@@ -27,6 +28,8 @@ public interface IDataService {
 	void updateFieldsByQuery(DataVO dataVO);
 
 	void saveOrUpdate(DataVO dataVO);
+
+	void executeDTask(DataViewQVO qvo, ITaskResultCallback callback);
 
 	DataViewRVO executeDataView(DataViewQVO request);
 

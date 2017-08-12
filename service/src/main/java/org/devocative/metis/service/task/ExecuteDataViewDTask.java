@@ -39,7 +39,7 @@ public class ExecuteDataViewDTask extends DTask {
 				result = dataService.executeDataViewForParent(data);
 			}
 
-			setResult(result);
+			sendResult(result);
 		}
 	}
 }

@@ -11,6 +11,8 @@ import org.devocative.demeter.iservice.FileStoreHandler;
 import org.devocative.demeter.iservice.IFileStoreService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.demeter.iservice.task.ITaskResultCallback;
+import org.devocative.demeter.iservice.task.ITaskService;
 import org.devocative.demeter.iservice.template.IStringTemplate;
 import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.demeter.iservice.template.TemplateEngineType;
@@ -25,6 +27,7 @@ import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.iservice.data.IDataViewService;
+import org.devocative.metis.service.task.ExecuteDataViewDTask;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
@@ -72,6 +75,9 @@ public class DataService implements IDataService {
 
 	@Autowired
 	private IStringTemplateService stringTemplateService;
+
+	@Autowired
+	private ITaskService taskService;
 
 	// ------------------------------ PUBLIC METHODS
 
@@ -266,6 +272,11 @@ public class DataService implements IDataService {
 	}
 
 	// ---------------
+
+	@Override
+	public void executeDTask(DataViewQVO qvo, ITaskResultCallback callback) {
+		taskService.start(ExecuteDataViewDTask.class, qvo, callback);
+	}
 
 	@Override
 	public DataViewRVO executeDataView(DataViewQVO request) {

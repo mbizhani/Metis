@@ -6,6 +6,8 @@ import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.StringEncryptorUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.adroit.sql.plugin.PaginationPlugin;
+import org.devocative.adroit.sql.plugin.SchemaPlugin;
 import org.devocative.demeter.DLogCtx;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ApplicationLifecyclePriority;
@@ -252,11 +254,15 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		try {
 			Connection connection = getConnection(dbConnId);
 
-			NamedParameterStatement nps = new NamedParameterStatement(connection, sql, getSchemaForDB(dbConnId));
+			NamedParameterStatement nps = new NamedParameterStatement(connection, sql);
 			nps.setFetchSize(1);
 			nps.setParameters(params)
 				.setIgnoreExtraPassedParam(true) //TODO
 				.setIgnoreMissedParam(true); //TODO
+
+			if (getSchemaForDB(dbConnId) != null) {
+				nps.addPlugin(new SchemaPlugin(getSchemaForDB(dbConnId)));
+			}
 
 			ResultSet rs = nps.executeQuery();
 			ResultSetMetaData metaData = rs.getMetaData();
@@ -351,16 +357,22 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			Connection connection = getConnection(dbConnId);
 			query = String.format("/*%s*/ %s", comment, query);
 
-			nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
+			nps = new NamedParameterStatement(connection, query);
 			nps
 				.setDateClassReplacement(Timestamp.class)
 				.setIgnoreExtraPassedParam(true) //TODO
 				.setIgnoreMissedParam(true); //TODO
 
+			if (getSchemaForDB(dbConnId) != null) {
+				nps.addPlugin(new SchemaPlugin(getSchemaForDB(dbConnId)));
+			}
+
 			if (pagination != null) {
-				nps
-					.setFirstResult(pagination.getFirstResult())
-					.setMaxResults(pagination.getMaxResults());
+				nps.addPlugin(new PaginationPlugin(
+						pagination.getFirstResult(),
+						pagination.getMaxResults(),
+						PaginationPlugin.findDatabaseType(connection))
+				);
 			}
 
 			if (params != null) {
@@ -443,11 +455,15 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 		try {
 			Connection connection = getConnection(dbConnId);
-			nps = new NamedParameterStatement(connection, query, getSchemaForDB(dbConnId));
+			nps = new NamedParameterStatement(connection, query);
 			nps
 				.setDateClassReplacement(Timestamp.class)
 				.setIgnoreExtraPassedParam(true) //TODO
 				.setIgnoreMissedParam(true); //TODO
+
+			if (getSchemaForDB(dbConnId) != null) {
+				nps.addPlugin(new SchemaPlugin(getSchemaForDB(dbConnId)));
+			}
 
 			if (params != null) {
 				nps.setParameters(params);
