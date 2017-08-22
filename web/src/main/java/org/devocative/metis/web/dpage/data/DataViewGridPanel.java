@@ -301,6 +301,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				}
 			})
 			.setReturnField(returnField)
+			.setNoResultMessage(getString("err.mts.NoResult"))
 			.setFit(true)
 		;
 
@@ -318,6 +319,10 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					modalWindow.show(target);
 				}
 			});
+		}
+
+		if (!ConfigUtil.getBoolean(MetisConfigKey.GridAsyncLoadingEnabled)) {
+			oBaseGrid.setAsyncLoadingEnabled(false);
 		}
 
 		if (selectionJSCallback != null) {

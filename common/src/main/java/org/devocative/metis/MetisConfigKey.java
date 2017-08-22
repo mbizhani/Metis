@@ -15,7 +15,10 @@ public enum MetisConfigKey implements IConfigKey {
 
 	ConnectionEncryptPassword("mts.conn.enc.pass", false, Arrays.asList(true, false)),
 	ConnectionCheckUserPassOnSave("mts.conn.check.onsave", true, Arrays.asList(true, false)),
+
+	GridAsyncLoadingEnabled("mts.loading.async.enabled", true, Arrays.asList(true, false))
 	;
+
 	private String key;
 	private boolean validate = false;
 	private Object defaultValue;
@@ -70,5 +73,4 @@ public enum MetisConfigKey implements IConfigKey {
 	public List<?> getPossibleValues() {
 		return possibilities;
 	}
-
 }
