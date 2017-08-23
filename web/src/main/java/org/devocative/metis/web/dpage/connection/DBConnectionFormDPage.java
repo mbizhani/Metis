@@ -100,6 +100,8 @@ public class DBConnectionFormDPage extends DPage {
 		floatTable.add(group = new WSelectionInput("group", dBConnectionService.getGroupList(), false)
 			.setRequired(true)
 			.setLabel(new ResourceModel("DBConnection.group")));
+		floatTable.add(new WTextInput("customParam1")
+			.setLabel(new ResourceModel("DBConnection.customParam1")));
 
 		config = new WFileInput("config");
 		config.setLabel(new ResourceModel("DBConnection.config"));

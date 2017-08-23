@@ -55,13 +55,15 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "f_group", insertable = false, updatable = false)
 	private Long groupId;
 
-
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "dbconn2cfglob"))
 	private ConfigLob config;
 
 	@Column(name = "f_config", insertable = false, updatable = false)
 	private Long configId;
+
+	@Column(name = "c_custom_param_1")
+	private String customParam1;
 
 	// ---------------
 
@@ -195,6 +197,14 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 
 	public Long getConfigId() {
 		return configId;
+	}
+
+	public String getCustomParam1() {
+		return customParam1;
+	}
+
+	public void setCustomParam1(String customParam1) {
+		this.customParam1 = customParam1;
 	}
 
 	// ---------------

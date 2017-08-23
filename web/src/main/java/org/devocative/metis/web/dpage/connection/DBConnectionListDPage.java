@@ -137,6 +137,8 @@ public class DBConnectionListDPage extends DPage implements IGridDataSource<DBCo
 			.setLabel(new ResourceModel("DBConnection.schema")));
 		floatTable.add(new WSelectionInput("group", dBConnectionService.getGroupList(), true)
 			.setLabel(new ResourceModel("DBConnection.group")));
+		floatTable.add(new WTextInput("customParam1")
+			.setLabel(new ResourceModel("DBConnection.customParam1")));
 		floatTable.add(new WDateRangeInput("creationDate")
 			.setTimePartVisible(true)
 			.setLabel(new ResourceModel("entity.creationDate")));
@@ -196,6 +198,7 @@ public class DBConnectionListDPage extends DPage implements IGridDataSource<DBCo
 			}
 		}.setAlign(OHorizontalAlign.Center));
 
+		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.customParam1"), "customParam1"));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creationDate"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));

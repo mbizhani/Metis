@@ -20,6 +20,7 @@ public class DBConnectionFVO implements Serializable {
 	private String username;
 	private String schema;
 	private List<DBConnectionGroup> group;
+	private String customParam1;
 	private RangeVO<Date> creationDate;
 	private List<User> creatorUser;
 	private RangeVO<Date> modificationDate;
@@ -73,6 +74,14 @@ public class DBConnectionFVO implements Serializable {
 
 	public void setGroup(List<DBConnectionGroup> group) {
 		this.group = group;
+	}
+
+	public String getCustomParam1() {
+		return customParam1;
+	}
+
+	public void setCustomParam1(String customParam1) {
+		this.customParam1 = customParam1;
 	}
 
 	public RangeVO<Date> getCreationDate() {

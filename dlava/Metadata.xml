@@ -60,7 +60,7 @@
 					<finfo/>
 				</field>
 				<field name="password">
-					<finfo hasFVO="false" hasList="false"/>
+					<finfo hasList="false" hasFVO="false"/>
 				</field>
 				<field name="schema">
 					<finfo/>
@@ -79,6 +79,9 @@
 				</field>
 				<field name="configId">
 					<finfo ignore="true"/>
+				</field>
+				<field name="customParam1">
+					<finfo/>
 				</field>
 				<field name="creationDate">
 					<finfo hasForm="false" hasTimePart="true"/>
@@ -247,6 +250,9 @@
 				</field>
 				<field name="xDataSource">
 					<finfo ignore="true"/>
+				</field>
+				<field name="connectionSelection">
+					<finfo/>
 				</field>
 			</fields>
 		</class>
