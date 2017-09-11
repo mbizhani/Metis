@@ -589,6 +589,20 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		}
 	}
 
+	@Override
+	public void updateCustomParam1(Map<String, String> params) {
+		for (Map.Entry<String, String> entry : params.entrySet()) {
+			persistorService
+				.createQueryBuilder()
+				.addSelect("update DBConnection ent set ent.customParam1 = :param where ent.name = :name")
+				.addParam("name", entry.getKey())
+				.addParam("param", entry.getValue())
+				.update();
+		}
+
+		persistorService.commitOrRollback();
+	}
+
 	// ------------------------------
 
 	private Connection getConnection(long dbConnId) {

@@ -82,4 +82,6 @@ public interface IDBConnectionService extends IApplicationLifecycle {
 	DBConnection getDefaultConnectionOfCurrentUser();
 
 	void removeDefaultConnectionOfCurrentUser();
+
+	void updateCustomParam1(Map<String, String> params);
 }
