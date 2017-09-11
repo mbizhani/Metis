@@ -12,6 +12,7 @@ public enum MetisConfigKey implements IConfigKey {
 	IgnoreParameterValues("mts.ignore.param.values"),
 
 	ExportReportExpireDays("mts.export.days", 3),
+	ExportExcelMaxSize("mts.excel.export.max.size", 10000L),
 
 	ConnectionEncryptPassword("mts.conn.enc.pass", false, Arrays.asList(true, false)),
 	ConnectionCheckUserPassOnSave("mts.conn.check.onsave", true, Arrays.asList(true, false)),

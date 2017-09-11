@@ -382,10 +382,14 @@ public class DataService implements IDataService {
 		List<String> selectFields = getSelectedFields(xDataView, false);
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
 		selectQVO
-			.setPagination(PaginationQVO.byPage(1L, 1000L))
+			//.setPagination(PaginationQVO.byPage(1L, 1000L))
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
 			.setSentDBConnection(request.getSentDBConnection());
+
+		if (ConfigUtil.getLong(MetisConfigKey.ExportExcelMaxSize) > 1) {
+			selectQVO.setPagination(PaginationQVO.byPage(1L, ConfigUtil.getLong(MetisConfigKey.ExportExcelMaxSize)));
+		}
 
 		DsQueryRVO<List<Map<String, Object>>> listRVO = dataSourceService.execute(selectQVO);
 
@@ -759,7 +763,7 @@ public class DataService implements IDataService {
 			.append(script);
 
 		IStringTemplate stringTemplate = stringTemplateService
-			.create(finalScript.toString(), TemplateEngineType.GroovyShell);
+			.create(finalScript.toString(), TemplateEngineType.GroovyScript);
 
 		stringTemplate.process(bindings);
 	}
