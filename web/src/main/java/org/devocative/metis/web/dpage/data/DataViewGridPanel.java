@@ -301,7 +301,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				}
 			})
 			.setReturnField(returnField)
-			.setNoResultMessage(getString("err.mts.NoResult"))
+			.setAsyncLoadingEnabled(ConfigUtil.getBoolean(MetisConfigKey.GridAsyncLoadingShow))
 			.setFit(true)
 		;
 
@@ -321,8 +321,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			});
 		}
 
-		if (!ConfigUtil.getBoolean(MetisConfigKey.GridAsyncLoadingEnabled)) {
-			oBaseGrid.setAsyncLoadingEnabled(false);
+		if (ConfigUtil.getBoolean(MetisConfigKey.GridNoResultShow)) {
+			oBaseGrid.setNoResultMessage(getString("err.mts.NoResult"));
 		}
 
 		if (selectionJSCallback != null) {
