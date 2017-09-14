@@ -8,8 +8,10 @@ import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.expression.OrderExpression;
 import org.apache.olingo.odata2.api.uri.info.*;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.core.DemeterCore;
 import org.devocative.demeter.iservice.ISecurityService;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
@@ -48,10 +50,59 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 
 	@Override
 	public ODataResponse readEntitySet(GetEntitySetUriInfo uriInfo, String contentType) throws ODataException {
+		try {
+			return selectQuery(uriInfo, contentType);
+		} catch (Exception e) {
+			logger.error("MetisODataSingleProcessor.readEntitySet", e);
+			throw e;
+		}
+	}
+
+	@Override
+	public ODataResponse countEntitySet(GetEntitySetCountUriInfo uriInfo, String contentType) throws ODataException {
+		try {
+			return countQuery(uriInfo);
+		} catch (Exception e) {
+			logger.error("MetisODataSingleProcessor.countEntitySet", e);
+			throw e;
+		}
+	}
+
+	// --------------- NOT IMPLEMENTED!
+
+	@Override
+	public ODataResponse readEntity(final GetEntityUriInfo uriInfo, final String contentType) throws ODataException {
+		logger.debug("OData.readEntity: {}", uriInfo);
+		throw new RuntimeException("NI: readEntity!");
+	}
+
+	@Override
+	public ODataResponse readEntitySimpleProperty(GetSimplePropertyUriInfo uriInfo, String contentType) throws ODataException {
+		logger.debug("OData.readEntitySimpleProperty: {}", uriInfo);
+		throw new RuntimeException("NI: readEntitySimpleProperty!");
+	}
+
+	@Override
+	public ODataResponse readEntitySimplePropertyValue(GetSimplePropertyUriInfo uriInfo, String contentType) throws ODataException {
+		logger.debug("OData.readEntitySimplePropertyValue: {}", uriInfo);
+		throw new RuntimeException("NI: readEntitySimplePropertyValue!");
+	}
+
+	@Override
+	public ODataResponse readEntityComplexProperty(GetComplexPropertyUriInfo uriInfo, String contentType) throws ODataException {
+		logger.debug("OData.readEntityComplexProperty: {}", uriInfo);
+		throw new RuntimeException("NI: readEntityComplexProperty!");
+	}
+
+	// ------------------------------
+
+	private ODataResponse selectQuery(GetEntitySetUriInfo uriInfo, String contentType) throws ODataException {
 		EdmEntitySet entitySet = uriInfo.getStartEntitySet();
 
-		logger.info("OData: DataList: DataView=[{}] User=[{}]",
-			entitySet.getEntityType().getName(), securityService.getCurrentUser());
+		Map<String, String> customQueryOptions = uriInfo.getCustomQueryOptions();
+
+		logger.info("OData: DataList: DataView=[{}] User=[{}] CustomQueryParams=[{}]",
+			entitySet.getEntityType().getName(), securityService.getCurrentUser(), customQueryOptions);
 
 		Integer top = 2000;
 		Integer skip = 0;
@@ -102,6 +153,14 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 
 		dataQVO.setInputParams(inputParams);
 
+		//NOTE: Olingo dose not allow custom parameters to start with '$' character, so here we replace one with '~'
+		String dbConnParamName = ConfigUtil.getString(MetisConfigKey.DBConnParamName);
+		if (dbConnParamName != null) {
+			if (dbConnParamName.startsWith("$")) {
+				dbConnParamName = "~" + dbConnParamName.substring(1);
+			}
+			dataQVO.setSentDBConnection(customQueryOptions.get(dbConnParamName));
+		}
 
 		List<Map<String, Object>> list = dataService.executeOData(dataQVO);
 
@@ -115,36 +174,13 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		);
 	}
 
-	@Override
-	public ODataResponse readEntity(final GetEntityUriInfo uriInfo, final String contentType) throws ODataException {
-		logger.debug("OData.readEntity: {}", uriInfo);
-		throw new RuntimeException("NI: readEntity!");
-	}
-
-	@Override
-	public ODataResponse readEntitySimpleProperty(GetSimplePropertyUriInfo uriInfo, String contentType) throws ODataException {
-		logger.debug("OData.readEntitySimpleProperty: {}", uriInfo);
-		throw new RuntimeException("NI: readEntitySimpleProperty!");
-	}
-
-	@Override
-	public ODataResponse readEntitySimplePropertyValue(GetSimplePropertyUriInfo uriInfo, String contentType) throws ODataException {
-		logger.debug("OData.readEntitySimplePropertyValue: {}", uriInfo);
-		throw new RuntimeException("NI: readEntitySimplePropertyValue!");
-	}
-
-	@Override
-	public ODataResponse readEntityComplexProperty(GetComplexPropertyUriInfo uriInfo, String contentType) throws ODataException {
-		logger.debug("OData.readEntityComplexProperty: {}", uriInfo);
-		throw new RuntimeException("NI: readEntityComplexProperty!");
-	}
-
-	@Override
-	public ODataResponse countEntitySet(GetEntitySetCountUriInfo uriInfo, String contentType) throws ODataException {
+	private ODataResponse countQuery(GetEntitySetCountUriInfo uriInfo) throws ODataException {
 		EdmEntitySet entitySet = uriInfo.getStartEntitySet();
 
-		logger.info("OData Count: DataView=[{}] User=[{}]",
-			entitySet.getEntityType().getName(), securityService.getCurrentUser());
+		Map<String, String> customQueryOptions = uriInfo.getCustomQueryOptions();
+
+		logger.info("OData Count: DataView=[{}] User=[{}] CustomQueryParams=[{}]",
+			entitySet.getEntityType().getName(), securityService.getCurrentUser(), customQueryOptions);
 
 		ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName());
 
@@ -167,6 +203,15 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		}
 
 		dataQVO.setInputParams(inputParams);
+
+		//NOTE: Olingo dose not allow custom parameters to start with '$' character, so here we replace one with '~'
+		String dbConnParamName = ConfigUtil.getString(MetisConfigKey.DBConnParamName);
+		if (dbConnParamName != null) {
+			if (dbConnParamName.startsWith("$")) {
+				dbConnParamName = "~" + dbConnParamName.substring(1);
+			}
+			dataQVO.setSentDBConnection(customQueryOptions.get(dbConnParamName));
+		}
 
 		Long dataCount = dataService.executeODataCount(dataQVO);
 

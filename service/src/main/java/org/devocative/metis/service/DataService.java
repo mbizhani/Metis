@@ -471,7 +471,8 @@ public class DataService implements IDataService {
 			.put("action", "odata")
 			.put("dataView", request.getName());
 
-		logger.info("Executing OData: DV=[{}] Usr=[{}]", request.getName(), securityService.getCurrentUser());
+		logger.info("Executing OData: DV=[{}] Usr=[{}] SentDB=[{}]",
+			request.getName(), securityService.getCurrentUser(), request.getSentDBConnection());
 
 		long start = System.currentTimeMillis();
 
@@ -493,19 +494,24 @@ public class DataService implements IDataService {
 				.setPagination(PaginationQVO.byResult(request.getFirstResult(), request.getMaxResults()))
 				.setSortFields(request.getOrderBy())
 				.setFilterExpression(request.getFilterExpression())
-				.setInputParams(inputParams);
+				.setInputParams(inputParams)
+				.setSentDBConnection(request.getSentDBConnection());
 
 			List<Map<String, Object>> list = dataSourceService.execute(selectQVO).getResult();
 
 			long dur = System.currentTimeMillis() - start;
 			DLogCtx.put("duration", dur);
-			logger.info("Executed OData: DV=[{}] Usr=[{}] Dur=[{}]",
-				request.getName(), securityService.getCurrentUser(), dur);
+			logger.info("Executed OData: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}]",
+				request.getName(), securityService.getCurrentUser(), request.getSentDBConnection(), dur);
 
 			return list;
 		} catch (MetisException e) {
 			logger.error("Execute OData Error: DV=" + request.getName(), e);
-			throw new RuntimeException(e.getCause());
+			if (e.getCause() != null) {
+				throw new RuntimeException(e.getCause());
+			} else {
+				throw e;
+			}
 		} catch (RuntimeException e) {
 			logger.error("Execute OData Error: DV=" + request.getName(), e);
 			throw e;
@@ -535,7 +541,8 @@ public class DataService implements IDataService {
 			CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceId());
 			countQVO
 				.setFilterExpression(request.getFilterExpression())
-				.setInputParams(inputParams);
+				.setInputParams(inputParams)
+				.setSentDBConnection(request.getSentDBConnection());
 
 			Long result = dataSourceService.execute(countQVO).getResult();
 
