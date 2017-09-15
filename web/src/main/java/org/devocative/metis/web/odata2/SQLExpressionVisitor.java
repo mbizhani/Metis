@@ -10,34 +10,35 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class SQLExpressionVisitor implements ExpressionVisitor {
 	private static final Logger logger = LoggerFactory.getLogger(SQLExpressionVisitor.class);
 
-	private static final List<EdmSimpleType> INTEGER = Arrays.asList(
+	private static final List<EdmType> INTEGER = Arrays.asList(
 		EdmSimpleTypeKind.Int16.getEdmSimpleTypeInstance(),
 		EdmSimpleTypeKind.Int32.getEdmSimpleTypeInstance(),
 		EdmSimpleTypeKind.Int64.getEdmSimpleTypeInstance(),
 		Uint7.getInstance()
 	);
 
-	private static final List<EdmSimpleType> REAL = Arrays.asList(
+	private static final List<EdmType> REAL = Arrays.asList(
 		EdmSimpleTypeKind.Single.getEdmSimpleTypeInstance(),
 		EdmSimpleTypeKind.Double.getEdmSimpleTypeInstance(),
 		EdmSimpleTypeKind.Decimal.getEdmSimpleTypeInstance()
 	);
 
-	private static final List<EdmSimpleType> DATE = Arrays.asList(
+	private static final List<EdmType> DATE = Collections.singletonList(
 		EdmSimpleTypeKind.DateTime.getEdmSimpleTypeInstance()
 	);
 
-	private static final List<EdmSimpleType> BOOLEAN = Arrays.asList(
+	private static final List<EdmType> BOOLEAN = Collections.singletonList(
 		EdmSimpleTypeKind.Boolean.getEdmSimpleTypeInstance()
 	);
 
-	private static final List<EdmSimpleType> STRING = Arrays.asList(
+	private static final List<EdmType> STRING = Collections.singletonList(
 		EdmSimpleTypeKind.String.getEdmSimpleTypeInstance()
 	);
 
@@ -72,7 +73,7 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public Object visitBinary(BinaryExpression binaryExpression, BinaryOperator operator, Object leftSide, Object rightSide) {
-		String sqlOpr;
+		String sqlOpr = "";
 		boolean isOperator = true;
 
 		switch (operator) {
@@ -89,7 +90,8 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 			case EQ:
 				if (isNullLiteral(binaryExpression.getRightOperand())) {
 					sqlOpr = "is";
-				} else {
+				} else if (!BOOLEAN.contains(binaryExpression.getLeftOperand().getEdmType()) &&
+					!BOOLEAN.contains(binaryExpression.getRightOperand().getEdmType())) {
 					sqlOpr = "=";
 				}
 				break;
@@ -132,8 +134,17 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 				throw new RuntimeException("Unsupported operator: " + operator.toUriLiteral());
 		}
 
-		String left = createOperand(binaryExpression.getLeftOperand(), leftSide);
-		String right = createOperand(binaryExpression.getRightOperand(), rightSide);
+		String left = "";
+		if (!BOOLEAN.contains(binaryExpression.getLeftOperand().getEdmType()) ||
+			binaryExpression.getLeftOperand().getKind() != ExpressionKind.LITERAL) {
+			left = createOperand(binaryExpression.getLeftOperand(), leftSide);
+		}
+
+		String right = "";
+		if (!BOOLEAN.contains(binaryExpression.getRightOperand().getEdmType()) ||
+			binaryExpression.getRightOperand().getKind() != ExpressionKind.LITERAL) {
+			right = createOperand(binaryExpression.getRightOperand(), rightSide);
+		}
 
 		if (mainQueryParams.contains(left)) {
 			if (right.startsWith(":")) {
@@ -232,7 +243,75 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public Object visitMethod(MethodExpression methodExpression, MethodOperator method, List<Object> parameters) {
-		throw new RuntimeException("SQLExpressionVisitor.Method no supported!");
+		String firstParam, secondParam, thirdParam;
+		int idx1 = 0, idx2 = 1;
+
+		switch (method) {
+			case LENGTH:
+				return String.format("length(%s)", createOperand(methodExpression.getParameters().get(0), parameters.get(0)));
+
+			case TOLOWER:
+				return String.format("lower(%s)", createOperand(methodExpression.getParameters().get(0), parameters.get(0)));
+
+			case TOUPPER:
+				return String.format("upper(%s)", createOperand(methodExpression.getParameters().get(0), parameters.get(0)));
+
+			case TRIM:
+				return String.format("trim(%s)", createOperand(methodExpression.getParameters().get(0), parameters.get(0)));
+
+			case INDEXOF:
+				firstParam = createOperand(methodExpression.getParameters().get(idx1), parameters.get(idx1));
+				secondParam = createOperand(methodExpression.getParameters().get(idx2), parameters.get(idx2));
+				return String.format("instr(%s, %s)", firstParam, secondParam);
+
+			case SUBSTRINGOF:
+				idx1 = 1;
+				idx2 = 0;
+				firstParam = createOperand(methodExpression.getParameters().get(idx1), parameters.get(idx1));
+				if (methodExpression.getParameters().get(idx2).getKind() == ExpressionKind.LITERAL) {
+					secondParam = createOperand(methodExpression.getParameters().get(idx2), String.format("%%%s%%", parameters.get(idx2)));
+					return String.format("%s like %s", firstParam, secondParam);
+				} else {
+					secondParam = createOperand(methodExpression.getParameters().get(idx2), parameters.get(idx2));
+					return String.format("instr(%s, %s) > 0", firstParam, secondParam);
+				}
+
+			case STARTSWITH:
+				firstParam = createOperand(methodExpression.getParameters().get(idx1), parameters.get(idx1));
+				if (methodExpression.getParameters().get(idx2).getKind() == ExpressionKind.LITERAL) {
+					secondParam = createOperand(methodExpression.getParameters().get(idx2), String.format("%s%%", parameters.get(idx2)));
+					return String.format("%s like %s", firstParam, secondParam);
+				} else {
+					secondParam = createOperand(methodExpression.getParameters().get(idx2), parameters.get(idx2));
+					return String.format("instr(%s, %s) = 1", firstParam, secondParam);
+				}
+
+			case ENDSWITH:
+				firstParam = createOperand(methodExpression.getParameters().get(idx1), parameters.get(idx1));
+				if (methodExpression.getParameters().get(idx2).getKind() == ExpressionKind.LITERAL) {
+					secondParam = createOperand(methodExpression.getParameters().get(1), String.format("%%%s", parameters.get(idx2)));
+					return String.format("%s like %s", firstParam, secondParam);
+				} else {
+					secondParam = createOperand(methodExpression.getParameters().get(idx2), parameters.get(idx2));
+					return String.format("instr(%1$s, %2$s) = (length(%1$s) - length(%2$s) + 1)", firstParam, secondParam);
+				}
+
+			case CONCAT:
+				firstParam = createOperand(methodExpression.getParameters().get(idx1), parameters.get(idx1));
+				secondParam = createOperand(methodExpression.getParameters().get(idx2), parameters.get(idx2));
+				return String.format("%s || %s", firstParam, secondParam);
+
+			case SUBSTRING:
+				firstParam = createOperand(methodExpression.getParameters().get(idx1), parameters.get(idx1));
+				secondParam = createOperand(methodExpression.getParameters().get(idx2), parameters.get(idx2));
+				if (parameters.size() == 2) {
+					return String.format("substr(%s, %s)", firstParam, secondParam);
+				} else {
+					thirdParam = createOperand(methodExpression.getParameters().get(2), parameters.get(2));
+					return String.format("substr(%s, %s, %s)", firstParam, secondParam, thirdParam);
+				}
+		}
+		throw new RuntimeException("SQLExpressionVisitor.Method not supported: " + method);
 	}
 
 	@Override
@@ -248,8 +327,6 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 		switch (expression.getKind()) {
 
 			/*case FILTER:
-				break;
-			case METHOD:
 				break;
 			case MEMBER:
 				break;
@@ -268,6 +345,7 @@ public class SQLExpressionVisitor implements ExpressionVisitor {
 			case BINARY:
 			case UNARY:
 			case PROPERTY:
+			case METHOD:
 				result = value.toString();
 				break;
 			default:
