@@ -34,7 +34,7 @@
 			   title="KEY:dPage.mts.DataViewForm"
 			   uri="/dvForm"
 			   inMenu="true"
-			   roles="User"
+			   roles="AuthByDB,AuthByLDAP"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataViewExecutorDPage"
@@ -48,28 +48,28 @@
 			   title="KEY:dPage.mts.DataViewList"
 			   uri="/dvList"
 			   inMenu="true"
-			   roles="User"
+			   roles="AuthByDB,AuthByLDAP"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataSourceListDPage"
 			   title="KEY:dPage.mts.DataSourceList"
 			   uri="/dsList"
 			   inMenu="true"
-			   roles="User"
+			   roles="AuthByDB,AuthByLDAP"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataGroupListDPage"
 			   title="KEY:dPage.mts.DataGroupList"
 			   uri="/dgList"
 			   inMenu="true"
-			   roles="User"
+			   roles="AuthByDB,AuthByLDAP"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.ReportListDPage"
 			   title="KEY:dPage.mts.ReportList"
 			   uri="/reports"
 			   inMenu="true"
-			   roles="User"
+			   roles="AuthByDB,AuthByLDAP"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.menu.ReportMenuDPage"
@@ -83,14 +83,14 @@
 			   title="KEY:dPage.mts.DBConnectionGroupList"
 			   uri="/connGroups"
 			   inMenu="true"
-			   roles="User"
+			   roles="AuthByDB,AuthByLDAP"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionListDPage"
 			   title="KEY:dPage.mts.DBConnectionList"
 			   uri="/connections"
 			   inMenu="true"
-			   roles="User"
+			   roles="AuthByDB,AuthByLDAP"
 				/>
 
 		<!--<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionForm"
