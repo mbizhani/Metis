@@ -9,6 +9,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.metis.MetisPrivilegeKey;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.iservice.data.IDataGroupService;
 import org.devocative.metis.vo.filter.data.DataGroupFVO;
@@ -95,7 +96,7 @@ public class DataGroupListDPage extends DPage implements IGridDataSource<DataGro
 				window.setContent(new DataGroupFormDPage(window.getContentId()));
 				window.show(target);
 			}
-		});
+		}.setVisible(hasPermission(MetisPrivilegeKey.DataGroupAdd)));
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		//floatTable.setEqualWidth(true);
@@ -126,28 +127,30 @@ public class DataGroupListDPage extends DPage implements IGridDataSource<DataGro
 		add(form);
 
 		OColumnList<DataGroup> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("DataGroup.name"), "name"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataGroup.name"), "name"));
 		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.creationDate"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
-		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.creatorUser"), "creatorUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.creatorUser"), "creatorUser"));
 		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.modificationDate"), "modificationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
-		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.modifierUser"), "modifierUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.modifierUser"), "modifierUser"));
 		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.version"), "version")
 			.setFormatter(ONumberFormatter.integer())
 			.setStyle("direction:ltr"));
 
-		columnList.add(new OAjaxLinkColumn<DataGroup>(new Model<String>(), MetisIcon.EDIT) {
-			private static final long serialVersionUID = -1716470256L;
+		if (hasPermission(MetisPrivilegeKey.DataGroupEdit)) {
+			columnList.add(new OAjaxLinkColumn<DataGroup>(new Model<>(), MetisIcon.EDIT) {
+				private static final long serialVersionUID = -1716470256L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<DataGroup> rowData) {
-				window.setContent(new DataGroupFormDPage(window.getContentId(), rowData.getObject()));
-				window.show(target);
-			}
-		}.setField("EDIT"));
+				@Override
+				public void onClick(AjaxRequestTarget target, IModel<DataGroup> rowData) {
+					window.setContent(new DataGroupFormDPage(window.getContentId(), rowData.getObject()));
+					window.show(target);
+				}
+			}.setField("EDIT"));
+		}
 
 		OGrid<DataGroup> oGrid = new OGrid<>();
 		oGrid

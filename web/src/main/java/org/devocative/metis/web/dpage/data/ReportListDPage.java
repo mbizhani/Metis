@@ -9,6 +9,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.metis.MetisPrivilegeKey;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.iservice.data.IReportService;
 import org.devocative.metis.vo.filter.data.ReportFVO;
@@ -95,7 +96,7 @@ public class ReportListDPage extends DPage implements IGridDataSource<Report> {
 				window.setContent(new ReportFormDPage(window.getContentId()));
 				window.show(target);
 			}
-		});
+		}.setVisible(hasPermission(MetisPrivilegeKey.ReportAdd)));
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		//floatTable.setEqualWidth(true);
@@ -130,30 +131,32 @@ public class ReportListDPage extends DPage implements IGridDataSource<Report> {
 		add(form);
 
 		OColumnList<Report> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<Report>(new ResourceModel("Report.title"), "title"));
-		columnList.add(new OPropertyColumn<Report>(new ResourceModel("Report.dataView"), "dataView"));
-		columnList.add(new OPropertyColumn<Report>(new ResourceModel("Report.groups"), "groups"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("Report.title"), "title"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("Report.dataView"), "dataView"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("Report.groups"), "groups"));
 		columnList.add(new OPropertyColumn<Report>(new ResourceModel("entity.creationDate"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
-		columnList.add(new OPropertyColumn<Report>(new ResourceModel("entity.creatorUser"), "creatorUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.creatorUser"), "creatorUser"));
 		columnList.add(new OPropertyColumn<Report>(new ResourceModel("entity.modificationDate"), "modificationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
-		columnList.add(new OPropertyColumn<Report>(new ResourceModel("entity.modifierUser"), "modifierUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.modifierUser"), "modifierUser"));
 		columnList.add(new OPropertyColumn<Report>(new ResourceModel("entity.version"), "version")
 			.setFormatter(ONumberFormatter.integer())
 			.setStyle("direction:ltr"));
 
-		columnList.add(new OAjaxLinkColumn<Report>(new Model<String>(), MetisIcon.EDIT) {
-			private static final long serialVersionUID = -857298157L;
+		if (hasPermission(MetisPrivilegeKey.ReportEdit)) {
+			columnList.add(new OAjaxLinkColumn<Report>(new Model<>(), MetisIcon.EDIT) {
+				private static final long serialVersionUID = -857298157L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<Report> rowData) {
-				window.setContent(new ReportFormDPage(window.getContentId(), rowData.getObject()));
-				window.show(target);
-			}
-		}.setField("EDIT"));
+				@Override
+				public void onClick(AjaxRequestTarget target, IModel<Report> rowData) {
+					window.setContent(new ReportFormDPage(window.getContentId(), rowData.getObject()));
+					window.show(target);
+				}
+			}.setField("EDIT"));
+		}
 
 		OGrid<Report> oGrid = new OGrid<>();
 		oGrid
