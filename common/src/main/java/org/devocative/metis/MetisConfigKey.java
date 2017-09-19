@@ -18,7 +18,9 @@ public enum MetisConfigKey implements IConfigKey {
 	ConnectionCheckUserPassOnSave("mts.conn.check.onsave", true, Arrays.asList(true, false)),
 
 	GridAsyncLoadingShow("mts.grid.async.loading.show", true, Arrays.asList(true, false)),
-	GridNoResultShow("mts.grid.no.result.show", false, Arrays.asList(true, false));
+	GridNoResultShow("mts.grid.no.result.show", false, Arrays.asList(true, false)),
+
+	ODataReplaceCharForNonSystemParam("mts.odata.char.replace.non.system", "~");
 
 	private String key;
 	private boolean validate = false;

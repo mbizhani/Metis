@@ -1,6 +1,8 @@
 package org.devocative.metis.web.odata2.http;
 
 import org.apache.olingo.odata2.core.servlet.ODataServlet;
+import org.apache.olingo.odata2.core.servlet.RestUtil;
+import org.apache.olingo.odata2.core.uri.SystemQueryOption;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.metis.MetisConfigKey;
 import org.slf4j.Logger;
@@ -13,6 +15,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
 @WebServlet(
@@ -64,13 +67,39 @@ public class MetisODataServlet extends ODataServlet {
 		@Override
 		public String getQueryString() {
 			String queryString = super.getQueryString();
-			String dbConnParamName = ConfigUtil.getString(MetisConfigKey.DBConnParamName);
-			if(queryString == null || dbConnParamName == null || !dbConnParamName.startsWith("$")) {
-				return queryString;
-			} else {
-				//NOTE: Olingo dose not allow custom parameters to start with '$' character, so here we replace one with '~'
-				return queryString.replaceAll("\\" + dbConnParamName, "~" + dbConnParamName.substring(1));
+
+			if (queryString != null) {
+				Map<String, List<String>> parameters = RestUtil.extractAllQueryParameters(queryString);
+				for (Map.Entry<String, List<String>> paramEntry : parameters.entrySet()) {
+					String param = paramEntry.getKey();
+					if (param.startsWith("$") && !isSystemQuery(param)) {
+						//NOTE: Olingo dose not allow custom parameters to start with '$' character, so here we replace one with '~'
+						queryString = queryString.replaceAll(
+							String.format("\\%s=", param),
+							String.format("%s%s=",
+								ConfigUtil.getString(MetisConfigKey.ODataReplaceCharForNonSystemParam),
+								param.substring(1)
+							)
+						);
+					}
+				}
 			}
+
+			return queryString;
+		}
+
+		// ------------------------------
+
+		private boolean isSystemQuery(String param) {
+			boolean result;
+
+			try {
+				result = SystemQueryOption.valueOf(param) != null;
+			} catch (IllegalArgumentException e) {
+				result = false;
+			}
+
+			return result;
 		}
 	}
 }
