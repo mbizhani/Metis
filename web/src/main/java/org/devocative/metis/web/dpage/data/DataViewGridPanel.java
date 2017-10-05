@@ -384,27 +384,46 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					column.setWidth(OSize.fixed(fieldVO.getColumnWidth()));
 				}
 
+				/*
+				TODO: the format and the read value of following types must be by user selection
+				 */
 				if (!fieldVO.getIsKeyFieldSafely() && !fieldVO.getIsSelfRelPointerFieldSafely()) {
 					switch (fieldVO.getType()) {
 						case Integer:
 							column
+								.setField("v_" + fieldVO.getName())
 								.setFormatter(ONumberFormatter.integer())
 								.setStyle("direction:ltr");
+
+							columns.add(new OHiddenColumn<>(fieldVO.getName()));
 							break;
 						case Real:
 							column
+								.setField("v_" + fieldVO.getName())
 								.setFormatter(ONumberFormatter.real())
 								.setStyle("direction:ltr");
+
+							columns.add(new OHiddenColumn<>(fieldVO.getName()));
 							break;
 						case Date:
 							column
+								.setField("v_" + fieldVO.getName())
 								.setFormatter(ODateFormatter.prDate())
 								.setStyle("direction:ltr");
+
+							columns.add(
+								new OHiddenColumn<Map<String, Object>>(fieldVO.getName())
+									.setFormatter(ODateFormatter.millis()));
 							break;
 						case DateTime:
 							column
+								.setField("v_" + fieldVO.getName())
 								.setFormatter(ODateFormatter.prDateTime())
 								.setStyle("direction:ltr");
+
+							columns.add(
+								new OHiddenColumn<Map<String, Object>>(fieldVO.getName())
+									.setFormatter(ODateFormatter.millis()));
 							break;
 						case Boolean:
 							column.setFormatter(OBooleanFormatter.bool());
