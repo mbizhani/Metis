@@ -601,6 +601,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		}
 
 		persistorService.commitOrRollback();
+		dbConnectionCache.clear();
 	}
 
 	// ------------------------------
