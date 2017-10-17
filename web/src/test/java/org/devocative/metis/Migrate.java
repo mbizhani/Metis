@@ -25,9 +25,9 @@ public class Migrate {
 
 		ConfigUtil.addKey("dmt.db.interceptor", "none", false);
 
-		DemeterCore.init();
+		DemeterCore.get().init();
 
-		ApplicationContext ctx = DemeterCore.getApplicationContext();
+		ApplicationContext ctx = DemeterCore.get().getApplicationContext();
 
 		persistorService = ctx.getBean(IPersistorService.class);
 
@@ -72,7 +72,7 @@ public class Migrate {
 		}
 
 		persistorService.endSession();
-		DemeterCore.shutdown();
+		DemeterCore.get().shutdown();
 	}
 
 	private static XDataView create(DataSource dataSource, XDataSource xDataSource) {

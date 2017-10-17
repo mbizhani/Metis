@@ -32,8 +32,8 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 	// ------------------------------
 
 	private MetisODataSingleProcessor() {
-		dataService = DemeterCore.getApplicationContext().getBean(IDataService.class);
-		securityService = DemeterCore.getApplicationContext().getBean(ISecurityService.class);
+		dataService = DemeterCore.get().getApplicationContext().getBean(IDataService.class);
+		securityService = DemeterCore.get().getApplicationContext().getBean(ISecurityService.class);
 	}
 
 	// ------------------------------

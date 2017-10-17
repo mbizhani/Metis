@@ -38,11 +38,11 @@ public class MetisEdmProvider extends EdmProvider implements IDataEventHandler {
 	// ------------------------------
 
 	private MetisEdmProvider() {
-		dataService = DemeterCore.getApplicationContext().getBean(IDataService.class);
+		dataService = DemeterCore.get().getApplicationContext().getBean(IDataService.class);
 		dataService.addDataEventHandler(this);
 
-		dataViewService = DemeterCore.getApplicationContext().getBean(IDataViewService.class);
-		securityService = DemeterCore.getApplicationContext().getBean(ISecurityService.class);
+		dataViewService = DemeterCore.get().getApplicationContext().getBean(IDataViewService.class);
+		securityService = DemeterCore.get().getApplicationContext().getBean(ISecurityService.class);
 
 		try {
 			createSchema();
