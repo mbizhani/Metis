@@ -125,24 +125,26 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 		add(form);
 
 		OColumnList<DataView> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("DataView.name"), "name"));
-		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("DataView.title"), "title"));
-		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("DataView.dataSource"), "dataSource"));
-		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("DataView.groups"), "groups"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataView.name"), "name"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataView.title"), "title"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataView.dataSource"), "dataSource"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataView.groups"), "groups"));
 		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("entity.creationDate"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
-		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("entity.creatorUser"), "creatorUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.creatorUser"), "creatorUser"));
 		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("entity.modificationDate"), "modificationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
-		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("entity.modifierUser"), "modifierUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.modifierUser"), "modifierUser"));
 		columnList.add(new OPropertyColumn<DataView>(new ResourceModel("entity.version"), "version")
 			.setFormatter(ONumberFormatter.integer())
 			.setStyle("direction:ltr"));
 
-		columnList.add(new ORESTLinkColumn<DataView>(new Model<String>(), DataViewFormDPage.class, "name", MetisIcon.EDIT));
-		columnList.add(new ORESTLinkColumn<DataView>(new Model<String>(), DataViewExecutorDPage.class, "name", MetisIcon.EXECUTE));
+		if (hasPermission(DataViewFormDPage.class)) {
+			columnList.add(new ORESTLinkColumn<>(new Model<>(), DataViewFormDPage.class, "name", MetisIcon.EDIT));
+		}
+		columnList.add(new ORESTLinkColumn<>(new Model<>(), DataViewExecutorDPage.class, "name", MetisIcon.EXECUTE));
 
 		OGrid<DataView> oGrid = new OGrid<>();
 		oGrid

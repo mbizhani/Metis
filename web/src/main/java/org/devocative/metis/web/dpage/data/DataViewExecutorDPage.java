@@ -1,5 +1,6 @@
 package org.devocative.metis.web.dpage.data;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -10,7 +11,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.DLogCtx;
-import org.devocative.demeter.DemeterConfigKey;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
@@ -152,7 +152,8 @@ public class DataViewExecutorDPage extends DPage {
 		north.add(new Label("dvTitle", title));
 		north.add(new Label("dvName", dataVO.getName()));
 		north.add(new ExternalLink("edit", String.format("%s/%s", UrlUtil.createUri(DataViewFormDPage.class, true), dataVO.getName())));
-		north.setVisible(!ConfigUtil.getBoolean(DemeterConfigKey.DeploymentMode));
+		north.setVisible(hasPermission(DataViewFormDPage.class));
+		//north.setVisible(!ConfigUtil.getBoolean(DemeterConfigKey.DeploymentMode));
 
 		Form<Map<String, Object>> form = new Form<>("form");
 		form.add(
@@ -179,13 +180,16 @@ public class DataViewExecutorDPage extends DPage {
 			searchOnStart = "1".equals(webParams.get(MetisWebParam.SEARCH_ON_START).get(0));
 		}
 
+		WebMarkupContainer centerPanel = new WebMarkupContainer("centerPanel");
+		centerPanel.add(new AttributeModifier("title", getString("label.result") + " - " + dataVO.getTitle()));
+
 		mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
 		mainGrid
 			.setMultiSelect(multiSelect)
 			.setSelectionJSCallback(selectionJSCallback)
 			.setSentDBConnection(sentDBConnection)
 			.setWebParams(webParams);
-		add(mainGrid);
+		centerPanel.add(mainGrid);
 
 		WebMarkupContainer filterPanel = new WebMarkupContainer("filterPanel");
 		filterPanel.add(form);
@@ -193,7 +197,7 @@ public class DataViewExecutorDPage extends DPage {
 		WEasyLayout layout = new WEasyLayout("layout");
 		layout.add(north);
 		layout.add(filterPanel);
-		layout.add(mainGrid);
+		layout.add(centerPanel);
 		layout.setWestOfLTRDir(filterPanel);
 		add(layout);
 	}

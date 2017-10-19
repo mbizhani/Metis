@@ -515,6 +515,11 @@ public class DataService implements IDataService {
 		} catch (RuntimeException e) {
 			logger.error("Execute OData Error: DV=" + request.getName(), e);
 			throw e;
+		} finally {
+			DLogCtx
+				.remove("action")
+				.remove("dataView")
+				.remove("duration");
 		}
 	}
 
@@ -553,6 +558,11 @@ public class DataService implements IDataService {
 		} catch (RuntimeException e) {
 			logger.error("Execute OData Error: DV=" + request.getName(), e);
 			throw e;
+		} finally {
+			DLogCtx
+				.remove("action")
+				.remove("dataView")
+				.remove("duration");
 		}
 	}
 
