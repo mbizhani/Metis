@@ -76,9 +76,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.38</version>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>2.4.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -108,13 +108,13 @@
 				</excludes>
 			</resource>
 		</resources>
+
 		<testResources>
 			<testResource>
-				<filtering>false</filtering>
 				<directory>src/test/resources</directory>
 			</testResource>
+
 			<testResource>
-				<filtering>false</filtering>
 				<directory>src/test/java</directory>
 				<includes>
 					<include>**</include>
@@ -122,6 +122,10 @@
 				<excludes>
 					<exclude>**/*.java</exclude>
 				</excludes>
+			</testResource>
+
+			<testResource>
+				<directory>../common/src/main/resources</directory>
 			</testResource>
 		</testResources>
 
