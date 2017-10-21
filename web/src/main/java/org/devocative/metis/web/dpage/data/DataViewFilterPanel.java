@@ -41,7 +41,7 @@ public class DataViewFilterPanel extends DPanel {
 	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
 	private Set<String> filterWithDefAndReqOrDis;
-	private Set<String> filterWithDef = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+	private Map<String, List<String>> filterWithDef = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
 	private List<String> disabledFilterInputs;
 	private List<String> invisibleFilterInputs;
@@ -101,10 +101,9 @@ public class DataViewFilterPanel extends DPanel {
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
 		}
 
-		Map<String, List<String>> defaultValue = findDefaultValue();
-		filterWithDef.addAll(defaultValue.keySet());
+		filterWithDef.putAll(findDefaultValue());
 		try {
-			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, defaultValue, sentDBConnection);
+			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, filterWithDef, sentDBConnection);
 		} catch (Exception e) {
 			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter(defaultValue)", e);
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
@@ -223,7 +222,7 @@ public class DataViewFilterPanel extends DPanel {
 				if (fieldVO.getFilterType() == XDSFieldFilterType.List) {
 					List<KeyValueVO<Serializable, String>> lookUpList = null;
 
-					if (filter.containsKey(fieldVO.getName()) && !filterWithDef.contains(fieldVO.getName())) {
+					if (filter.containsKey(fieldVO.getName())) {
 						/**
 						 * NOTE:
 						 * Since DataService.convertSimpleParamsToFilter() is called in the beginning of onInitialize(),
@@ -231,7 +230,7 @@ public class DataViewFilterPanel extends DPanel {
 						 * correctly to the filter!
 						 */
 						if (filter.get(fieldVO.getName()) instanceof List) {
-							lookUpList = (List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName());
+							lookUpList = new ArrayList<>((List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName()));
 						} else {
 							KeyValueVO<Serializable, String> keyValueVO = (KeyValueVO<Serializable, String>) filter.get(fieldVO.getName());
 							lookUpList = Collections.singletonList(keyValueVO);
@@ -240,8 +239,17 @@ public class DataViewFilterPanel extends DPanel {
 						/*
 						if the lookup is filtered by passing targetDSFilter, the result should not be selected
 						*/
-						if (fieldVO.getTargetDSFilter() != null && !filterWithDefAndReqOrDis.contains(fieldVO.getName())) {
+						if (fieldVO.getTargetDSFilter() != null &&
+							!filterWithDefAndReqOrDis.contains(fieldVO.getName()) &&
+							!filterWithDef.containsKey(fieldVO.getName())) {
 							filter.remove(fieldVO.getName());
+						} else if (filterWithDef.containsKey(fieldVO.getName())) {
+							List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName());
+							for (int i = list.size() - 1; i > -1; i--) {
+								if (!filterWithDef.get(fieldVO.getName()).contains(list.get(i).getKey())) {
+									list.remove(i);
+								}
+							}
 						}
 					}
 
@@ -296,7 +304,7 @@ public class DataViewFilterPanel extends DPanel {
 						}
 					}
 						.setOpenModalLinkVisible(!filterWithDefAndReqOrDis.contains(fieldVO.getName()) ||
-							filterWithDef.contains(fieldVO.getName()));
+							filterWithDef.containsKey(fieldVO.getName()));
 				}
 				break;
 			case Unknown:
@@ -313,13 +321,15 @@ public class DataViewFilterPanel extends DPanel {
 				int i = def.indexOf("~");
 				if (i > 0) {
 					String field = def.substring(0, i);
-					String value = def.substring(i + 1);
+					String value = def.substring(i + 1).trim();
 
 					if (!result.containsKey(field)) {
-						result.put(field, new ArrayList<String>());
+						result.put(field, new ArrayList<>());
 					}
 
-					result.get(field).add(value);
+					if (value.length() > 0) {
+						result.get(field).add(value);
+					}
 				}
 			}
 		}
