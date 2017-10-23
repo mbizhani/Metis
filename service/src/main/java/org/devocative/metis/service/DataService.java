@@ -408,7 +408,8 @@ public class DataService implements IDataService {
 		Date expire = CalendarUtil.add(now, Calendar.DATE,
 			ConfigUtil.getInteger(MetisConfigKey.ExportReportExpireDays));
 		//TODO using calendar from User
-		String name = String.format("%s-%s.xlsx", dataView.getName(), CalendarUtil.toPersian(now, "yyyyMMdd-HHmmss"));
+		String name = String.format("%s-%s.xlsx", dataView.getName(),
+			securityService.getCurrentUser().getCalendar().convertToString(now, "yyyyMMdd-HHmmss"));
 		FileStoreHandler fileStoreHandler = fileStoreService.create(
 			name,
 			EFileStorage.DISK,
