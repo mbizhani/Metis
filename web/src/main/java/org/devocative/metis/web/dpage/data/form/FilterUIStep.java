@@ -44,6 +44,6 @@ class FilterUIStep extends WWizardStepPanel {
 	@Override
 	protected void onInit() {
 		selectedFilters.addAll(dataService.findFilteringFields(dataVO.getAllFields()));
-		add(new WOrderedListInput<>("filterSelection", new PropertyModel<List<DataAbstractFieldVO>>(this, "selectedFilters"), dataVO.getAllFields()));
+		add(new WOrderedListInput<>("filterSelection", new PropertyModel<>(this, "selectedFilters"), dataVO.getAllFields()));
 	}
 }

@@ -89,21 +89,21 @@ class QueryStep extends WWizardStepPanel {
 			.setWidth(OSize.percent(70))
 			.setHeight(OSize.fixed(800));
 
-		add(new CheckBox("dynamic", new PropertyModel<Boolean>(dataVO.getQuery(), "dynamic"))
+		add(new CheckBox("dynamic", new PropertyModel<>(dataVO.getQuery(), "dynamic"))
 				.setEnabled(dataVO.isDataSourceEditable())
 		);
 
-		add(new TextField<>("before", new PropertyModel<String>(dataVO.getQuery(), "before"), String.class)
+		add(new TextField<>("before", new PropertyModel<>(dataVO.getQuery(), "before"), String.class)
 				.setEnabled(dataVO.isDataSourceEditable())
 		);
 
-		add(new WCodeInput("query", new PropertyModel<String>(dataVO.getQuery(), "text"), oCode)
+		add(new WCodeInput("query", new PropertyModel<>(dataVO.getQuery(), "text"), oCode)
 				.setRequired(true)
 				.setLabel(new ResourceModel("DataSource.query"))
 				.setEnabled(dataVO.isDataSourceEditable())
 		);
 
-		add(new TextArea<>("after", new PropertyModel<String>(dataVO.getQuery(), "after"))
+		add(new TextArea<>("after", new PropertyModel<>(dataVO.getQuery(), "after"))
 				.setEnabled(dataVO.isDataSourceEditable())
 		);
 
