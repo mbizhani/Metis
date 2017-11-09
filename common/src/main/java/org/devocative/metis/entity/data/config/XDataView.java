@@ -32,6 +32,8 @@ public class XDataView implements Serializable {
 
 	private String selectionValidationJS;
 
+	private String rowStyler;
+
 	// ---------------
 	private List<XDVField> fields;
 
@@ -87,6 +89,14 @@ public class XDataView implements Serializable {
 
 	public void setSelectionValidationJS(String selectionValidationJS) {
 		this.selectionValidationJS = selectionValidationJS;
+	}
+
+	public String getRowStyler() {
+		return rowStyler;
+	}
+
+	public void setRowStyler(String rowStyler) {
+		this.rowStyler = rowStyler;
 	}
 
 	public List<XDVField> getFields() {

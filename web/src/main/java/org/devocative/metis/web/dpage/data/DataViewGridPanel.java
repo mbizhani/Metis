@@ -9,6 +9,9 @@ import org.apache.wicket.model.Model;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.entity.EFileStatus;
 import org.devocative.demeter.iservice.ISecurityService;
+import org.devocative.demeter.iservice.template.IStringTemplate;
+import org.devocative.demeter.iservice.template.IStringTemplateService;
+import org.devocative.demeter.iservice.template.TemplateEngineType;
 import org.devocative.demeter.vo.filter.FileStoreFVO;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.demeter.web.DTaskBehavior;
@@ -46,7 +49,9 @@ import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.WMessager;
 import org.devocative.wickomp.html.icon.IconFont;
 import org.devocative.wickomp.html.window.WModalWindow;
+import org.devocative.wickomp.opt.IStyler;
 import org.devocative.wickomp.opt.OSize;
+import org.devocative.wickomp.opt.OStyle;
 import org.devocative.wickomp.wrcs.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +73,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	@Inject
 	private IDataService dataService;
+
+	@Inject
+	private IStringTemplateService stringTemplateService;
 
 	private DataVO dataVO;
 	private Map<String, Object> filter;
@@ -323,6 +331,16 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 		if (ConfigUtil.getBoolean(MetisConfigKey.GridNoResultShow)) {
 			oBaseGrid.setNoResultMessage(getString("err.mts.NoResult"));
+		}
+
+		if (dataVO.getRowStyler() != null) {
+			oBaseGrid.setRowStyler((IStyler<Map<String, Object>> & Serializable) (bean, id) -> {
+				IStringTemplate template = stringTemplateService.create(dataVO.getRowStyler(), TemplateEngineType.GroovyScript);
+				Map<String, Object> params = new HashMap<>();
+				params.put("row", bean);
+				Object result = template.process(params);
+				return result != null ? OStyle.style(result.toString()) : null;
+			});
 		}
 
 		if (selectionJSCallback != null) {

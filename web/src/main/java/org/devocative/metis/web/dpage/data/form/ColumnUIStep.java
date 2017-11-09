@@ -16,6 +16,9 @@ import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WNumberInput;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
+import org.devocative.wickomp.form.code.OCode;
+import org.devocative.wickomp.form.code.OCodeMode;
+import org.devocative.wickomp.form.code.WCodeInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
 import java.util.ArrayList;
@@ -34,7 +37,9 @@ class ColumnUIStep extends WWizardStepPanel {
 	@Override
 	protected void onInit() {
 
-		add(new TextArea<>("selectionValidationJS", new PropertyModel<String>(dataVO, "selectionValidationJS")));
+		add(new TextArea<>("selectionValidationJS", new PropertyModel<>(dataVO, "selectionValidationJS")));
+
+		add(new WCodeInput("rowStyler", new PropertyModel<>(dataVO, "rowStyler"), new OCode(OCodeMode.GROOVY)));
 
 		add(new ListView<DataFieldVO>("fields", dataVO.getFields()) {
 			private static final long serialVersionUID = 7157602000394481452L;
@@ -55,7 +60,7 @@ class ColumnUIStep extends WWizardStepPanel {
 				resultTypeList.add(XDSFieldResultType.Shown);
 
 				final WNumberInput columnWidth;
-				item.add(columnWidth = new WNumberInput("columnWidth", new PropertyModel<Number>(fieldVO, "columnWidth"), Integer.class));
+				item.add(columnWidth = new WNumberInput("columnWidth", new PropertyModel<>(fieldVO, "columnWidth"), Integer.class));
 				columnWidth
 					.setLabelVisible(false)
 					.setLabel(new Model<>(getString("XDVField.columnWidth") + " " + fieldVO.getName()))

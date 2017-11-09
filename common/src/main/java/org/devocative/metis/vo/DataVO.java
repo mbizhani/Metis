@@ -87,6 +87,11 @@ public class DataVO implements Serializable {
 	private String selectionValidationJS;
 
 	/**
+	 * XDataView.rowStyler
+	 */
+	private String rowStyler;
+
+	/**
 	 * merge of XDataView.fields & XDataSource.fields
 	 */
 	private List<DataFieldVO> fields;
@@ -237,6 +242,14 @@ public class DataVO implements Serializable {
 		this.selectionValidationJS = selectionValidationJS;
 	}
 
+	public String getRowStyler() {
+		return rowStyler;
+	}
+
+	public void setRowStyler(String rowStyler) {
+		this.rowStyler = rowStyler;
+	}
+
 	public List<DataFieldVO> getFields() {
 		if (fields == null) {
 			fields = new ArrayList<>();
@@ -346,6 +359,7 @@ public class DataVO implements Serializable {
 		xDataView.setGridHeight(getGridHeight());
 		xDataView.setLinks(getLinksToDV());
 		xDataView.setSelectionValidationJS(getSelectionValidationJS());
+		xDataView.setRowStyler(getRowStyler());
 
 		for (DataFieldVO fieldVO : getFields()) {
 			xDataView.getFields().add(fieldVO.toXDVField());
@@ -379,6 +393,7 @@ public class DataVO implements Serializable {
 		setGridHeight(xDataView.getGridHeight());
 		setLinksToDV(xDataView.getLinks());
 		setSelectionValidationJS(xDataView.getSelectionValidationJS());
+		setRowStyler(xDataView.getRowStyler());
 
 		Map<String, DataFieldVO> fieldsMap = new HashMap<>();
 		for (DataFieldVO fieldVO : getFields()) {
