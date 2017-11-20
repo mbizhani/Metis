@@ -2,6 +2,7 @@ package org.devocative.metis.iservice.connection;
 
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.IApplicationLifecycle;
+import org.devocative.demeter.iservice.IEntityService;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.connection.mapping.XSchema;
@@ -14,7 +15,7 @@ import org.devocative.metis.vo.query.QueryExecInfoRVO;
 import java.util.List;
 import java.util.Map;
 
-public interface IDBConnectionService extends IApplicationLifecycle {
+public interface IDBConnectionService extends IApplicationLifecycle, IEntityService<DBConnection> {
 	String CACHE_KEY_DB_CONNECTION = "MTS_DB_CONNECTION";
 	String CACHE_KEY_X_SCHEMA = "MTS_DB_X_SCHEMA";
 
@@ -67,9 +68,9 @@ public interface IDBConnectionService extends IApplicationLifecycle {
 	void closeAllPools();
 
 	QueryExecInfoRVO execute(Long dbConnId,
-				 String query,
-				 String comment,
-				 Map<String, Object> params);
+							 String query,
+							 String comment,
+							 Map<String, Object> params);
 
 	XSchema getSchemaOfMapping(Long id);
 

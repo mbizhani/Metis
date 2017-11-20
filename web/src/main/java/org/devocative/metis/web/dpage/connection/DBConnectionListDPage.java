@@ -10,12 +10,12 @@ import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.demeter.web.component.grid.OEditAjaxColumn;
+import org.devocative.demeter.web.model.DEntityLazyLoadModel;
 import org.devocative.metis.MetisPrivilegeKey;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.vo.filter.connection.DBConnectionFVO;
 import org.devocative.metis.web.MetisIcon;
-import org.devocative.wickomp.WModel;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.range.WDateRangeInput;
@@ -165,8 +165,7 @@ public class DBConnectionListDPage extends DPage implements IGridDataSource<DBCo
 
 		OColumnList<DBConnection> columnList = new OColumnList<>();
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.name"), "name"));
-		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.driver"), "safeDriver"));
-		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.url"), "safeUrl"));
+		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.url"), "safeUrl").setWidth(OSize.fixed(180)));
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.username"), "username"));
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.schema"), "schema"));
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.group"), "group"));
@@ -198,7 +197,8 @@ public class DBConnectionListDPage extends DPage implements IGridDataSource<DBCo
 			}
 		}.setAlign(OHorizontalAlign.Center));
 
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.customParam1"), "customParam1"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.customParam1"), "customParam1"));
+		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.driver"), "safeDriver").setWidth(OSize.fixed(130)));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creationDate"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
@@ -329,6 +329,6 @@ public class DBConnectionListDPage extends DPage implements IGridDataSource<DBCo
 
 	@Override
 	public IModel<DBConnection> model(DBConnection object) {
-		return new WModel<>(object);
+		return new DEntityLazyLoadModel<>(object.getId(), dBConnectionService);
 	}
 }
