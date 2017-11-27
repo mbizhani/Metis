@@ -6,6 +6,7 @@ import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
+import org.apache.olingo.odata2.api.uri.KeyPredicate;
 import org.apache.olingo.odata2.api.uri.expression.OrderExpression;
 import org.apache.olingo.odata2.api.uri.info.*;
 import org.devocative.adroit.ConfigUtil;
@@ -71,9 +72,10 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 	// --------------- NOT IMPLEMENTED!
 
 	@Override
-	public ODataResponse readEntity(final GetEntityUriInfo uriInfo, final String contentType) throws ODataException {
+	public ODataResponse readEntity(GetEntityUriInfo uriInfo, String contentType) throws ODataException {
 		logger.debug("OData.readEntity: {}", uriInfo);
-		throw new RuntimeException("NI: readEntity!");
+		//throw new RuntimeException("NI: readEntity!");
+		return selectRow(uriInfo, contentType);
 	}
 
 	@Override
@@ -152,15 +154,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		*/
 
 		dataQVO.setInputParams(inputParams);
-
-		//NOTE: Olingo dose not allow custom parameters to start with '$' character, so here we replace one with '~'
-		String dbConnParamName = ConfigUtil.getString(MetisConfigKey.DBConnParamName);
-		if (dbConnParamName != null) {
-			if (dbConnParamName.startsWith("$")) {
-				dbConnParamName = "~" + dbConnParamName.substring(1);
-			}
-			dataQVO.setSentDBConnection(customQueryOptions.get(dbConnParamName));
-		}
+		processCommonOfUri(customQueryOptions, dataQVO);
 
 		List<Map<String, Object>> list = dataService.executeOData(dataQVO);
 
@@ -204,6 +198,49 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 
 		dataQVO.setInputParams(inputParams);
 
+		processCommonOfUri(customQueryOptions, dataQVO);
+
+		Long dataCount = dataService.executeODataCount(dataQVO);
+
+		return EntityProvider.writeText(String.valueOf(dataCount));
+	}
+
+	private ODataResponse selectRow(GetEntityUriInfo uriInfo, String contentType) throws ODataException {
+		List<KeyPredicate> keyPredicates = uriInfo.getKeyPredicates();
+		if (keyPredicates != null && !keyPredicates.isEmpty()) {
+			EdmEntitySet entitySet = uriInfo.getStartEntitySet();
+			KeyPredicate keyPredicate = keyPredicates.get(0);
+			Map<String, String> customQueryOptions = uriInfo.getCustomQueryOptions();
+
+			logger.info("OData: SingleData: DataView=[{}] User=[{}] CustomQueryParams=[{}]",
+				entitySet.getEntityType().getName(), securityService.getCurrentUser(), customQueryOptions);
+
+			Map<String, Object> inputParams = new HashMap<>();
+			inputParams.put(keyPredicate.getProperty().getName(), keyPredicate.getLiteral());
+
+			ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName())
+				.setFirstResult(1)
+				.setMaxResults(1);
+			dataQVO.setInputParams(inputParams);
+
+			processCommonOfUri(customQueryOptions, dataQVO);
+
+			List<Map<String, Object>> list = dataService.executeOData(dataQVO);
+
+			return EntityProvider.writeFeed(
+				contentType,
+				entitySet,
+				list,
+				EntityProviderWriteProperties
+					.serviceRoot(getContext().getPathInfo().getServiceRoot())
+					.build()
+			);
+		}
+
+		return null;
+	}
+
+	private void processCommonOfUri(Map<String, String> customQueryOptions, ODataQVO dataQVO) {
 		//NOTE: Olingo dose not allow custom parameters to start with '$' character, so here we replace one with '~'
 		String dbConnParamName = ConfigUtil.getString(MetisConfigKey.DBConnParamName);
 		if (dbConnParamName != null) {
@@ -212,9 +249,5 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 			}
 			dataQVO.setSentDBConnection(customQueryOptions.get(dbConnParamName));
 		}
-
-		Long dataCount = dataService.executeODataCount(dataQVO);
-
-		return EntityProvider.writeText(String.valueOf(dataCount));
 	}
 }

@@ -481,7 +481,7 @@ public class DataService implements IDataService {
 			DataView dataView = dataViewService.loadByName(request.getName());
 			XDataView xDataView = dataView.getXDataView();
 
-			List<String> selectFields = getSelectedFields(xDataView, false);
+			List<String> selectFields = getSelectedFields(xDataView, true);
 
 			Map<String, Object> inputParams = new HashMap<>();
 			if (request.getInputParams() != null) {

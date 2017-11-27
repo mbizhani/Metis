@@ -4,6 +4,7 @@ import org.devocative.adroit.ObjectUtil;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
+import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 
 import java.io.Serializable;
@@ -76,6 +77,10 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 	 * XDVField.targetDSFilter
 	 */
 	private String targetDSFilter;
+
+	// ------------------------------ ACCESSORS
+
+	public abstract XDSFieldResultType getResultType();
 
 	// ------------------------------ ACCESSORS
 

@@ -6,6 +6,7 @@ import org.apache.olingo.odata2.api.edm.provider.*;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.devocative.demeter.core.DemeterCore;
 import org.devocative.demeter.iservice.ISecurityService;
+import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.iservice.IDataEventHandler;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IDataViewService;
@@ -155,35 +156,37 @@ public class MetisEdmProvider extends EdmProvider implements IDataEventHandler {
 		PropertyRef key = new PropertyRef().setName(dataVO.getFields().get(0).getName());
 
 		for (DataAbstractFieldVO fieldVO : dataVO.getAllFields()) {
-			EdmSimpleTypeKind type = EdmSimpleTypeKind.String;
+			if (fieldVO.getResultType() != XDSFieldResultType.None) {
+				EdmSimpleTypeKind type = EdmSimpleTypeKind.String;
 
-			switch (fieldVO.getType()) {
-				case Integer:
-					type = EdmSimpleTypeKind.Decimal;
-					break;
-				case Real:
-					type = EdmSimpleTypeKind.Double;
-					break;
-				case Date:
-				case DateTime:
-					type = EdmSimpleTypeKind.DateTime;
-					break;
-			}
-
-			Property property = new SimpleProperty()
-				.setName(fieldVO.getName())
-				.setType(type);
-			properties.add(property);
-
-			// TODO Navigation Properties
-
-			if (fieldVO instanceof DataFieldVO) {
-				DataFieldVO dataFieldVO = (DataFieldVO) fieldVO;
-				if (dataFieldVO.getIsKeyFieldSafely()) {
-					key.setName(dataFieldVO.getName());
+				switch (fieldVO.getType()) {
+					case Integer:
+						type = EdmSimpleTypeKind.Decimal;
+						break;
+					case Real:
+						type = EdmSimpleTypeKind.Double;
+						break;
+					case Date:
+					case DateTime:
+						type = EdmSimpleTypeKind.DateTime;
+						break;
 				}
-			} else {
-				property.setDocumentation(new Documentation().setSummary("SQL Parameter"));
+
+				Property property = new SimpleProperty()
+					.setName(fieldVO.getName())
+					.setType(type);
+				properties.add(property);
+
+				// TODO Navigation Properties
+
+				if (fieldVO instanceof DataFieldVO) {
+					DataFieldVO dataFieldVO = (DataFieldVO) fieldVO;
+					if (dataFieldVO.getIsKeyFieldSafely()) {
+						key.setName(dataFieldVO.getName());
+					}
+				} else {
+					property.setDocumentation(new Documentation().setSummary("SQL Parameter"));
+				}
 			}
 		}
 
