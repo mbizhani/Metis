@@ -79,7 +79,7 @@ public class DataVO implements Serializable {
 	/**
 	 * XDataView.gridHeight
 	 */
-	private XDVGridHeight gridHeight;
+	//private XDVGridHeight gridHeight;
 
 	/**
 	 * XDataView.selectionValidationJS
@@ -226,13 +226,13 @@ public class DataVO implements Serializable {
 		this.selectionMode = selectionMode;
 	}
 
-	public XDVGridHeight getGridHeight() {
+	/*public XDVGridHeight getGridHeight() {
 		return gridHeight;
 	}
 
 	public void setGridHeight(XDVGridHeight gridHeight) {
 		this.gridHeight = gridHeight;
-	}
+	}*/
 
 	public String getSelectionValidationJS() {
 		return selectionValidationJS;
@@ -295,9 +295,9 @@ public class DataVO implements Serializable {
 		return selectionMode != null ? selectionMode : XDVGridSelectionMode.Multiple;
 	}
 
-	public XDVGridHeight getGridHeightSafely() {
+	/*public XDVGridHeight getGridHeightSafely() {
 		return gridHeight != null ? gridHeight : XDVGridHeight.Short;
-	}
+	}*/
 
 	public List<DataAbstractFieldVO> getAllFields() {
 		List<DataAbstractFieldVO> fieldVOs = new ArrayList<>();
@@ -356,7 +356,7 @@ public class DataVO implements Serializable {
 		xDataView.setDataSourceId(getDataSourceId());
 		xDataView.setDataSourceName(isDataSourceEditable() ? getName() : getDataSourceName());
 		xDataView.setSelectionMode(getSelectionMode());
-		xDataView.setGridHeight(getGridHeight());
+		//xDataView.setGridHeight(getGridHeight());
 		xDataView.setLinks(getLinksToDV());
 		xDataView.setSelectionValidationJS(getSelectionValidationJS());
 		xDataView.setRowStyler(getRowStyler());
@@ -390,7 +390,7 @@ public class DataVO implements Serializable {
 	public void fromXDataView(XDataView xDataView) {
 		setName(xDataView.getName());
 		setSelectionMode(xDataView.getSelectionMode());
-		setGridHeight(xDataView.getGridHeight());
+		//setGridHeight(xDataView.getGridHeight());
 		setLinksToDV(xDataView.getLinks());
 		setSelectionValidationJS(xDataView.getSelectionValidationJS());
 		setRowStyler(xDataView.getRowStyler());

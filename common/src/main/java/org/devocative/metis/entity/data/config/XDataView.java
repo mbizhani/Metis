@@ -25,8 +25,8 @@ public class XDataView implements Serializable {
 	@XStreamAsAttribute
 	private XDVGridSelectionMode selectionMode;
 
-	@XStreamAsAttribute
-	private XDVGridHeight gridHeight;
+	//@XStreamAsAttribute
+	//private XDVGridHeight gridHeight;
 
 	// ---------------
 
@@ -75,13 +75,13 @@ public class XDataView implements Serializable {
 		this.selectionMode = selectionMode;
 	}
 
-	public XDVGridHeight getGridHeight() {
+	/*public XDVGridHeight getGridHeight() {
 		return gridHeight;
 	}
 
 	public void setGridHeight(XDVGridHeight gridHeight) {
 		this.gridHeight = gridHeight;
-	}
+	}*/
 
 	public String getSelectionValidationJS() {
 		return selectionValidationJS;

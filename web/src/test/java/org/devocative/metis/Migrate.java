@@ -82,7 +82,7 @@ public class Migrate {
 		xDataView.setDataSourceId(dataSource.getId());
 		xDataView.setDataSourceName(dataSource.getName());
 
-		xDataView.setGridHeight(XDVGridHeight.Short);
+		//xDataView.setGridHeight(XDVGridHeight.Short);
 		xDataView.setSelectionMode(XDVGridSelectionMode.Multiple);
 
 		for (XDSField xdsField : xDataSource.getFields()) {
