@@ -11,7 +11,6 @@ public class XDVAbstractField implements Serializable {
 	protected String name;
 
 	@XStreamAsAttribute
-	//@XStreamConverter(IgnoreFalseConverter.class)
 	private Boolean inFilterPanel;
 
 	@XStreamAsAttribute

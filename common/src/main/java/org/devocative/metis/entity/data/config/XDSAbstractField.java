@@ -1,8 +1,6 @@
 package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
-import org.devocative.metis.IgnoreFalseConverter;
 
 import java.io.Serializable;
 
@@ -16,7 +14,6 @@ public abstract class XDSAbstractField implements Serializable {
 	protected String title;
 
 	@XStreamAsAttribute
-	@XStreamConverter(IgnoreFalseConverter.class)
 	protected Boolean required;
 
 	@XStreamAsAttribute

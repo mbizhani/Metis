@@ -217,7 +217,6 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 	}
 
 	public boolean getInFilterPanelSafely() {
-		//return getInFilterPanel() == null || getInFilterPanel(); //TODO
 		return ObjectUtil.isTrue(getInFilterPanel());
 	}
 

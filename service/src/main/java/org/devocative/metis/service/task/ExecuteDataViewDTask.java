@@ -42,4 +42,9 @@ public class ExecuteDataViewDTask extends DTask {
 			sendResult(result);
 		}
 	}
+
+	@Override
+	public void cancel() {
+		throw new RuntimeException("Not Implemented!");
+	}
 }
