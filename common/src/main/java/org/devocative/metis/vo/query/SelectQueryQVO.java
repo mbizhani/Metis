@@ -8,6 +8,8 @@ public class SelectQueryQVO extends AbstractQueryQVO {
 	private Map<String, String> sortFields;
 	private PaginationQVO pagination;
 
+	private boolean considerParent = true;
+
 	// ------------------------------
 
 	public SelectQueryQVO(Long dataSourceId, List<String> selectFields) {
@@ -36,6 +38,15 @@ public class SelectQueryQVO extends AbstractQueryQVO {
 
 	public SelectQueryQVO setPagination(PaginationQVO pagination) {
 		this.pagination = pagination;
+		return this;
+	}
+
+	public boolean isConsiderParent() {
+		return considerParent;
+	}
+
+	public SelectQueryQVO setConsiderParent(boolean considerParent) {
+		this.considerParent = considerParent;
 		return this;
 	}
 }

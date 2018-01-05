@@ -492,6 +492,7 @@ public class DataService implements IDataService {
 
 			SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
 			selectQVO
+				.setConsiderParent(ConfigUtil.getBoolean(MetisConfigKey.ODataConsiderParentRelation)) //NOTE: in OData just fetch related records
 				.setPagination(PaginationQVO.byResult(request.getFirstResult(), request.getMaxResults()))
 				.setSortFields(request.getOrderBy())
 				.setFilterExpression(request.getFilterExpression())

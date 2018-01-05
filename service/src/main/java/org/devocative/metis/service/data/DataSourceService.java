@@ -469,7 +469,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			list.addQueryExecInfo(0, beforeExecInfo);
 		}
 
-		if (dataSource.getSelfRelPointerField() != null) {
+		if (queryQVO.isConsiderParent() && dataSource.getSelfRelPointerField() != null) {
 			Set<Object> parentIds = extractParentIds(dataSource.getSelfRelPointerField(), list.getResult());
 
 			if (parentIds.size() > 0) {

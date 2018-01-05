@@ -20,7 +20,8 @@ public enum MetisConfigKey implements IConfigKey {
 	GridAsyncLoadingShow("mts.grid.async.loading.show", true, Arrays.asList(true, false)),
 	GridNoResultShow("mts.grid.no.result.show", false, Arrays.asList(true, false)),
 
-	ODataReplaceCharForNonSystemParam("mts.odata.char.replace.non.system", "~");
+	ODataReplaceCharForNonSystemParam("mts.odata.char.replace.non.system", "~"),
+	ODataConsiderParentRelation("mts.odata.consider.parent.relation", false, Arrays.asList(true, false));
 
 	private String key;
 	private boolean validate = false;
