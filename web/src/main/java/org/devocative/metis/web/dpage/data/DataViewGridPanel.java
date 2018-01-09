@@ -60,7 +60,7 @@ import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.*;
 
-public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSource<Map<String, Object>>, IAsyncResponse {
+public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSource<Map<String, Object>>, IAsyncResponse<DataViewRVO> {
 	private static final long serialVersionUID = 6957270102281915596L;
 
 	private static final Logger logger = LoggerFactory.getLogger(DataViewGridPanel.class);
@@ -80,7 +80,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private DataVO dataVO;
 	private Map<String, Object> filter;
 	private Map<String, String> sortFieldsMap;
-	private DTaskBehavior taskBehavior;
+	private DTaskBehavior<DataViewRVO> taskBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
 
 	private String sentDBConnection;
@@ -134,18 +134,17 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------ IAsyncResponseHandler
 
 	@Override
-	public void onAsyncResult(IPartialPageRequestHandler handler, Object result) {
-		DataViewRVO dataViewRVO = (DataViewRVO) result;
+	public void onAsyncResult(IPartialPageRequestHandler handler, DataViewRVO result) {
 
-		queryExecInfoList = dataViewRVO.getQueryExecInfoList();
+		queryExecInfoList = result.getQueryExecInfoList();
 
-		if (dataViewRVO.getParentId() != null) {
-			((WTreeGrid<Map<String, Object>>) grid).pushChildren(handler, dataViewRVO.getParentId(), dataViewRVO.getList());
-		} else if (dataViewRVO.getFileId() == null) {
-			grid.pushData(handler, dataViewRVO.getList(), dataViewRVO.getCount(), dataViewRVO.getFooter());
+		if (result.getParentId() != null) {
+			((WTreeGrid<Map<String, Object>>) grid).pushChildren(handler, result.getParentId(), result.getList());
+		} else if (result.getFileId() == null) {
+			grid.pushData(handler, result.getList(), result.getCount(), result.getFooter());
 		} else {
 			//TODO
-			handler.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(dataViewRVO.getFileId())));
+			handler.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(result.getFileId())));
 		}
 	}
 
@@ -374,7 +373,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		add(grid);
 		grid.setEnabled(false);
 
-		taskBehavior = new DTaskBehavior(this);
+		taskBehavior = new DTaskBehavior<>(this);
 		add(taskBehavior);
 	}
 

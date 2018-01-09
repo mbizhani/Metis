@@ -3,13 +3,14 @@ package org.devocative.metis.service.task;
 import org.devocative.demeter.iservice.task.DTask;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.async.DataViewQVO;
+import org.devocative.metis.vo.async.DataViewRVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Scope("prototype")
 @Component("mtsExecuteDataSourceDTask")
-public class ExecuteDataViewDTask extends DTask {
+public class ExecuteDataViewDTask extends DTask<DataViewRVO> {
 	private DataViewQVO data;
 
 	@Autowired
@@ -28,7 +29,7 @@ public class ExecuteDataViewDTask extends DTask {
 	@Override
 	public void execute() {
 		if (data != null) {
-			Object result;
+			DataViewRVO result;
 			if (data.getParentId() == null) {
 				if (data.isDoExport()) {
 					result = dataService.exportDataView(data);

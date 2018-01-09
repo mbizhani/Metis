@@ -16,6 +16,7 @@ import org.devocative.metis.iservice.data.IReportService;
 import org.devocative.wickomp.WPanel;
 import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.tab.OTab;
+import org.devocative.wickomp.html.tab.OTabbedPanel;
 import org.devocative.wickomp.html.tab.WTabbedPanel;
 import org.devocative.wickomp.wrcs.CommonBehavior;
 import org.slf4j.Logger;
@@ -36,7 +37,10 @@ public class ReportMenuDPage extends DPage {
 	public ReportMenuDPage(String id, List<String> params) {
 		super(id, params);
 
-		tabPanel = new WTabbedPanel("tabPanel");
+		OTabbedPanel oTabbedPanel = new OTabbedPanel();
+		oTabbedPanel
+			.setGlobalHotkeyEnabled(true);
+		tabPanel = new WTabbedPanel("tabPanel", oTabbedPanel);
 		tabPanel.addTab(new ReportMenuPanel(tabPanel.getTabContentId()),
 			new ResourceModel("Report.menu.tab", "Reports List"));
 
