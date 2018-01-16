@@ -65,6 +65,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private static final Logger logger = LoggerFactory.getLogger(DataViewGridPanel.class);
 
+	private static final String FIELD_PREFIX = "vv_";
+
 	@Inject
 	private IDataViewService dataViewService;
 
@@ -394,6 +396,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		for (DataFieldVO fieldVO : dataVO.getFields()) {
 			OColumn<Map<String, Object>> column;
 			if (XDSFieldResultType.Shown.equals(fieldVO.getResultType())) {
+				// NOTE: For OPropertyColumn the "property" is set by fieldVO.getName(), but when there are both
+				// NOTE: formatted and unformatted output, "field" is set by FIELD_PREFIX + fieldVO.getName()
 				column = new OPropertyColumn<>(new Model<>(fieldVO.getTitleOrName()), fieldVO.getName());
 				column.setSortable(!disabledSortColumns.contains(fieldVO.getName()) && !disableAllSorts);
 
@@ -408,7 +412,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					switch (fieldVO.getType()) {
 						case Integer:
 							column
-								.setField("v_" + fieldVO.getName())
+								.setField(FIELD_PREFIX + fieldVO.getName())
 								.setFormatter(ONumberFormatter.integer())
 								.setStyle("direction:ltr");
 
@@ -416,7 +420,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							break;
 						case Real:
 							column
-								.setField("v_" + fieldVO.getName())
+								.setField(FIELD_PREFIX + fieldVO.getName())
 								.setFormatter(ONumberFormatter.real())
 								.setStyle("direction:ltr");
 
@@ -424,7 +428,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							break;
 						case Date:
 							column
-								.setField("v_" + fieldVO.getName())
+								.setField(FIELD_PREFIX + fieldVO.getName())
 								.setFormatter(ODateFormatter.prDate())
 								.setStyle("direction:ltr");
 
@@ -434,7 +438,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 							break;
 						case DateTime:
 							column
-								.setField("v_" + fieldVO.getName())
+								.setField(FIELD_PREFIX + fieldVO.getName())
 								.setFormatter(ODateFormatter.prDateTime())
 								.setStyle("direction:ltr");
 
@@ -523,7 +527,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		if (sortFieldList != null && !sortFieldList.isEmpty()) {
 			sortFieldsMap = new LinkedHashMap<>();
 			for (WSortField sortField : sortFieldList) {
-				sortFieldsMap.put(sortField.getField(), sortField.getOrder());
+				String field = sortField.getField();
+				//TODO: it must be handled by WBaseGrid itself!!!
+				if (field.startsWith(FIELD_PREFIX)) {
+					field = field.substring(FIELD_PREFIX.length());
+				}
+				sortFieldsMap.put(field, sortField.getOrder());
 			}
 		}
 		return sortFieldsMap;
