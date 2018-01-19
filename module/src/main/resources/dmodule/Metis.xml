@@ -6,7 +6,6 @@
 
 <module
 		shortName="MTS"
-		mainClass="org.devocative.metis.module.MetisDModule"
 		mainResource="org.devocative.metis.web.MetisDModule"
 		privilegeKeyClass="org.devocative.metis.MetisPrivilegeKey"
 		configKeyClass="org.devocative.metis.MetisConfigKey">
