@@ -20,6 +20,8 @@ public enum MetisConfigKey implements IConfigKey {
 	GridAsyncLoadingShow("mts.grid.async.loading.show", true, Arrays.asList(true, false)),
 	GridNoResultShow("mts.grid.no.result.show", false, Arrays.asList(true, false)),
 	GridReturnResultVersion("mts.grid.return.result.ver", "1", Arrays.asList("1", "2")),
+	GridAssertDuplicateId("mts.grid.assert.duplicate.id", true, Arrays.asList(true, false)),
+	GridAssertInvalidParent("mts.grid.assert.invalid.parent", true, Arrays.asList(true, false)),
 
 	ODataReplaceCharForNonSystemParam("mts.odata.char.replace.non.system", "~"),
 	ODataConsiderParentRelation("mts.odata.consider.parent.relation", false, Arrays.asList(true, false));

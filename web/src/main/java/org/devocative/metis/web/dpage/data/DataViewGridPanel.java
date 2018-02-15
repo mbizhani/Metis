@@ -264,7 +264,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				.addToolbarButton(new OTreeGridClientButton<>(MetisIcon.COLLAPSE));
 
 			oBaseGrid = gridOptions;
-			grid = new WTreeGrid<>("grid", gridOptions, this);
+			grid = new WTreeGrid<>("grid", gridOptions, this)
+				.setAssertParentNotFound(ConfigUtil.getBoolean(MetisConfigKey.GridAssertInvalidParent));
 		}
 
 		String returnField = getWebRequest().getRequestParameters().getParameterValue(MetisWebParam.RETURN_FIELD).toOptionalString();
@@ -433,7 +434,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		add(layout);
 		layout.add(sendButtons);
 		layout.add(grid);
-		grid.setEnabled(false);
+		grid
+			.setAssertDuplicateKey(ConfigUtil.getBoolean(MetisConfigKey.GridAssertDuplicateId))
+			.setEnabled(false);
 
 		taskBehavior = new DTaskBehavior<>(this);
 		add(taskBehavior);
