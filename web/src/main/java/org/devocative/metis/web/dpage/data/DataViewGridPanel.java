@@ -1,11 +1,19 @@
 package org.devocative.metis.web.dpage.data;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
+import org.apache.wicket.markup.head.HeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.entity.EFileStatus;
 import org.devocative.demeter.iservice.ISecurityService;
@@ -33,6 +41,7 @@ import org.devocative.metis.vo.query.QueryExecInfoRVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WModel;
+import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.async.IAsyncResponse;
 import org.devocative.wickomp.formatter.OBooleanFormatter;
 import org.devocative.wickomp.formatter.ODateFormatter;
@@ -62,8 +71,9 @@ import java.util.*;
 
 public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSource<Map<String, Object>>, IAsyncResponse<DataViewRVO> {
 	private static final long serialVersionUID = 6957270102281915596L;
-
 	private static final Logger logger = LoggerFactory.getLogger(DataViewGridPanel.class);
+	private static final HeaderItem GRID_SEND_JS = JavaScriptHeaderItem.forReference(
+		new JavaScriptResourceReference(DataViewGridPanel.class, "res/DataViewGridPanel.js"));
 
 	private static final String FIELD_PREFIX = "vv_";
 
@@ -92,6 +102,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private List<QueryExecInfoRVO> queryExecInfoList;
 	private WModalWindow modalWindow;
+	private WebMarkupContainer layout;
 
 	// ------------------------------
 
@@ -212,9 +223,13 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 
 		if (dataVO.getSelectionValidationJS() != null) {
-			String func = String.format("function %sSelValidJS(row){%s}", dataVO.getName(), dataVO.getSelectionValidationJS());
+			String func = String.format("function %1$sSelValidJS(row){%2$s}\n" +
+					"function %1$sSelValidJSAll(rows){for(var r=0;r<rows.length;r++){var row = rows[r];if(%1$sSelValidJS(row.row)){$.messager.alert('', %1$sSelValidJS(row.row));return;}}}",
+				dataVO.getName(), dataVO.getSelectionValidationJS());
 			response.render(JavaScriptHeaderItem.forScript(func, dataVO.getName()));
 		}
+
+		response.render(GRID_SEND_JS);
 	}
 
 	// ------------------------------
@@ -335,6 +350,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 
 		if (dataVO.getRowStyler() != null) {
+			// #TIP
 			oBaseGrid.setRowStyler((IStyler<Map<String, Object>> & Serializable) (bean, id) -> {
 				IStringTemplate template = stringTemplateService.create(dataVO.getRowStyler(), TemplateEngineType.GroovyScript);
 				Map<String, Object> params = new HashMap<>();
@@ -344,23 +360,63 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			});
 		}
 
+		WebMarkupContainer sendButtons = new WebMarkupContainer("sendButtons");
+		sendButtons.setVisible(false);
+
 		if (selectionJSCallback != null) {
 			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
 		} else if (webParams.containsKey(MetisWebParam.WINDOW)) {
+			sendButtons.setVisible(true);
 
-			//TODO wrap return object {type="search" data={}}
-
-			if (dataVO.getSelectionValidationJS() == null) {
-				oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
+			List<ActionBut> actions = new ArrayList<>();
+			if (webParams.containsKey(MetisWebParam.ACTIONS)) {
+				String sentActions = webParams.get(MetisWebParam.ACTIONS).get(0);
+				List<ActionBut> list = WebUtil.fromJson(sentActions, new TypeReference<List<ActionBut>>() {
+				});
+				actions.addAll(list);
 			} else {
-				StringBuilder builder = new StringBuilder();
-				builder.append("function(rows){")
-					.append("for(var r=0;r<rows.length;r++){")
-					.append("var row = rows[r];")
-					.append(String.format("if(%1$sSelValidJS(row.row)){$.messager.alert('', %1$sSelValidJS(row.row));return;}", dataVO.getName()))
-					.append("}")
-					.append("parent.postMessage(JSON.stringify(rows),'*');}");
-				oBaseGrid.setSelectionJSHandler(builder.toString());
+				actions.add(new ActionBut("_DEFAULT_", getString("label.send"), null));
+			}
+
+			sendButtons.add(new ListView<ActionBut>("buttons", actions) {
+				private static final long serialVersionUID = 8248347500988483292L;
+
+				@Override
+				protected void populateItem(ListItem<ActionBut> item) {
+					ActionBut action = item.getModelObject();
+					WebMarkupContainer button = new WebMarkupContainer("button");
+					button.add(new AttributeModifier("onclick", String.format("sendRows('%s','%s', '%s')",
+						action.getName(), grid.getMarkupId(), dataVO.getName())));
+					button.add(new Label("label", action.getTitle()));
+					item.add(button);
+				}
+			});
+
+			String returnVer = ConfigUtil.getString(MetisConfigKey.GridReturnResultVersion);
+			if (webParams.containsKey(MetisWebParam.RETURN_VERSION)) {
+				returnVer = webParams.get(MetisWebParam.RETURN_VERSION).get(0);
+			}
+			if ("1".equals(returnVer)) { // LIST (just rows)
+				sendButtons.setVisible(false);
+
+				if (dataVO.getSelectionValidationJS() == null) {
+					oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
+				} else {
+					oBaseGrid.setSelectionJSHandler(String.format(
+						"function(rows){%1$sSelValidJSAll(rows);parent.postMessage(JSON.stringify(rows),'*');}",
+						dataVO.getName()));
+				}
+
+			} else if ("2".equals(returnVer)) { // OBJECT with ACTION
+				if (dataVO.getSelectionValidationJS() == null) {
+					oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}");
+				} else {
+					oBaseGrid.setSelectionJSHandler(String.format(
+						"function(rows){%1$sSelValidJSAll(rows);parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}",
+						dataVO.getName()));
+				}
+			} else {
+				throw new RuntimeException("Invalid return version: " + returnVer);
 			}
 		}
 
@@ -372,11 +428,23 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 		oBaseGrid.setSingleSelect(multiSelect != null ? !multiSelect : null);
 
-		add(grid);
+		layout = new WebMarkupContainer("layout");
+		layout.setOutputMarkupId(true);
+		add(layout);
+		layout.add(sendButtons);
+		layout.add(grid);
 		grid.setEnabled(false);
 
 		taskBehavior = new DTaskBehavior<>(this);
 		add(taskBehavior);
+	}
+
+	@Override
+	protected void onAfterRender() {
+		super.onAfterRender();
+
+		//TODO using WEasyLayout
+		WebUtil.writeJQueryCall(String.format("$('#%s').layout();", layout.getMarkupId()), true);
 	}
 
 	// ------------------------------
@@ -536,5 +604,58 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 		}
 		return sortFieldsMap;
+	}
+
+	// ------------------------------
+
+	public static class ActionBut implements Serializable {
+		private static final long serialVersionUID = 5208870063013803094L;
+
+		private String name;
+		private String title;
+		private String icon;
+
+		// ---------------
+
+		public ActionBut(String name, String title, String icon) {
+			this.name = name;
+			this.title = title;
+			this.icon = icon;
+		}
+
+		// ---------------
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public void setTitle(String title) {
+			this.title = title;
+		}
+
+		public String getIcon() {
+			return icon;
+		}
+
+		public void setIcon(String icon) {
+			this.icon = icon;
+		}
+
+		@Override
+		public String toString() {
+			return "ActionBut{" +
+				"name='" + name + '\'' +
+				", title='" + title + '\'' +
+				", icon='" + icon + '\'' +
+				'}';
+		}
 	}
 }

@@ -1,6 +1,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 	<div wicket:id="modal"></div>
-	<div wicket:id="grid"></div>
+
+	<div wicket:id="layout" data-options="fit:true">
+		<div data-options="region:'center',border:false">
+			<div wicket:id="grid"></div>
+		</div>
+
+		<div wicket:id="sendButtons" data-options="region:'south',border:false" style="height:35px;">
+			<wicket:container wicket:id="buttons">
+				<button wicket:id="button" type="button">
+					<wicket:container wicket:id="label"></wicket:container>
+				</button>
+			</wicket:container>
+		</div>
+	</div>
+
 </wicket:panel>
 </html>

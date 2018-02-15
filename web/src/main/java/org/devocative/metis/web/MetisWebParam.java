@@ -11,4 +11,6 @@ public interface MetisWebParam {
 	String REQUIRED_FILTER_INPUT = "$required";
 	String DEFAULT_FILTER_VALUE = "$default";
 	String SEARCH_ON_START = "$searchOnStart";
+	String ACTIONS = "$actions";
+	String RETURN_VERSION = "$retVer"; // values: 1, 2
 }
