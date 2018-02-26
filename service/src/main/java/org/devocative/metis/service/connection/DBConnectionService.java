@@ -8,12 +8,14 @@ import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.sql.plugin.PaginationPlugin;
 import org.devocative.adroit.sql.plugin.SchemaPlugin;
+import org.devocative.adroit.xml.AdroitXStream;
 import org.devocative.demeter.DLogCtx;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ApplicationLifecyclePriority;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.IRequestLifecycle;
 import org.devocative.demeter.iservice.ISecurityService;
+import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.demeter.vo.UserVO;
 import org.devocative.metis.MetisConfigKey;
@@ -85,14 +87,19 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@PostConstruct
 	public void initDBConnectionService() {
-		xstream = new XStream();
+		xstream = new AdroitXStream();
 		xstream.processAnnotations(XSchema.class);
 		xstream.processAnnotations(XProperty.class);
 		xstream.processAnnotations(XMany2One.class);
 		xstream.processAnnotations(XOne2Many.class);
 
 		dbConnectionCache = cacheService.create(CACHE_KEY_DB_CONNECTION, 20);
-		dbConnectionCache.setMissedHitHandler(key -> persistorService.get(DBConnection.class, key));
+		dbConnectionCache.setMissedHitHandler(key -> persistorService.createQueryBuilder()
+			.addFrom(DBConnection.class, "ent")
+			.addJoin("grp", "ent.group", EJoinMode.LeftFetch)
+			.addWhere("and ent.id = :id")
+			.addParam("id", key)
+			.object());
 
 		xSchemaCache = cacheService.create(CACHE_KEY_X_SCHEMA, 5);
 		xSchemaCache.setMissedHitHandler(key -> {
@@ -152,11 +159,13 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	@Override
 	public DBConnection loadByName(String name) {
 		DBConnection result = dbConnectionCache.findByProperty("name", name);
+
 		if (result == null) {
 			result = persistorService
 				.createQueryBuilder()
 				.addFrom(DBConnection.class, "ent")
-				.addWhere("and ent.name=:name")
+				.addJoin("grp", "ent.group", EJoinMode.LeftFetch)
+				.addWhere("and ent.name = :name")
 				.addParam("name", name)
 				.object();
 			if (result != null) {

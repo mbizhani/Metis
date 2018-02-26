@@ -48,7 +48,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "c_test_query")
 	private String testQuery;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_group", nullable = false, foreignKey = @ForeignKey(name = "dbconn2group"))
 	private DBConnectionGroup group;
 

@@ -94,6 +94,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				.createQueryBuilder()
 				.addFrom(DataSource.class, "ent")
 				.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+				.addJoin("con", "ent.connection", EJoinMode.LeftFetch)
 				.addWhere("and ent.name = :name")
 				.addParam("name", name)
 				.object();
@@ -110,6 +111,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.createQueryBuilder()
 			.addFrom(DataSource.class, "ent")
 			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+			.addJoin("con", "ent.connection", EJoinMode.LeftFetch)
 			.addWhere("and ent.id = :id")
 			.addParam("id", key)
 			.object();
