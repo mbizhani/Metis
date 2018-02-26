@@ -15,6 +15,7 @@ import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
 import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.wizard.WWizardStepPanel;
+import org.devocative.wickomp.html.WMessager;
 
 import java.util.Arrays;
 
@@ -44,21 +45,21 @@ class ColumnDefStep extends WWizardStepPanel {
 
 				item.add(new Label("name", fieldVO.getName()));
 				item.add(new Label("dbType", fieldVO.getDbType()));
-				item.add(new WTextInput("title", new PropertyModel<String>(fieldVO, "title"))
+				item.add(new WTextInput("title", new PropertyModel<>(fieldVO, "title"))
 					.setLabelVisible(false));
 				item.add(type = new WSelectionInput("type", new PropertyModel<String>(fieldVO, "type"),
 					Arrays.asList(XDSFieldType.values()), false));
-				item.add(new CheckBox("required", new PropertyModel<Boolean>(fieldVO, "required"))
+				item.add(new CheckBox("required", new PropertyModel<>(fieldVO, "required"))
 					.setEnabled(enb));
 				item.add(filterType = new WSelectionInput("filterType", new PropertyModel<String>(fieldVO, "filterType"),
 					Arrays.asList(fieldVO.getType().getFieldProperFilterTypes()), false));
-				item.add(new CheckBox("isKeyField", new PropertyModel<Boolean>(fieldVO, "isKeyField"))
+				item.add(new CheckBox("isKeyField", new PropertyModel<>(fieldVO, "isKeyField"))
 					.setEnabled(enb)
 					.add(new AttributeModifier("group", "isKeyField")));
-				item.add(new CheckBox("isTitleField", new PropertyModel<Boolean>(fieldVO, "isTitleField"))
+				item.add(new CheckBox("isTitleField", new PropertyModel<>(fieldVO, "isTitleField"))
 					.setEnabled(enb)
 					.add(new AttributeModifier("group", "isTitleField")));
-				item.add(new CheckBox("isSelfRelPointerField", new PropertyModel<Boolean>(fieldVO, "isSelfRelPointerField"))
+				item.add(new CheckBox("isSelfRelPointerField", new PropertyModel<>(fieldVO, "isSelfRelPointerField"))
 					.setEnabled(enb)
 					.add(new AttributeModifier("group", "isSelfRelField")));
 
@@ -85,5 +86,37 @@ class ColumnDefStep extends WWizardStepPanel {
 					.setEnabled(enb);
 			}
 		});
+	}
+
+	@Override
+	public boolean onStepSubmit(AjaxRequestTarget target) {
+		boolean hasKeyField = false;
+		boolean hasTitleField = false;
+		boolean hasParentField = false;
+
+		for (DataFieldVO fieldVO : dataVO.getFields()) {
+			if (fieldVO.getIsKeyFieldSafely()) {
+				hasKeyField = true;
+			}
+
+			if (fieldVO.getIsTitleFieldSafely()) {
+				hasTitleField = true;
+			}
+
+			if (fieldVO.getIsSelfRelPointerFieldSafely()) {
+				hasParentField = true;
+			}
+		}
+
+		if (hasParentField) {
+			if (!hasKeyField || !hasTitleField) {
+				WMessager.show(
+					getString("label.error", null, "Error"),
+					getString("XDSField.err.defineKeyAndTitle", null, "Key field and Title field are mandatory for tree presentation"),
+					target);
+				return false;
+			}
+		}
+		return true;
 	}
 }
