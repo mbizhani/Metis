@@ -20,6 +20,7 @@ import org.devocative.wickomp.form.wizard.WWizardStepPanel;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 class InitStep extends WWizardStepPanel {
@@ -74,13 +75,14 @@ class InitStep extends WWizardStepPanel {
 				EConnectionSelection.list(),
 				false)
 				.setLabelVisible(false)
-				.setRequired(true).setLabel(new ResourceModel("DataSource.connectionSelection"))
+				.setRequired(true)
+				.setLabel(new ResourceModel("DataSource.connectionSelection"))
 				.setEnabled(dataVO.isDataSourceEditable())
 		);
 
 		List<XDSQueryMode> modes = dataVO.getConnectionHasMapping() ?
 			Arrays.asList(XDSQueryMode.values()) :
-			Arrays.asList(XDSQueryMode.Sql);
+			Collections.singletonList(XDSQueryMode.Sql);
 
 		add(queryMode = new WSelectionInput("queryMode", new PropertyModel<>(dataVO, "query.mode"), modes, false));
 		queryMode
@@ -100,9 +102,14 @@ class InitStep extends WWizardStepPanel {
 				.setEnabled(dataVO.isDataSourceEditable())
 		);*/
 
-		add(new WSelectionInput("groups", new PropertyModel<>(dataVO, "groups"), dataGroupService.list(), true)
+		/*add(new WSelectionInput("groups", new PropertyModel<>(dataVO, "groups"), dataGroupService.list(), true)
 			.setLabelVisible(false)
-			.setLabel(new ResourceModel("DataView.groups")));
+			.setLabel(new ResourceModel("DataView.groups")));*/
+
+		add(new WSelectionInput("groups", new PropertyModel<>(dataVO, "group"), dataGroupService.list(), false)
+			.setLabelVisible(false)
+			.setRequired(true)
+			.setLabel(new ResourceModel("DataView.group")));
 
 		add(new WSelectionInput("selectionMode", new PropertyModel<>(dataVO, "selectionMode"),
 			Arrays.asList(XDVGridSelectionMode.values()), false)
@@ -125,7 +132,7 @@ class InitStep extends WWizardStepPanel {
 					if (dbConnection.getSafeConfigId() != null) {
 						queryMode.updateChoices(target, Arrays.asList(XDSQueryMode.values()));
 					} else {
-						queryMode.updateChoices(target, Arrays.asList(XDSQueryMode.Sql));
+						queryMode.updateChoices(target, Collections.singletonList(XDSQueryMode.Sql));
 					}
 				}
 			});

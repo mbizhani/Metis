@@ -6,10 +6,7 @@ import org.devocative.metis.entity.data.EConnectionSelection;
 import org.devocative.metis.entity.data.config.*;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DataVO implements Serializable {
 	private static final long serialVersionUID = -1306564276626018062L;
@@ -290,6 +287,15 @@ public class DataVO implements Serializable {
 	}
 
 	// ------------------------------ BIZ METHODS
+
+	public DataGroup getGroup() {
+		return groups != null && !groups.isEmpty() ? groups.get(0) : null;
+	}
+
+	public void setGroup(DataGroup group) {
+		this.groups = Collections.singletonList(group);
+	}
+
 
 	public XDVGridSelectionMode getSelectionModeSafely() {
 		return selectionMode != null ? selectionMode : XDVGridSelectionMode.Multiple;
