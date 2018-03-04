@@ -32,7 +32,7 @@ public class DBConnectionGroupService implements IDBConnectionGroupService {
 	}
 
 	@Override
-	public DBConnectionGroup load(Long id) {
+	public DBConnectionGroup load(String id) {
 		return persistorService.get(DBConnectionGroup.class, id);
 	}
 

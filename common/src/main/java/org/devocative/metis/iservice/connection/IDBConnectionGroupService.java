@@ -9,7 +9,7 @@ import java.util.List;
 public interface IDBConnectionGroupService {
 	void saveOrUpdate(DBConnectionGroup entity);
 
-	DBConnectionGroup load(Long id);
+	DBConnectionGroup load(String id);
 
 	DBConnectionGroup loadByName(String name);
 

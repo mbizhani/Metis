@@ -2,6 +2,7 @@ package org.devocative.metis.entity.connection;
 
 import org.devocative.demeter.entity.*;
 import org.devocative.metis.entity.ConfigLob;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -17,15 +18,9 @@ public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModifica
 	private static final long serialVersionUID = -2484087648382976449L;
 
 	@Id
-	@GeneratedValue(generator = "mts_db_conn_grp")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_db_conn_grp", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
-		parameters = {
-			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
-			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_db_conn_grp")
-		})
-	private Long id;
+	@GeneratedValue(generator = "uuid")
+	@GenericGenerator(name = "uuid", strategy = "uuid2")
+	private String id;
 
 	@Column(name = "c_name", nullable = false)
 	private String name;
@@ -46,7 +41,7 @@ public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModifica
 	@Column(name = "f_config", insertable = false, updatable = false)
 	private Long configId;
 
-	//----------------------------- CREATE / MODIFY
+	// ---------------
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -78,11 +73,13 @@ public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModifica
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
-	public Long getId() {
+	// ------------------------------
+
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -191,6 +188,8 @@ public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModifica
 	public void setVersion(Integer version) {
 		this.version = version;
 	}
+
+	// ---------------
 
 	@Override
 	public boolean equals(Object o) {

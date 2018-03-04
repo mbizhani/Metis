@@ -53,7 +53,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	private DBConnectionGroup group;
 
 	@Column(name = "f_group", insertable = false, updatable = false)
-	private Long groupId;
+	private String groupId;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "dbconn2cfglob"))
@@ -183,7 +183,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 		}
 	}
 
-	public Long getGroupId() {
+	public String getGroupId() {
 		return groupId;
 	}
 

@@ -51,7 +51,7 @@ public class DBConnectionGroupFormDPage extends DPage {
 		super(id, params);
 
 		this.entity = params != null && !params.isEmpty() ?
-			dBConnectionGroupService.load(Long.valueOf(params.get(0))) :
+			dBConnectionGroupService.load(params.get(0)) :
 			new DBConnectionGroup();
 	}
 
