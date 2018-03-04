@@ -2,31 +2,53 @@
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-	<table border="1" cellpadding="0" cellspacing="0">
-		<tr>
-			<th>Export</th>
-			<th>Import</th>
-		</tr>
-		<tr>
-			<td>
-				<button wicket:id="export">Export</button>
-			</td>
-			<td>
-				<form wicket:id="form">
-					<table>
-						<tr>
-							<td>
-								<div wicket:id="file"></div>
-							</td>
-							<td>
-								<button wicket:id="import"></button>
-							</td>
-						</tr>
-					</table>
-				</form>
-			</td>
-		</tr>
-	</table>
+	<div id="export_import_panel" class="easyui-tabs" data-options="fit:true">
+
+		<div title="Export">
+			<form wicket:id="exportForm">
+				<table>
+					<tr>
+						<th>Data Group</th>
+						<td>
+							<div wicket:id="dataGroup"></div>
+						</td>
+					</tr>
+					<tr>
+						<th>DBConnection Group</th>
+						<td>
+							<div wicket:id="dbConnectionGroup"></div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<button wicket:id="export">Export</button>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+
+		<div title="Import">
+
+			<form wicket:id="importForm">
+				<table>
+					<tr>
+						<td>
+							<div wicket:id="file"></div>
+						</td>
+						<td>
+							<button wicket:id="import"></button>
+						</td>
+					</tr>
+				</table>
+			</form>
+
+		</div>
+	</div>
+
+	<script>
+		$("#export_import_panel").tabs();
+	</script>
 
 </wicket:panel>
 

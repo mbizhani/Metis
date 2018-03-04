@@ -50,7 +50,7 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 	@JoinColumn(name = "f_tgt_datasrc", nullable = false, foreignKey = @ForeignKey(name = "datasrcrel_tgt2datasrc"))
 	private DataSource target;
 
-	@Column(name = "f_tgt_datasrc", insertable = false, updatable = false)
+	@Column(name = "f_tgt_datasrc", nullable = false, insertable = false, updatable = false)
 	private Long targetId;
 
 	//----------------------------- CREATE / MODIFY

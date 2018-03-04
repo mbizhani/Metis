@@ -36,17 +36,17 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	private String title;
 
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "dataview2cfglob"))
+	@JoinColumn(name = "f_config", nullable = false, foreignKey = @ForeignKey(name = "dataview2cfglob"))
 	private ConfigLob config;
 
-	@Column(name = "f_config", insertable = false, updatable = false)
+	@Column(name = "f_config", nullable = false, insertable = false, updatable = false)
 	private Long configId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_data_src", foreignKey = @ForeignKey(name = "dataview2datasrc"))
+	@JoinColumn(name = "f_data_src", nullable = false, foreignKey = @ForeignKey(name = "dataview2datasrc"))
 	private DataSource dataSource;
 
-	@Column(name = "f_data_src", insertable = false, updatable = false)
+	@Column(name = "f_data_src", nullable = false, insertable = false, updatable = false)
 	private Long dataSourceId;
 
 	//TODO relation to itself for LookUp & Details

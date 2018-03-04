@@ -3,13 +3,18 @@ package org.devocative.metis.web.panel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.model.PropertyModel;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.metis.entity.connection.DBConnectionGroup;
+import org.devocative.metis.entity.data.DataGroup;
+import org.devocative.metis.iservice.connection.IDBConnectionGroupService;
+import org.devocative.metis.iservice.data.IDataGroupService;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.form.WFileInput;
-import org.devocative.wickomp.html.WAjaxLink;
+import org.devocative.wickomp.form.WSelectionInput;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -22,35 +27,40 @@ public class ExportImportPanel extends DPanel {
 	@Inject
 	private IDataViewService dataViewService;
 
+	@Inject
+	private IDataGroupService dataGroupService;
+
+	@Inject
+	private IDBConnectionGroupService dbConnectionGroupService;
+
+	private DataGroup dataGroup;
+
+	private DBConnectionGroup dbConnectionGroup;
+
 	public ExportImportPanel(String id) {
 		super(id);
 
-		add(new WAjaxLink("export") {
+		Form<Void> exportForm = new Form<>("exportForm");
+		exportForm.add(new WSelectionInput("dataGroup", new PropertyModel(this, "dataGroup"), dataGroupService.list(), false));
+		exportForm.add(new WSelectionInput("dbConnectionGroup", new PropertyModel(this, "dbConnectionGroup"), dbConnectionGroupService.list(), false));
+		exportForm.add(new DAjaxButton("export") {
 			private static final long serialVersionUID = -8486125182073683336L;
 
 			@Override
-			public void onClick(AjaxRequestTarget target) {
-				//String fileName = String.format("exportDataView-%s.xml", CalendarUtil.toPersian(new Date(), "yyyyMMdd"));
-				String fileId = dataViewService.exportAll();
-				/*OutputStreamResource out = new OutputStreamResource("text/xml", fileName) {
-					private static final long serialVersionUID = -8667216585656718440L;
-
-					@Override
-					protected void handleStream(OutputStream stream) throws IOException {
-						dataViewService.exportAll(stream);
-					}
-				};
-				getRequestCycle().scheduleRequestHandlerAfterCurrent(new ResourceRequestHandler(out, null));*/
-
+			protected void onSubmit(AjaxRequestTarget target) {
+				String fileId = dataViewService.exportAll(dataGroup, dbConnectionGroup);
 				target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId)));
 			}
 		});
+		add(exportForm);
 
-		Form<Void> form = new Form<>("form");
+		// --------------- IMPORT
+
+		Form<Void> importForm = new Form<>("importForm");
 		file = new WFileInput("file");
 		file.setRequired(true);
-		form.add(file);
-		form.add(new DAjaxButton("import", MetisIcon.UPLOAD) {
+		importForm.add(file);
+		importForm.add(new DAjaxButton("import", MetisIcon.UPLOAD) {
 			private static final long serialVersionUID = -6659127554044856922L;
 
 			@Override
@@ -65,6 +75,6 @@ public class ExportImportPanel extends DPanel {
 				}
 			}
 		});
-		add(form);
+		add(importForm);
 	}
 }

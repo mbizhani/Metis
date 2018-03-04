@@ -181,6 +181,9 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
+				modalWindow.getOptions()
+					.setWidth(OSize.fixed(400))
+					.setHeight(OSize.fixed(400));
 				modalWindow.setContent(new ExportImportPanel(modalWindow.getContentId()));
 				modalWindow.show(target);
 			}

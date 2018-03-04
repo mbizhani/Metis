@@ -1,6 +1,7 @@
 package org.devocative.metis.iservice.data;
 
 import org.devocative.demeter.entity.User;
+import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
@@ -41,7 +42,7 @@ public interface IDataViewService {
 
 	List<String> listForOData();
 
-	String exportAll();
+	String exportAll(DataGroup dataGroup, DBConnectionGroup dbConnectionGroup);
 
 	void importAll(InputStream stream);
 }

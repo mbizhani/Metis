@@ -28,6 +28,9 @@
 		<task type="org.devocative.metis.service.task.ExecuteDataViewDTask"/>
 	</tasks>
 
+	<roles>
+	</roles>
+
 	<dPages>
 		<dPage type="org.devocative.metis.web.dpage.data.form.DataViewFormDPage"
 			   title="KEY:dPage.mts.DataViewForm"

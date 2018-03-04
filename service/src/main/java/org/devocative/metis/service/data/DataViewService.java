@@ -20,6 +20,7 @@ import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
@@ -208,9 +209,11 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 	}
 
 	@Override
-	public String exportAll() {
+	public String exportAll(DataGroup dataGroup, DBConnectionGroup dbConnectionGroup) {
 		logger.info("**");
 		logger.info("*** Exporting DataView Start: user=[{}]", securityService.getCurrentUser());
+
+		String dataGroups = "'" + dataGroup.getName() + "'";
 
 		try {
 			Connection connection = persistorService.createSqlConnection();
@@ -228,7 +231,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 					"  cfg.c_value " +
 					"from t_mts_db_conn_grp grp " +
 					"join t_mts_cfg_lob cfg on cfg.id = grp.f_config " +
-					"where grp.c_name='MidRP'"); //TODO: MidRP is hard-coded!!!
+					"where grp.c_name='" + dbConnectionGroup.getName() + "'");
 
 			helper.exportBySql("dataSource",
 				"select " +
@@ -243,7 +246,15 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 					"  ds.f_config, " +
 					"  cfg.c_value " +
 					"from t_mts_data_src ds " +
-					"join t_mts_cfg_lob cfg on cfg.id = ds.f_config");
+					"join t_mts_cfg_lob cfg on cfg.id = ds.f_config " +
+					"where ds.id in ( " +
+					"  select distinct " +
+					"    dv.f_data_src " +
+					"  from t_mts_data_view dv " +
+					"  join mt_mts_dataview_group mdv on mdv.f_data_view = dv.id " +
+					"  join t_mts_data_group grp on grp.id = mdv.f_group " +
+					"  where dv.c_name in (" + dataGroups + ")" +
+					")");
 
 			helper.exportBySql("dataView",
 				"select " +
@@ -255,7 +266,10 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 					"  dv.n_version, " +
 					"  cfg.c_value " +
 					"from t_mts_data_view dv " +
-					"join t_mts_cfg_lob cfg on cfg.id = dv.f_config");
+					"join t_mts_cfg_lob cfg on cfg.id = dv.f_config " +
+					"join mt_mts_dataview_group mdv on mdv.f_data_view = dv.id " +
+					"join t_mts_data_group grp on grp.id = mdv.f_group " +
+					"where dv.c_name in (" + dataGroups + ")");
 
 			helper.exportBySql("dataSrcRel",
 				"select " +
@@ -266,7 +280,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 					"  f_tgt_datasrc, " +
 					"  n_version " +
 					"from t_mts_data_src_rel " +
-					"where b_deleted=0");
+					"where b_deleted = 0");
 
 			helper.exportBySql("report",
 				"select " +
