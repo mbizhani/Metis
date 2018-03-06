@@ -1,6 +1,7 @@
 package org.devocative.metis.entity.data;
 
 import org.devocative.demeter.entity.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -17,14 +18,8 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 	private static final long serialVersionUID = -8316259666720647816L;
 
 	@Id
-	@GeneratedValue(generator = "mts_data_src_rel")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src_rel", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
-		parameters = {
-			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
-			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_data_src_rel")
-		})
+	@GeneratedValue(generator = "uuid")
+	@GenericGenerator(name = "uuid", strategy = "uuid2")
 	private Long id;
 
 	@Column(name = "c_src_ptr_field", nullable = false)
@@ -44,16 +39,16 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 	private DataSource source;
 
 	@Column(name = "f_src_datasrc", insertable = false, updatable = false)
-	private Long sourceId;
+	private String sourceId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_tgt_datasrc", nullable = false, foreignKey = @ForeignKey(name = "datasrcrel_tgt2datasrc"))
 	private DataSource target;
 
 	@Column(name = "f_tgt_datasrc", nullable = false, insertable = false, updatable = false)
-	private Long targetId;
+	private String targetId;
 
-	//----------------------------- CREATE / MODIFY
+	// ---------------
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -85,6 +80,7 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
+	// ------------------------------
 
 	public Long getId() {
 		return id;
@@ -134,12 +130,8 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 		this.source = source;
 	}
 
-	public Long getSourceId() {
+	public String getSourceId() {
 		return sourceId;
-	}
-
-	public void setSourceId(Long sourceId) {
-		this.sourceId = sourceId;
 	}
 
 	public DataSource getTarget() {
@@ -150,13 +142,11 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 		this.target = target;
 	}
 
-	public Long getTargetId() {
+	public String getTargetId() {
 		return targetId;
 	}
 
-	public void setTargetId(Long targetId) {
-		this.targetId = targetId;
-	}
+	// ---------------
 
 	@Override
 	public Date getCreationDate() {
