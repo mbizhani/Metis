@@ -30,7 +30,7 @@ public class ReportService implements IReportService {
 	}
 
 	@Override
-	public Report load(Long id) {
+	public Report load(String id) {
 		return persistorService.get(Report.class, id);
 	}
 
@@ -80,7 +80,6 @@ public class ReportService implements IReportService {
 	}
 
 	// ==============================
-
 
 	@Override
 	public Map<DataGroup, List<Report>> listPerGroup() {

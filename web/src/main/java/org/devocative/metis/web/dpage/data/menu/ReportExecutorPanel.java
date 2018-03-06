@@ -28,7 +28,7 @@ public class ReportExecutorPanel extends WPanel {
 	private static final Logger logger = LoggerFactory.getLogger(ReportExecutorPanel.class);
 
 	private DataViewGridPanel mainGrid;
-	private Long reportId;
+	private String reportId;
 	private String sentDBConnection;
 
 	private boolean searchOnStart = false;
@@ -42,7 +42,7 @@ public class ReportExecutorPanel extends WPanel {
 
 	// ------------------------------
 
-	public ReportExecutorPanel(String id, Long reportId, String sentDBConnection) {
+	public ReportExecutorPanel(String id, String reportId, String sentDBConnection) {
 		super(id);
 
 		this.reportId = reportId;

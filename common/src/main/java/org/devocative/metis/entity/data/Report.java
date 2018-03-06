@@ -1,6 +1,7 @@
 package org.devocative.metis.entity.data;
 
 import org.devocative.demeter.entity.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -15,15 +16,9 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 	private static final long serialVersionUID = 7199261598088565490L;
 
 	@Id
-	@GeneratedValue(generator = "mts_report")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_report", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
-		parameters = {
-			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
-			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_report")
-		})
-	private Long id;
+	@GeneratedValue(generator = "uuid")
+	@GenericGenerator(name = "uuid", strategy = "uuid2")
+	private String id;
 
 	@Column(name = "c_title", nullable = false)
 	private String title;
@@ -46,7 +41,7 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 		inverseForeignKey = @ForeignKey(name = "report_group2group"))
 	private List<DataGroup> groups;
 
-	// ----------------------------- CREATE / MODIFY
+	// ---------------
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -78,7 +73,7 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
-	// ----------------------------- CONSTRUCTORS
+	// ------------------------------
 
 	public Report() {
 	}
@@ -87,13 +82,13 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 		this.dataView = dataView;
 	}
 
-	// ----------------------------- ACCESSORS
+	// ------------------------------
 
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -132,6 +127,8 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 	public void setGroups(List<DataGroup> groups) {
 		this.groups = groups;
 	}
+
+	// ---------------
 
 	@Override
 	public Date getCreationDate() {
@@ -199,7 +196,7 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 		this.version = version;
 	}
 
-	// ----------------------------- OBJECT METHODS
+	// ---------------
 
 	@Override
 	public String toString() {

@@ -12,7 +12,7 @@ import java.util.Map;
 public interface IReportService {
 	void saveOrUpdate(Report entity);
 
-	Report load(Long id);
+	Report load(String id);
 
 	List<Report> list();
 

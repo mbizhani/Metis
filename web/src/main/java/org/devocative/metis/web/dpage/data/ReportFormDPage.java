@@ -48,7 +48,7 @@ public class ReportFormDPage extends DPage {
 		super(id, params);
 
 		this.entity = params != null && !params.isEmpty() ?
-			reportService.load(Long.valueOf(params.get(0))) :
+			reportService.load(params.get(0)) :
 			new Report();
 	}
 
