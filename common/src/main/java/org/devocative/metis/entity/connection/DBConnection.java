@@ -60,7 +60,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	private ConfigLob config;
 
 	@Column(name = "f_config", insertable = false, updatable = false)
-	private Long configId;
+	private String configId;
 
 	@Column(name = "c_custom_param_1")
 	private String customParam1;
@@ -195,7 +195,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 		this.config = config;
 	}
 
-	public Long getConfigId() {
+	public String getConfigId() {
 		return configId;
 	}
 
@@ -229,7 +229,7 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 		return getConfig() != null ? getConfig() : getSafeGroup().getConfig();
 	}
 
-	public Long getSafeConfigId() {
+	public String getSafeConfigId() {
 		return getConfigId() != null ? getConfigId() : getSafeGroup().getConfigId();
 	}
 

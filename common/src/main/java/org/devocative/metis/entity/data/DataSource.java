@@ -53,7 +53,7 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	private ConfigLob config;
 
 	@Column(name = "f_config", insertable = false, updatable = false)
-	private Long configId;
+	private String configId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_connection", foreignKey = @ForeignKey(name = "datasrc2dbconn"))
@@ -178,7 +178,7 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 		this.config = config;
 	}
 
-	public Long getConfigId() {
+	public String getConfigId() {
 		return configId;
 	}
 

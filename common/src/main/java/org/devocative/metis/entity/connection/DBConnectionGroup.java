@@ -39,7 +39,7 @@ public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModifica
 	private ConfigLob config;
 
 	@Column(name = "f_config", insertable = false, updatable = false)
-	private Long configId;
+	private String configId;
 
 	// ---------------
 
@@ -123,12 +123,8 @@ public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModifica
 		this.config = config;
 	}
 
-	public Long getConfigId() {
+	public String getConfigId() {
 		return configId;
-	}
-
-	public void setConfigId(Long configId) {
-		this.configId = configId;
 	}
 
 	@Override

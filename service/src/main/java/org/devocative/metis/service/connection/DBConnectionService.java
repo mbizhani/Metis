@@ -71,7 +71,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	private XStream xstream;
 	private ICache<Long, DBConnection> dbConnectionCache;
-	private ICache<Long, XSchema> xSchemaCache;
+	private ICache<String, XSchema> xSchemaCache;
 	private final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new ConcurrentHashMap<>();
 
 	@Autowired
@@ -507,7 +507,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	@Override
 	public XSchema getSchemaOfMapping(Long dbConnId) {
 		XSchema result = null;
-		Long safeConfigId = load(dbConnId).getSafeConfigId();
+		String safeConfigId = load(dbConnId).getSafeConfigId();
 		if (safeConfigId != null) {
 			result = xSchemaCache.get(safeConfigId);
 		}

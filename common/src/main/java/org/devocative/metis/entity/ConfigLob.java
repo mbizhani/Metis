@@ -1,6 +1,7 @@
 package org.devocative.metis.entity;
 
 import org.devocative.demeter.entity.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -14,15 +15,9 @@ public class ConfigLob implements ICreationDate, ICreatorUser, IModificationDate
 	private static final long serialVersionUID = 6050670399856521189L;
 
 	@Id
-	@GeneratedValue(generator = "mts_cfg_lob")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_cfg_lob", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
-		parameters = {
-			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
-			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_cfg_lob")
-		})
-	private Long id;
+	@GeneratedValue(generator = "uuid")
+	@GenericGenerator(name = "uuid", strategy = "uuid2")
+	private String id;
 
 	@Lob
 	@Column(name = "c_value", nullable = false)
@@ -60,11 +55,11 @@ public class ConfigLob implements ICreationDate, ICreatorUser, IModificationDate
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 

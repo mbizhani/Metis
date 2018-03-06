@@ -40,7 +40,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	private ConfigLob config;
 
 	@Column(name = "f_config", nullable = false, insertable = false, updatable = false)
-	private Long configId;
+	private String configId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_data_src", nullable = false, foreignKey = @ForeignKey(name = "dataview2datasrc"))
@@ -143,7 +143,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		this.config = config;
 	}
 
-	public Long getConfigId() {
+	public String getConfigId() {
 		return configId;
 	}
 
