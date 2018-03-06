@@ -45,13 +45,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service("mtsDataSourceService")
-public class DataSourceService implements IDataSourceService, IMissedHitHandler<Long, DataSource> {
+public class DataSourceService implements IDataSourceService, IMissedHitHandler<String, DataSource> {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceService.class);
 
 	private static final String EMBED_FILTER_EXPRESSION = "%FILTER_EXPR%";
 
 	private XStream xstream;
-	private ICache<Long, DataSource> dataSourceCache;
+	private ICache<String, DataSource> dataSourceCache;
 
 	@Autowired
 	private IDBConnectionService dbConnectionService;
@@ -82,7 +82,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	// ------------------------------
 
 	@Override
-	public DataSource load(Long id) {
+	public DataSource load(String id) {
 		return dataSourceCache.get(id);
 	}
 
@@ -106,7 +106,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	// IMissedHitHandler
 	@Override
-	public DataSource loadForCache(Long key) {
+	public DataSource loadForCache(String key) {
 		DataSource ds = persistorService
 			.createQueryBuilder()
 			.addFrom(DataSource.class, "ent")
@@ -128,7 +128,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@Override
 	public DataSource saveOrUpdate(DataVO dataVO) {
-		Long dataSourceId = dataVO.getDataSourceId();
+		String dataSourceId = dataVO.getDataSourceId();
 		XDataSource xDataSource = dataVO.toXDataSource();
 
 		DataSource dataSource;
@@ -181,7 +181,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					rel = new DataSourceRelation();
 				}
 				rel.setSource(dataSource);
-				rel.setTarget(new DataSource(xdsField.getTargetDSId()));
+				rel.setTarget(new DataSource().setId(xdsField.getTargetDSId()));
 				rel.setSourcePointerField(xdsField.getName());
 				rel.setDeleted(false);
 
@@ -201,7 +201,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 					rel = new DataSourceRelation();
 				}
 				rel.setSource(dataSource);
-				rel.setTarget(new DataSource(xdsParameter.getTargetDSId()));
+				rel.setTarget(new DataSource().setId(xdsParameter.getTargetDSId()));
 				rel.setSourcePointerField(xdsParameter.getName());
 				rel.setDeleted(false);
 				newRelations.add(rel);
@@ -489,7 +489,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, Map<String, Object> filter) {
+	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(String dataSourceId, String targetDataSourceId, String sentDBConnection, Map<String, Object> filter) {
 		DataSource dataSource = load(dataSourceId);
 		DataSource targetDataSource = load(targetDataSourceId);
 
@@ -645,7 +645,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 	}
 
 	@Override
-	public List<QueryExecInfoRVO> executeAfterIfAny(Long dsId, String sentDBConnection) {
+	public List<QueryExecInfoRVO> executeAfterIfAny(String dsId, String sentDBConnection) {
 		DataSource dataSource = load(dsId);
 		XDataSource xDataSource = dataSource.getXDataSource();
 
@@ -681,7 +681,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		}
 	}
 
-	private void markRelationsAsDeleted(Long sourceId) {
+	private void markRelationsAsDeleted(String sourceId) {
 		persistorService
 			.createQueryBuilder()
 			.addSelect("update DataSourceRelation ent set ent.deleted = true where ent.source.id = :srcId")
@@ -689,7 +689,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.update();
 	}
 
-	private void loadRelationsToMap(Long sourceId, Map<String, DataSourceRelation> map) {
+	private void loadRelationsToMap(String sourceId, Map<String, DataSourceRelation> map) {
 		List<DataSourceRelation> relations = persistorService
 			.createQueryBuilder()
 			.addFrom(DataSourceRelation.class, "ent")

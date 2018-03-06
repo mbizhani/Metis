@@ -573,7 +573,7 @@ public class DataService implements IDataService {
 	@Override
 	public Set<String> convertSimpleParamsToFilter(
 		Map<String, Object> result,
-		Long dataSourceId,
+		String dataSourceId,
 		List<DataAbstractFieldVO> fields,
 		Map<String, List<String>> params,
 		String sentDBConnection) {
@@ -684,7 +684,7 @@ public class DataService implements IDataService {
 
 	@Override
 	public Map<String, Object> convertFilterToFilter(
-		Long dataSourceId,
+		String dataSourceId,
 		List<DataAbstractFieldVO> fields,
 		Map<String, Object> filter,
 		String sentDBConnection) {
@@ -819,7 +819,7 @@ public class DataService implements IDataService {
 		return result;
 	}
 
-	private void updateDataVOByDataSource(DataVO dataVO, Long dsId) {
+	private void updateDataVOByDataSource(DataVO dataVO, String dsId) {
 		DataSource dataSource = dataSourceService.load(dsId);
 		XDataSource xDataSource = dataSource.getXDataSource();
 

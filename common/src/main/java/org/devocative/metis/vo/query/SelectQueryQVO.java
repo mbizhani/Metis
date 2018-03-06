@@ -12,7 +12,7 @@ public class SelectQueryQVO extends AbstractQueryQVO {
 
 	// ------------------------------
 
-	public SelectQueryQVO(Long dataSourceId, List<String> selectFields) {
+	public SelectQueryQVO(String dataSourceId, List<String> selectFields) {
 		super(dataSourceId);
 		this.selectFields = selectFields;
 	}

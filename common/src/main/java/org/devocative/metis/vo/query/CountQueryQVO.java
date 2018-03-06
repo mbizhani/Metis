@@ -1,7 +1,7 @@
 package org.devocative.metis.vo.query;
 
 public class CountQueryQVO extends AbstractQueryQVO {
-	public CountQueryQVO(Long dataSourceId) {
+	public CountQueryQVO(String dataSourceId) {
 		super(dataSourceId);
 	}
 }

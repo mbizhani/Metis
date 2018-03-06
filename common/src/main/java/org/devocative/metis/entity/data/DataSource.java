@@ -4,6 +4,7 @@ import org.devocative.demeter.entity.*;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.data.config.XDataSource;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -19,15 +20,9 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	private static final long serialVersionUID = -1352772492330821846L;
 
 	@Id
-	@GeneratedValue(generator = "mts_data_src")
-	@org.hibernate.annotations.GenericGenerator(name = "mts_data_src", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
-		parameters = {
-			//@org.hibernate.annotations.Parameter(name = "optimizer", value = "pooled"),
-			@org.hibernate.annotations.Parameter(name = "initial_value", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "increment_size", value = "1"),
-			@org.hibernate.annotations.Parameter(name = "sequence_name", value = "mts_data_src")
-		})
-	private Long id;
+	@GeneratedValue(generator = "uuid")
+	@GenericGenerator(name = "uuid", strategy = "uuid2")
+	private String id;
 
 	@Column(name = "c_name", nullable = false)
 	private String name;
@@ -99,27 +94,15 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Transient
 	private XDataSource xDataSource;
 
-	// ----------------------------- CONSTRUCTORS
+	// ------------------------------ ACCESSORS
 
-	public DataSource() {
-	}
-
-	public DataSource(Long id) {
-		this.id = id;
-	}
-
-	public DataSource(String name) {
-		this.name = name;
-	}
-
-	// ----------------------------- ACCESSORS
-
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public DataSource setId(String id) {
 		this.id = id;
+		return this;
 	}
 
 	public String getName() {

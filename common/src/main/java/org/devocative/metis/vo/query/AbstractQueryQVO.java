@@ -3,7 +3,7 @@ package org.devocative.metis.vo.query;
 import java.util.Map;
 
 public abstract class AbstractQueryQVO {
-	private Long dataSourceId;
+	private String dataSourceId;
 	private Map<String, Object> inputParams;
 	private String filterExpression;
 
@@ -11,13 +11,13 @@ public abstract class AbstractQueryQVO {
 
 	// ------------------------------
 
-	protected AbstractQueryQVO(Long dataSourceId) {
+	protected AbstractQueryQVO(String dataSourceId) {
 		this.dataSourceId = dataSourceId;
 	}
 
 	// ------------------------------
 
-	public Long getDataSourceId() {
+	public String getDataSourceId() {
 		return dataSourceId;
 	}
 

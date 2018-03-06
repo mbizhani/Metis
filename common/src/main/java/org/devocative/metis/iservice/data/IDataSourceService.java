@@ -16,7 +16,7 @@ public interface IDataSourceService {
 
 	// ---------------
 
-	DataSource load(Long id);
+	DataSource load(String id);
 
 	DataSource loadByName(String name);
 
@@ -40,7 +40,7 @@ public interface IDataSourceService {
 
 	DsQueryRVO<List<Map<String, Object>>> execute(SelectQueryQVO queryQVO);
 
-	DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(Long dataSourceId, Long targetDataSourceId, String sentDBConnection, Map<String, Object> filter);
+	DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(String dataSourceId, String targetDataSourceId, String sentDBConnection, Map<String, Object> filter);
 
 	DsQueryRVO<List<Map<String, Object>>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId);
 
@@ -48,5 +48,5 @@ public interface IDataSourceService {
 
 	DsQueryRVO<List<Map<String, Object>>> execute(AggregateQueryQVO queryQVO);
 
-	List<QueryExecInfoRVO> executeAfterIfAny(Long dsId, String sentDBConnection);
+	List<QueryExecInfoRVO> executeAfterIfAny(String dsId, String sentDBConnection);
 }

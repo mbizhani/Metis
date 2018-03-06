@@ -36,7 +36,7 @@ public class DataViewFilterPanel extends DPanel {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewFilterPanel.class);
 
 	private Map<String, Object> filter;
-	private Long dataSourceId;
+	private String dataSourceId;
 	private String sentDBConnection;
 	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
@@ -56,7 +56,7 @@ public class DataViewFilterPanel extends DPanel {
 	// ------------------------------
 
 	// Main Constructor
-	public DataViewFilterPanel(String id, final Long dataSourceId, final Map<String, Object> filter, List<DataAbstractFieldVO> fields) {
+	public DataViewFilterPanel(String id, final String dataSourceId, final Map<String, Object> filter, List<DataAbstractFieldVO> fields) {
 		super(id);
 
 		this.dataSourceId = dataSourceId;

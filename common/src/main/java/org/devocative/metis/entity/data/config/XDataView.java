@@ -17,7 +17,7 @@ public class XDataView implements Serializable {
 	private String name;
 
 	@XStreamAsAttribute
-	private Long dataSourceId;
+	private String dataSourceId;
 
 	@XStreamAsAttribute
 	private String dataSourceName;
@@ -51,11 +51,11 @@ public class XDataView implements Serializable {
 		this.name = name;
 	}
 
-	public Long getDataSourceId() {
+	public String getDataSourceId() {
 		return dataSourceId;
 	}
 
-	public void setDataSourceId(Long dataSourceId) {
+	public void setDataSourceId(String dataSourceId) {
 		this.dataSourceId = dataSourceId;
 	}
 

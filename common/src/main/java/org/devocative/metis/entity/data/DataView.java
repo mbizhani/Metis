@@ -47,7 +47,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 	private DataSource dataSource;
 
 	@Column(name = "f_data_src", nullable = false, insertable = false, updatable = false)
-	private Long dataSourceId;
+	private String dataSourceId;
 
 	//TODO relation to itself for LookUp & Details
 
@@ -155,7 +155,7 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 		this.dataSource = dataSource;
 	}
 
-	public Long getDataSourceId() {
+	public String getDataSourceId() {
 		return dataSourceId;
 	}
 

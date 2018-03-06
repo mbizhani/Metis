@@ -20,7 +20,7 @@ public abstract class XDSAbstractField implements Serializable {
 	protected XDSFieldType type;
 
 	@XStreamAsAttribute
-	protected Long targetDSId;
+	protected String targetDSId;
 
 	@XStreamAsAttribute
 	protected String targetDSName;
@@ -73,11 +73,11 @@ public abstract class XDSAbstractField implements Serializable {
 		return this;
 	}
 
-	public Long getTargetDSId() {
+	public String getTargetDSId() {
 		return targetDSId;
 	}
 
-	public XDSAbstractField setTargetDSId(Long targetDSId) {
+	public XDSAbstractField setTargetDSId(String targetDSId) {
 		this.targetDSId = targetDSId;
 		return this;
 	}

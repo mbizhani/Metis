@@ -43,13 +43,13 @@ public interface IDataService {
 
 	Set<String> convertSimpleParamsToFilter(
 		Map<String, Object> result,
-		Long dataSourceId,
+		String dataSourceId,
 		List<DataAbstractFieldVO> fields,
 		Map<String, List<String>> params,
 		String sentDBConnection);
 
 	Map<String, Object> convertFilterToFilter(
-		Long dataSourceId,
+		String dataSourceId,
 		List<DataAbstractFieldVO> fields,
 		Map<String, Object> filter,
 		String sentDBConnection);

@@ -51,7 +51,7 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 	/**
 	 * XDSAbstractField.targetDSId
 	 */
-	private Long targetDSId;
+	private String targetDSId;
 
 	/**
 	 * XDSAbstractField.targetDSName
@@ -140,11 +140,11 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 		this.filterPanelOrder = filterPanelOrder;
 	}
 
-	public Long getTargetDSId() {
+	public String getTargetDSId() {
 		return targetDSId;
 	}
 
-	public void setTargetDSId(Long targetDSId) {
+	public void setTargetDSId(String targetDSId) {
 		this.targetDSId = targetDSId;
 	}
 
@@ -191,7 +191,7 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 	// ------------------------------ HELPER METHODS
 
 	public DataSource getTargetDS() {
-		return new DataSource(getTargetDSId());
+		return new DataSource().setId(getTargetDSId());
 	}
 
 	public void setTargetDS(DataSource target) {
