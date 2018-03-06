@@ -36,7 +36,7 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 	private DataView dataView;
 
 	@Column(name = "f_data_view", insertable = false, updatable = false)
-	private Long dataViewId;
+	private String dataViewId;
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "mt_mts_report_group",
@@ -121,7 +121,7 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 		this.dataView = dataView;
 	}
 
-	public Long getDataViewId() {
+	public String getDataViewId() {
 		return dataViewId;
 	}
 

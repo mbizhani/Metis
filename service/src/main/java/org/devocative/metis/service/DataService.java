@@ -82,14 +82,14 @@ public class DataService implements IDataService {
 	// ------------------------------ PUBLIC METHODS
 
 	@Override
-	public DataVO loadDataVO(Long dataViewId) {
+	public DataVO loadDataVO(String dataViewId) {
 		DataView dataView = dataViewService.load(dataViewId);
 
 		return loadDataVOByDataView(dataView);
 	}
 
 	@Override
-	public DataVO loadDataVO(String dataViewName) {
+	public DataVO loadDataVOByName(String dataViewName) {
 		DataView dataView = dataViewService.loadByName(dataViewName);
 
 		return loadDataVOByDataView(dataView);
@@ -97,7 +97,7 @@ public class DataService implements IDataService {
 
 	@Override
 	public DataVO createAnotherDataView(String dsName) {
-		DataVO result = loadDataVO(dsName);
+		DataVO result = loadDataVOByName(dsName);
 		if (result != null) {
 			result.setDataViewId(null);
 			result.setName(null);

@@ -14,7 +14,7 @@ public class DataVO implements Serializable {
 	/**
 	 * DataView.id
 	 */
-	private Long dataViewId;
+	private String dataViewId;
 
 	/**
 	 * DataSource.id
@@ -114,11 +114,11 @@ public class DataVO implements Serializable {
 
 	// ------------------------------ ACCESSORS
 
-	public Long getDataViewId() {
+	public String getDataViewId() {
 		return dataViewId;
 	}
 
-	public void setDataViewId(Long dataViewId) {
+	public void setDataViewId(String dataViewId) {
 		this.dataViewId = dataViewId;
 	}
 

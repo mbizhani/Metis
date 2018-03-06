@@ -66,7 +66,7 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 	/**
 	 * XDVField.targetDVId
 	 */
-	private Long targetDVId;
+	private String targetDVId;
 
 	/**
 	 * XDVField.targetDVName
@@ -148,11 +148,11 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 		this.targetDSId = targetDSId;
 	}
 
-	public Long getTargetDVId() {
+	public String getTargetDVId() {
 		return targetDVId;
 	}
 
-	public void setTargetDVId(Long targetDVId) {
+	public void setTargetDVId(String targetDVId) {
 		this.targetDVId = targetDVId;
 	}
 
@@ -200,7 +200,7 @@ public abstract class DataAbstractFieldVO implements Serializable, Comparable<Da
 	}
 
 	public DataView getTargetDV() {
-		return new DataView(getTargetDVId());
+		return new DataView().setId(getTargetDVId());
 	}
 
 	public void setTargetDV(DataView dataView) {

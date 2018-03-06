@@ -18,7 +18,7 @@ public interface IDataViewService {
 
 	void saveOrUpdate(DataView entity);
 
-	DataView load(Long id);
+	DataView load(String id);
 
 	DataView loadByName(String name);
 
@@ -38,7 +38,7 @@ public interface IDataViewService {
 
 	// ==============================
 
-	void saveOrUpdate(Long dataViewId, String title, XDataView xDataView, List<DataGroup> groups);
+	void saveOrUpdate(String dataViewId, String title, XDataView xDataView, List<DataGroup> groups);
 
 	List<String> listForOData();
 

@@ -120,7 +120,7 @@ public class MetisEdmProvider extends EdmProvider implements IDataEventHandler {
 			List<String> dataViewsForOData = dataViewService.listForOData();
 			for (String dataViewName : dataViewsForOData) {
 				try {
-					DataVO dataVO = dataService.loadDataVO(dataViewName);
+					DataVO dataVO = dataService.loadDataVOByName(dataViewName);
 					EntityType entityType = getEntityType(dataVO);
 					ENTITY_TYPE_MAP.put(dataViewName, entityType);
 

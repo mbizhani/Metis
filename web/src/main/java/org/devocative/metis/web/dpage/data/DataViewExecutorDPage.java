@@ -67,7 +67,7 @@ public class DataViewExecutorDPage extends DPage {
 		super(id, params);
 
 		if (!params.isEmpty() && !params.get(0).isEmpty()) {
-			dataVO = dataService.loadDataVO(params.get(0));
+			dataVO = dataService.loadDataVOByName(params.get(0));
 			title = new Model<>(dataVO.getTitle());
 			multiSelect = XDVGridSelectionMode.Multiple.equals(dataVO.getSelectionModeSafely());
 		} else {

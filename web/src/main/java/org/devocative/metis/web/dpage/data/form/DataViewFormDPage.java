@@ -33,7 +33,7 @@ public class DataViewFormDPage extends DPage {
 		super(id, params);
 
 		if (params.size() > 0) {
-			dataVO = dataService.loadDataVO(params.get(0));
+			dataVO = dataService.loadDataVOByName(params.get(0));
 		} else {
 			String dsName = getWebRequest().getRequestParameters().getParameterValue("dsName").toOptionalString();
 			if (dsName != null) {

@@ -132,7 +132,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		Map<String, Object> inputParams = new HashMap<>();
 
 		if (uriInfo.getFilter() != null) {
-			DataVO dataVO = dataService.loadDataVO(entitySet.getEntityType().getName());
+			DataVO dataVO = dataService.loadDataVOByName(entitySet.getEntityType().getName());
 			List<DataParameterVO> params = dataVO.getParams();
 			List<String> mainQueryParams = new ArrayList<>();
 			for (DataParameterVO param : params) {
@@ -181,7 +181,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		Map<String, Object> inputParams = new HashMap<>();
 
 		if (uriInfo.getFilter() != null) {
-			DataVO dataVO = dataService.loadDataVO(entitySet.getEntityType().getName());
+			DataVO dataVO = dataService.loadDataVOByName(entitySet.getEntityType().getName());
 			List<DataParameterVO> params = dataVO.getParams();
 			List<String> mainQueryParams = new ArrayList<>();
 			for (DataParameterVO param : params) {

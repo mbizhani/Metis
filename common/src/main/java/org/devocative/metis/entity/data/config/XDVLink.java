@@ -14,7 +14,7 @@ public class XDVLink implements Serializable {
 	private String title;
 
 	@XStreamAsAttribute
-	private Long targetDVId;
+	private String targetDVId;
 
 	@XStreamAsAttribute
 	private String targetDVName;
@@ -32,11 +32,11 @@ public class XDVLink implements Serializable {
 		return this;
 	}
 
-	public Long getTargetDVId() {
+	public String getTargetDVId() {
 		return targetDVId;
 	}
 
-	public XDVLink setTargetDVId(Long targetDVId) {
+	public XDVLink setTargetDVId(String targetDVId) {
 		this.targetDVId = targetDVId;
 		return this;
 	}

@@ -41,13 +41,13 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Service("mtsDataViewService")
-public class DataViewService implements IDataViewService, IMissedHitHandler<Long, DataView> {
+public class DataViewService implements IDataViewService, IMissedHitHandler<String, DataView> {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewService.class);
 
 	// ------------------------------
 
 	private XStream xStream;
-	private ICache<Long, DataView> dataViewCache;
+	private ICache<String, DataView> dataViewCache;
 
 	@Autowired
 	private IPersistorService persistorService;
@@ -83,7 +83,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 	}
 
 	@Override
-	public DataView load(Long id) {
+	public DataView load(String id) {
 		return dataViewCache.get(id);
 	}
 
@@ -159,7 +159,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 
 	// IMissedHitHandler
 	@Override
-	public DataView loadForCache(Long key) {
+	public DataView loadForCache(String key) {
 		DataView dv = persistorService
 			.createQueryBuilder()
 			.addFrom(DataView.class, "ent")
@@ -173,7 +173,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Long
 	}
 
 	@Override
-	public void saveOrUpdate(Long dataViewId, String title, XDataView xDataView, List<DataGroup> groups) {
+	public void saveOrUpdate(String dataViewId, String title, XDataView xDataView, List<DataGroup> groups) {
 		DataView dataView;
 		ConfigLob config;
 

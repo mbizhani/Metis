@@ -20,7 +20,7 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 	@Id
 	@GeneratedValue(generator = "uuid")
 	@GenericGenerator(name = "uuid", strategy = "uuid2")
-	private Long id;
+	private String id;
 
 	@Column(name = "c_src_ptr_field", nullable = false)
 	private String sourcePointerField;
@@ -82,11 +82,11 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 
 	// ------------------------------
 
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 

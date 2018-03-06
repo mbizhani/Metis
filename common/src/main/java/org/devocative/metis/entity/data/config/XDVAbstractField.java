@@ -16,11 +16,11 @@ public class XDVAbstractField implements Serializable {
 	@XStreamAsAttribute
 	private Integer filterPanelOrder;
 
-	@XStreamAsAttribute
+	/*@XStreamAsAttribute
 	private Long targetDVId;
 
 	@XStreamAsAttribute
-	private String targetDVName;
+	private String targetDVName;*/
 
 	@XStreamAsAttribute
 	private String targetDSFilter;
@@ -51,7 +51,7 @@ public class XDVAbstractField implements Serializable {
 		this.filterPanelOrder = filterPanelOrder;
 	}
 
-	public Long getTargetDVId() {
+	/*public Long getTargetDVId() {
 		return targetDVId;
 	}
 
@@ -65,7 +65,7 @@ public class XDVAbstractField implements Serializable {
 
 	public void setTargetDVName(String targetDVName) {
 		this.targetDVName = targetDVName;
-	}
+	}*/
 
 	public String getTargetDSFilter() {
 		return targetDSFilter;
