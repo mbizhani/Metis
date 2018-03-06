@@ -10,7 +10,7 @@ import java.util.List;
 public interface IDataGroupService {
 	void saveOrUpdate(DataGroup entity);
 
-	DataGroup load(Long id);
+	DataGroup load(String id);
 
 	DataGroup loadByName(String name);
 

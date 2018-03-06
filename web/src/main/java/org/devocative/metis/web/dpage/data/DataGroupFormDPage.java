@@ -46,7 +46,7 @@ public class DataGroupFormDPage extends DPage {
 		super(id, params);
 
 		this.entity = params != null && !params.isEmpty() ?
-			dataGroupService.load(Long.valueOf(params.get(0))) :
+			dataGroupService.load(params.get(0)) :
 			new DataGroup();
 	}
 

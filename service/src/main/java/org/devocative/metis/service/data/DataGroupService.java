@@ -25,7 +25,7 @@ public class DataGroupService implements IDataGroupService {
 	}
 
 	@Override
-	public DataGroup load(Long id) {
+	public DataGroup load(String id) {
 		return persistorService.get(DataGroup.class, id);
 	}
 
