@@ -9,6 +9,7 @@ import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.sql.plugin.PaginationPlugin;
 import org.devocative.adroit.sql.plugin.SchemaPlugin;
 import org.devocative.adroit.xml.AdroitXStream;
+import org.devocative.demeter.DBConstraintViolationException;
 import org.devocative.demeter.DLogCtx;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ApplicationLifecyclePriority;
@@ -24,7 +25,9 @@ import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
 import org.devocative.metis.entity.MetisUserProfile;
 import org.devocative.metis.entity.connection.DBConnection;
+import org.devocative.metis.entity.connection.DBConnectionAlias;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
+import org.devocative.metis.entity.connection.EAliasMode;
 import org.devocative.metis.entity.connection.mapping.XMany2One;
 import org.devocative.metis.entity.connection.mapping.XOne2Many;
 import org.devocative.metis.entity.connection.mapping.XProperty;
@@ -32,6 +35,7 @@ import org.devocative.metis.entity.connection.mapping.XSchema;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
+import org.devocative.metis.iservice.connection.IDBConnectionAliasService;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.filter.connection.DBConnectionFVO;
@@ -82,6 +86,9 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@Autowired
 	private ICacheService cacheService;
+
+	@Autowired
+	private IDBConnectionAliasService aliasService;
 
 	// ------------------------------
 
@@ -148,7 +155,26 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@Override
 	public void saveOrUpdate(DBConnection entity) {
-		persistorService.saveOrUpdate(entity);
+		try {
+			persistorService.saveOrUpdate(entity);
+		} catch (DBConstraintViolationException e) {
+			if (e.isConstraint(DBConnection.UQ_CONST)) {
+				throw new MetisException(MetisErrorCode.DuplicateDBConnectionName, entity.getName());
+			}
+		}
+
+		DBConnectionAlias alias = aliasService.loadByConnMode(entity.getId(), EAliasMode.NORMAL);
+		if (alias == null) {
+			alias = new DBConnectionAlias();
+			alias.setName(entity.getName());
+			alias.setMode(EAliasMode.NORMAL);
+			alias.setConnection(entity);
+			aliasService.saveOrUpdate(alias);
+		} else if (!alias.getName().equals(entity.getName())) {
+			logger.error("Invalid alias to connection: alias={} conn={}", alias.getName(), entity.getName());
+			alias.setName(entity.getName());
+			aliasService.saveOrUpdate(alias);
+		}
 	}
 
 	@Override
@@ -611,6 +637,18 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 		persistorService.commitOrRollback();
 		dbConnectionCache.clear();
+	}
+
+	@Override
+	public DBConnection findByName(String name) {
+		DBConnectionAlias alias = aliasService.loadByNameMode(name, EAliasMode.NORMAL);
+		if (alias != null) {
+			return load(alias.getConnectionId());
+		}
+
+		logger.warn("No alias for DBConnection: {}", name);
+
+		return loadByName(name);
 	}
 
 	// ------------------------------

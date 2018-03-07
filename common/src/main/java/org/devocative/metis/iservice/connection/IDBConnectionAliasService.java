@@ -1,9 +1,9 @@
-//overwrite
 package org.devocative.metis.iservice.connection;
 
 import org.devocative.demeter.entity.User;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.DBConnectionAlias;
+import org.devocative.metis.entity.connection.EAliasMode;
 import org.devocative.metis.vo.filter.connection.DBConnectionAliasFVO;
 
 import java.util.List;
@@ -26,4 +26,8 @@ public interface IDBConnectionAliasService {
 	List<User> getModifierUserList();
 
 	// ==============================
+
+	DBConnectionAlias loadByNameMode(String name, EAliasMode mode);
+
+	DBConnectionAlias loadByConnMode(Long dbConnId, EAliasMode mode);
 }

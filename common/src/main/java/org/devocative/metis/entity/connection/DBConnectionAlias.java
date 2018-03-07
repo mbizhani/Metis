@@ -10,9 +10,11 @@ import java.util.Date;
 @Audited
 @Entity
 @Table(name = "t_mts_db_conn_alias", uniqueConstraints = {
-	@UniqueConstraint(name = "uk_mts_dbConnAlias_all", columnNames = {"c_name", "e_mode"})
+	@UniqueConstraint(name = DBConnectionAlias.UQ_CONST, columnNames = {"c_name", "e_mode"})
 })
 public class DBConnectionAlias implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+	public static final String UQ_CONST = "uk_mts_dbConnAlias_all";
+
 	private static final long serialVersionUID = 6632811275596865233L;
 
 	@Id
@@ -31,11 +33,14 @@ public class DBConnectionAlias implements ICreationDate, ICreatorUser, IModifica
 
 	@Embedded
 	@AttributeOverride(name = "id", column = @Column(name = "e_mode", nullable = false))
-	private EAliasMode mode;
+	private EAliasMode mode = EAliasMode.NORMAL;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_connection", nullable = false, foreignKey = @ForeignKey(name = "alias2connection"))
 	private DBConnection connection;
+
+	@Column(name = "f_connection", nullable = false, insertable = false, updatable = false)
+	private Long connectionId;
 
 	// ---------------
 
@@ -101,6 +106,10 @@ public class DBConnectionAlias implements ICreationDate, ICreatorUser, IModifica
 
 	public void setConnection(DBConnection connection) {
 		this.connection = connection;
+	}
+
+	public Long getConnectionId() {
+		return connectionId;
 	}
 
 	// ---------------

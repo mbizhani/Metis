@@ -50,7 +50,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	private static final String EMBED_FILTER_EXPRESSION = "%FILTER_EXPR%";
 
-	private XStream xstream;
+	private XStream xStream;
 	private ICache<String, DataSource> dataSourceCache;
 
 	@Autowired
@@ -72,8 +72,8 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 	@PostConstruct
 	public void initDataSourceService() {
-		xstream = new AdroitXStream();
-		xstream.processAnnotations(XDataSource.class);
+		xStream = new AdroitXStream();
+		xStream.processAnnotations(XDataSource.class);
 
 		dataSourceCache = cacheService.create(CACHE_KEY, 70);
 		dataSourceCache.setMissedHitHandler(this);
@@ -98,7 +98,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 				.addWhere("and ent.name = :name")
 				.addParam("name", name)
 				.object();
-			ds.setXDataSource((XDataSource) xstream.fromXML(ds.getConfig().getValue()));
+			ds.setXDataSource((XDataSource) xStream.fromXML(ds.getConfig().getValue()));
 			dataSourceCache.put(ds.getId(), ds);
 		}
 		return ds;
@@ -116,7 +116,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			.addParam("id", key)
 			.object();
 
-		ds.setXDataSource((XDataSource) xstream.fromXML(ds.getConfig().getValue()));
+		ds.setXDataSource((XDataSource) xStream.fromXML(ds.getConfig().getValue()));
 
 		return ds;
 	}
@@ -212,7 +212,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 		}
 
-		config.setValue(xstream.toXML(xDataSource));
+		config.setValue(xStream.toXML(xDataSource));
 
 		dataSource.setConfig(config);
 
@@ -718,7 +718,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			if (sentDBConn != null) {
 				logger.info("Sent DB Conn: User=[{}] Conn=[{}]", securityService.getCurrentUser(), sentDBConn);
 
-				DBConnection dbConnection = dbConnectionService.loadByName(sentDBConn);
+				DBConnection dbConnection = dbConnectionService.findByName(sentDBConn);
 				if (dbConnection == null) {
 					logger.error("Invalid sent db connection: {}", sentDBConn);
 					throw new MetisException(MetisErrorCode.InvalidDBConnection, sentDBConn);

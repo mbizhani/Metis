@@ -1,10 +1,13 @@
-//overwrite
 package org.devocative.metis.service.connection;
 
+import org.devocative.demeter.DBConstraintViolationException;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.metis.MetisErrorCode;
+import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.DBConnectionAlias;
+import org.devocative.metis.entity.connection.EAliasMode;
 import org.devocative.metis.iservice.connection.IDBConnectionAliasService;
 import org.devocative.metis.vo.filter.connection.DBConnectionAliasFVO;
 import org.slf4j.Logger;
@@ -25,7 +28,13 @@ public class DBConnectionAliasService implements IDBConnectionAliasService {
 
 	@Override
 	public void saveOrUpdate(DBConnectionAlias entity) {
-		persistorService.saveOrUpdate(entity);
+		try {
+			persistorService.saveOrUpdate(entity);
+		} catch (DBConstraintViolationException e) {
+			if (e.isConstraint(DBConnectionAlias.UQ_CONST)) {
+				throw new MetisException(MetisErrorCode.DuplicateDBConnectionAlias, entity.getName());
+			}
+		}
 	}
 
 	@Override
@@ -74,4 +83,29 @@ public class DBConnectionAliasService implements IDBConnectionAliasService {
 	}
 
 	// ==============================
+
+	@Override
+	public DBConnectionAlias loadByNameMode(String name, EAliasMode mode) {
+		return persistorService.createQueryBuilder()
+			.addFrom(DBConnectionAlias.class, "ent")
+			.addWhere("and ent.name = :name", "name", name)
+			.addWhere("and ent.mode = :mode", "mode", mode)
+			.object();
+	}
+
+	@Override
+	public DBConnectionAlias loadByConnMode(Long dbConnId, EAliasMode mode) {
+		List<DBConnectionAlias> list = persistorService.createQueryBuilder()
+			.addFrom(DBConnectionAlias.class, "ent")
+			.addWhere("and ent.connection.id = :connId", "connId", dbConnId)
+			.addWhere("and ent.mode = :mode", "mode", mode)
+			.setOrderBy("ent.creationDate")
+			.list();
+
+		if (list.size() > 0) {
+			return list.get(0);
+		}
+
+		return null;
+	}
 }

@@ -14,18 +14,19 @@ public enum MetisErrorCode implements DErrorCode {
 	EqlUnknownProperty("Unknown property"),
 	EqlJoinOnProperty("Join on property"),
 	EqlInvalidAssociationUsage("Invalid association usage"),
-	DBConnection("Can't get connection from database"),
-	DuplicateDataSourceName("Duplicate DataSource name"),
 
+	DBConnection("Can't get connection from database"),
 	InvalidDBConnection("Invalid DB Connection"),
+	DuplicateDBConnectionAlias("Duplicate DBConnectionAlias"),
+	DuplicateDBConnectionName("Duplicate DBConnection Name"),
+
+	DuplicateDataSourceName("Duplicate DataSource name"),
 
 	InvalidDataViewName("Invalid data view name"),
 	NoDataViewName("No data view name"),
-
 	InvalidDataViewState("Invalid DataView State"),
 
-	InvalidFilterValue("Invalid filter value")
-	;
+	InvalidFilterValue("Invalid filter value");
 
 	private String defaultDescription;
 

@@ -11,9 +11,11 @@ import java.util.Date;
 @Audited
 @Entity
 @Table(name = "t_mts_db_conn", uniqueConstraints = {
-	@UniqueConstraint(name = "uk_mts_dbconn_name", columnNames = {"c_name"})
+	@UniqueConstraint(name = DBConnection.UQ_CONST, columnNames = {"c_name"})
 })
 public class DBConnection implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
+	public static final String UQ_CONST = "uk_mts_dbConn_name";
+
 	private static final long serialVersionUID = 3191943462582109397L;
 
 	@Id
