@@ -1,0 +1,67 @@
+<list>
+	<query name="dvXml">
+		<sql><![CDATA[
+select
+	cf.id,
+	cf.c_value
+from
+	t_mts_cfg_lob cf
+	join t_mts_data_view dv on dv.f_config = cf.id
+]]></sql>
+	</query>
+
+	<query name="dsMap">
+		<sql><![CDATA[
+select id, c_name from t_mts_data_src
+]]></sql>
+	</query>
+
+	<query name="dsIdMap">
+		<sql><![CDATA[
+select old_id, id from t_mts_data_src
+]]></sql>
+	</query>
+
+	<query name="updateCfg">
+		<sql><![CDATA[
+update t_mts_cfg_lob set c_value = :xml where id = :id
+]]></sql>
+	</query>
+
+	<query name="dsXml">
+		<sql><![CDATA[
+select
+	cf.id,
+	cf.c_value
+from
+	t_mts_cfg_lob cf
+	join t_mts_data_src dv on dv.f_config = cf.id
+]]></sql>
+	</query>
+
+	<query name="dvMap">
+		<sql><![CDATA[
+select id, c_name from t_mts_data_view
+]]></sql>
+	</query>
+
+	<query name="dvIdMap">
+		<sql><![CDATA[
+select old_id, id from t_mts_data_view
+]]></sql>
+	</query>
+
+	<query name="dsXmlEQL">
+		<sql><![CDATA[
+select
+	cf.id,
+	cf.c_value
+from
+	t_mts_cfg_lob cf
+	join t_mts_data_src ds on ds.f_config = cf.id
+	join t_mts_data_view dv on dv.f_data_src = ds.id
+where
+	cf.c_value like '%query mode="Eql"%'
+]]></sql>
+	</query>
+</list>
