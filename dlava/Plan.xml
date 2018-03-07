@@ -18,7 +18,7 @@
 
 	<packageMap>
 		<!-- DataGroup,DataView, -->
-		<from pkg="org.devocative.metis.entity" includeSubPackages="true" includePattern=".*DataGroup">
+		<from pkg="org.devocative.metis.entity" includeSubPackages="true" includePattern=".*[.]DBConnectionAlias">
 			<to pkgReplace="entity:vo.filter" generatorRef="FVO" genDir="common/src/main/java"/>
 
 			<to pkgReplace="entity:iservice" generatorRef="ServiceI" genDir="common/src/main/java"/>

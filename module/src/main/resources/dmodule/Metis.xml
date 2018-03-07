@@ -16,6 +16,7 @@
 
 		<entity type="org.devocative.metis.entity.connection.DBConnection"/>
 		<entity type="org.devocative.metis.entity.connection.DBConnectionGroup"/>
+		<entity type="org.devocative.metis.entity.connection.DBConnectionAlias"/>
 
 		<entity type="org.devocative.metis.entity.data.DataGroup"/>
 		<entity type="org.devocative.metis.entity.data.DataSource"/>
@@ -93,6 +94,13 @@
 			   uri="/connections"
 			   inMenu="true"
 			   roles="AuthByDB,AuthByLDAP"
+				/>
+
+		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionAliasListDPage"
+			   title="KEY:dPage.mts.DBConnectionAliasList"
+			   uri="/connAliases"
+			   inMenu="true"
+			   roles="Admin"
 				/>
 
 		<!--<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionForm"
