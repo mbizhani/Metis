@@ -14,6 +14,8 @@ public interface IDataGroupService {
 
 	DataGroup loadByName(String name);
 
+	DataGroup loadByCode(String code);
+
 	List<DataGroup> list();
 
 	List<DataGroup> search(DataGroupFVO filter, long pageIndex, long pageSize);

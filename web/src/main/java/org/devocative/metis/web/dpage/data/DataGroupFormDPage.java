@@ -1,4 +1,3 @@
-//overwrite
 package org.devocative.metis.web.dpage.data;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -10,7 +9,9 @@ import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.iservice.data.IDataGroupService;
+import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.form.WTextInput;
+import org.devocative.wickomp.form.validator.WPatternValidator;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.html.window.WModalWindow;
 
@@ -57,13 +58,18 @@ public class DataGroupFormDPage extends DPage {
 		super.onInitialize();
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
-		//floatTable.setEqualWidth(true);
 		floatTable.add(new WTextInput("name")
-			.setLabel(new ResourceModel("DataGroup.name")));
+			.setRequired(true)
+			.setLabel(new ResourceModel("DataGroup.name", "name")));
+		floatTable.add(new WTextInput("code")
+			.add(new WPatternValidator("\\w+", "DataGroup.err.code.format"))
+			.setRequired(true)
+			.setLabel(new ResourceModel("DataGroup.code", "code")));
 
 		Form<DataGroup> form = new Form<>("form", new CompoundPropertyModel<>(entity));
 		form.add(floatTable);
-		form.add(new DAjaxButton("save", new ResourceModel("label.save")) {
+
+		form.add(new DAjaxButton("save", new ResourceModel("label.save"), MetisIcon.SAVE) {
 			private static final long serialVersionUID = 1888350113L;
 
 			@Override

@@ -164,6 +164,9 @@
 				<field name="name">
 					<finfo/>
 				</field>
+				<field name="code">
+					<finfo/>
+				</field>
 				<field name="creationDate">
 					<finfo hasForm="false" hasTimePart="true"/>
 				</field>

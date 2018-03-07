@@ -5,10 +5,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.devocative.demeter.web.DPage;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.demeter.web.component.grid.OEditAjaxColumn;
 import org.devocative.metis.MetisPrivilegeKey;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.iservice.data.IDataGroupService;
@@ -26,7 +26,6 @@ import org.devocative.wickomp.grid.WDataGrid;
 import org.devocative.wickomp.grid.WSortField;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
-import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
 import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.html.window.WModalWindow;
@@ -85,7 +84,6 @@ public class DataGroupListDPage extends DPage implements IGridDataSource<DataGro
 		super.onInitialize();
 
 		final WModalWindow window = new WModalWindow("window");
-		window.getOptions().setHeight(OSize.percent(80)).setWidth(OSize.percent(80));
 		add(window);
 
 		add(new WAjaxLink("add", MetisIcon.ADD) {
@@ -99,23 +97,24 @@ public class DataGroupListDPage extends DPage implements IGridDataSource<DataGro
 		}.setVisible(hasPermission(MetisPrivilegeKey.DataGroupAdd)));
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
-		//floatTable.setEqualWidth(true);
 		floatTable.add(new WTextInput("name")
-			.setLabel(new ResourceModel("DataGroup.name")));
+			.setLabel(new ResourceModel("DataGroup.name", "name")));
+		floatTable.add(new WTextInput("code")
+			.setLabel(new ResourceModel("DataGroup.code", "code")));
 		floatTable.add(new WDateRangeInput("creationDate")
 			.setTimePartVisible(true)
-			.setLabel(new ResourceModel("entity.creationDate")));
+			.setLabel(new ResourceModel("entity.creationDate", "creationDate")));
 		floatTable.add(new WSelectionInput("creatorUser", dataGroupService.getCreatorUserList(), true)
-			.setLabel(new ResourceModel("entity.creatorUser")));
+			.setLabel(new ResourceModel("entity.creatorUser", "creatorUser")));
 		floatTable.add(new WDateRangeInput("modificationDate")
 			.setTimePartVisible(true)
-			.setLabel(new ResourceModel("entity.modificationDate")));
+			.setLabel(new ResourceModel("entity.modificationDate", "modificationDate")));
 		floatTable.add(new WSelectionInput("modifierUser", dataGroupService.getModifierUserList(), true)
-			.setLabel(new ResourceModel("entity.modifierUser")));
+			.setLabel(new ResourceModel("entity.modifierUser", "modifierUser")));
 
 		Form<DataGroupFVO> form = new Form<>("form", new CompoundPropertyModel<>(filter));
 		form.add(floatTable);
-		form.add(new DAjaxButton("search", new ResourceModel("label.search")) {
+		form.add(new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 			private static final long serialVersionUID = 2080389895L;
 
 			@Override
@@ -127,29 +126,30 @@ public class DataGroupListDPage extends DPage implements IGridDataSource<DataGro
 		add(form);
 
 		OColumnList<DataGroup> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<>(new ResourceModel("DataGroup.name"), "name"));
-		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.creationDate"), "creationDate")
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataGroup.name", "name"), "name"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataGroup.code", "code"), "code"));
+		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.creationDate", "creationDate"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
-		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.creatorUser"), "creatorUser"));
-		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.modificationDate"), "modificationDate")
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.creatorUser", "creatorUser"), "creatorUser"));
+		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.modificationDate", "modificationDate"), "modificationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));
-		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.modifierUser"), "modifierUser"));
-		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.version"), "version")
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.modifierUser", "modifierUser"), "modifierUser"));
+		columnList.add(new OPropertyColumn<DataGroup>(new ResourceModel("entity.version", "version"), "version")
 			.setFormatter(ONumberFormatter.integer())
 			.setStyle("direction:ltr"));
 
 		if (hasPermission(MetisPrivilegeKey.DataGroupEdit)) {
-			columnList.add(new OAjaxLinkColumn<DataGroup>(new Model<>(), MetisIcon.EDIT) {
-				private static final long serialVersionUID = -1716470256L;
+			columnList.add(new OEditAjaxColumn<DataGroup>() {
+				private static final long serialVersionUID = -227644640L;
 
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<DataGroup> rowData) {
 					window.setContent(new DataGroupFormDPage(window.getContentId(), rowData.getObject()));
 					window.show(target);
 				}
-			}.setField("EDIT"));
+			});
 		}
 
 		OGrid<DataGroup> oGrid = new OGrid<>();

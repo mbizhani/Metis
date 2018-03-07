@@ -11,7 +11,8 @@ import java.util.Date;
 @Audited
 @Entity
 @Table(name = "t_mts_data_group", uniqueConstraints = {
-	@UniqueConstraint(name = "uk_mts_datagrp_name", columnNames = {"c_name"})
+	@UniqueConstraint(name = "uk_mts_datagrp_name", columnNames = {"c_name"}),
+	@UniqueConstraint(name = "uk_mts_datagrp_code", columnNames = {"c_code"})
 })
 public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser, Comparable<DataGroup> {
 	private static final long serialVersionUID = 6455487013206016555L;
@@ -24,7 +25,10 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 	@Column(name = "c_name", nullable = false)
 	private String name;
 
-	// --------------- CREATE / MODIFY
+	@Column(name = "c_code", nullable = false)
+	private String code;
+
+	// ---------------
 
 	@NotAudited
 	@Column(name = "d_creation", nullable = false, columnDefinition = "date")
@@ -56,7 +60,7 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 	@Column(name = "n_version", nullable = false)
 	private Integer version = 0;
 
-	// ------------------------------ ACCESSORS
+	// ------------------------------
 
 	public String getId() {
 		return id;
@@ -72,6 +76,14 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
 	}
 
 	// ---------------

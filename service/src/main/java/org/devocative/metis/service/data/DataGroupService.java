@@ -6,6 +6,8 @@ import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.iservice.data.IDataGroupService;
 import org.devocative.metis.vo.filter.data.DataGroupFVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,7 @@ import java.util.List;
 
 @Service("mtsDataGroupService")
 public class DataGroupService implements IDataGroupService {
+	private static final Logger logger = LoggerFactory.getLogger(DataGroupService.class);
 
 	@Autowired
 	private IPersistorService persistorService;
@@ -36,6 +39,16 @@ public class DataGroupService implements IDataGroupService {
 			.addFrom(DataGroup.class, "ent")
 			.addWhere("and ent.name = :name")
 			.addParam("name", name)
+			.object();
+	}
+
+	@Override
+	public DataGroup loadByCode(String code) {
+		return persistorService
+			.createQueryBuilder()
+			.addFrom(DataGroup.class, "ent")
+			.addWhere("and ent.code = :code")
+			.addParam("code", code)
 			.object();
 	}
 
