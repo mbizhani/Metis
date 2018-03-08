@@ -147,13 +147,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		dataSource.setConnection(dbConnectionService.load(dataVO.getConnectionId()));
 		dataSource.setConnectionSelection(dataVO.getConnectionSelection());
 
-		Map<String, DataSourceRelation> relationsMap = new HashMap<>();
 		List<DataSourceRelation> newRelations = new ArrayList<>();
 
-		if (dataSource.getId() != null) {
-			markRelationsAsDeleted(dataSource.getId());
-			loadRelationsToMap(dataSource.getId(), relationsMap);
-		} else {
+		if (dataSource.getId() == null) {
 			checkDuplicateDataSource(dataSource.getName());
 		}
 
@@ -176,14 +172,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			}
 
 			if (XDSFieldType.LookUp == xdsField.getType()) {
-				DataSourceRelation rel = relationsMap.get(xdsField.getName());
-				if (rel == null) {
-					rel = new DataSourceRelation();
-				}
+				DataSourceRelation rel = new DataSourceRelation();
 				rel.setSource(dataSource);
 				rel.setTarget(new DataSource().setId(xdsField.getTargetDSId()));
 				rel.setSourcePointerField(xdsField.getName());
-				rel.setDeleted(false);
 
 				newRelations.add(rel);
 			} else {
@@ -196,14 +188,10 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		// ---- Processing Parameters
 		for (XDSParameter xdsParameter : xDataSource.getParams()) {
 			if (XDSFieldType.LookUp == xdsParameter.getType()) {
-				DataSourceRelation rel = relationsMap.get(xdsParameter.getName());
-				if (rel == null) {
-					rel = new DataSourceRelation();
-				}
+				DataSourceRelation rel = new DataSourceRelation();
 				rel.setSource(dataSource);
 				rel.setTarget(new DataSource().setId(xdsParameter.getTargetDSId()));
 				rel.setSourcePointerField(xdsParameter.getName());
-				rel.setDeleted(false);
 				newRelations.add(rel);
 			} else {
 				xdsParameter.setTargetDSId(null);
@@ -218,6 +206,11 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		persistorService.saveOrUpdate(config);
 		persistorService.saveOrUpdate(dataSource);
+
+		persistorService.createQueryBuilder()
+			.addSelect("delete from DataSourceRelation ent where ent.source.id = :dsId")
+			.addParam("dsId", dataSource.getId())
+			.update();
 		newRelations.forEach(persistorService::saveOrUpdate);
 
 		dataSource.setXDataSource(xDataSource);
@@ -678,27 +671,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		if (count > 0) {
 			throw new MetisException(MetisErrorCode.DuplicateDataSourceName, name);
-		}
-	}
-
-	private void markRelationsAsDeleted(String sourceId) {
-		persistorService
-			.createQueryBuilder()
-			.addSelect("update DataSourceRelation ent set ent.deleted = true where ent.source.id = :srcId")
-			.addParam("srcId", sourceId)
-			.update();
-	}
-
-	private void loadRelationsToMap(String sourceId, Map<String, DataSourceRelation> map) {
-		List<DataSourceRelation> relations = persistorService
-			.createQueryBuilder()
-			.addFrom(DataSourceRelation.class, "ent")
-			.addWhere("and ent.source.id = :srcId")
-			.addParam("srcId", sourceId)
-			.list();
-
-		for (DataSourceRelation relation : relations) {
-			map.put(relation.getSourcePointerField(), relation);
 		}
 	}
 

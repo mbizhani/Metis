@@ -12,7 +12,7 @@ import java.util.Date;
 @Entity
 @Table(name = "t_mts_data_src_rel",
 	uniqueConstraints = {
-		@UniqueConstraint(name = "datasrc_main", columnNames = {"c_src_ptr_field", "f_src_datasrc"})
+		@UniqueConstraint(name = "uk_datasrcrel_main", columnNames = {"f_tgt_datasrc", "f_src_datasrc", "c_src_ptr_field"})
 	})
 public class DataSourceRelation implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	private static final long serialVersionUID = -8316259666720647816L;
@@ -24,15 +24,6 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 
 	@Column(name = "c_src_ptr_field", nullable = false)
 	private String sourcePointerField;
-
-	@Column(name = "c_tgt_key_field")
-	private String targetKeyField;
-
-	@Column(name = "c_tgt_title_field")
-	private String targetTitleField;
-
-	@Column(name = "b_deleted", nullable = false)
-	private Boolean deleted = false;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "f_src_datasrc", nullable = false, foreignKey = @ForeignKey(name = "datasrcrel_src2datasrc"))
@@ -61,7 +52,7 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 	private User creatorUser;
 
 	@NotAudited
-	@Column(name = "f_creator_user")
+	@Column(name = "f_creator_user", insertable = false)
 	private Long creatorUserId;
 
 	@NotAudited
@@ -96,30 +87,6 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 
 	public void setSourcePointerField(String sourcePointerField) {
 		this.sourcePointerField = sourcePointerField;
-	}
-
-	public String getTargetKeyField() {
-		return targetKeyField;
-	}
-
-	public void setTargetKeyField(String targetKeyField) {
-		this.targetKeyField = targetKeyField;
-	}
-
-	public String getTargetTitleField() {
-		return targetTitleField;
-	}
-
-	public void setTargetTitleField(String targetTitleField) {
-		this.targetTitleField = targetTitleField;
-	}
-
-	public Boolean getDeleted() {
-		return deleted;
-	}
-
-	public void setDeleted(Boolean deleted) {
-		this.deleted = deleted;
 	}
 
 	public DataSource getSource() {
