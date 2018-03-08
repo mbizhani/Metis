@@ -35,8 +35,8 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "mt_mts_report_group",
-		joinColumns = {@JoinColumn(name = "f_report")},
-		inverseJoinColumns = {@JoinColumn(name = "f_group")},
+		joinColumns = {@JoinColumn(name = "f_report", nullable = false)},
+		inverseJoinColumns = {@JoinColumn(name = "f_group", nullable = false)},
 		foreignKey = @ForeignKey(name = "report_group2report"),
 		inverseForeignKey = @ForeignKey(name = "report_group2group"))
 	private List<DataGroup> groups;
@@ -49,12 +49,12 @@ public class Report implements ICreationDate, ICreatorUser, IModificationDate, I
 
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_creator_user", insertable = false, updatable = false,
+	@JoinColumn(name = "f_creator_user", nullable = false, insertable = false, updatable = false,
 		foreignKey = @ForeignKey(name = "report_crtrusr2user"))
 	private User creatorUser;
 
 	@NotAudited
-	@Column(name = "f_creator_user")
+	@Column(name = "f_creator_user", nullable = false)
 	private Long creatorUserId;
 
 	@NotAudited

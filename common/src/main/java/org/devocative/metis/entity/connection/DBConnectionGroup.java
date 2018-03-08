@@ -49,12 +49,12 @@ public class DBConnectionGroup implements ICreationDate, ICreatorUser, IModifica
 
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_creator_user", insertable = false, updatable = false,
+	@JoinColumn(name = "f_creator_user", nullable = false, insertable = false, updatable = false,
 		foreignKey = @ForeignKey(name = "dbconngrp_crtrusr2user"))
 	private User creatorUser;
 
 	@NotAudited
-	@Column(name = "f_creator_user")
+	@Column(name = "f_creator_user", nullable = false)
 	private Long creatorUserId;
 
 	@NotAudited

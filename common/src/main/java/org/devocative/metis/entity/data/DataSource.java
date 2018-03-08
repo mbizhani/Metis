@@ -44,17 +44,17 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	private EConnectionSelection connectionSelection = EConnectionSelection.THREE_STEPS;
 
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_config", foreignKey = @ForeignKey(name = "datasrc2cfglob"))
+	@JoinColumn(name = "f_config", nullable = false, foreignKey = @ForeignKey(name = "datasrc2cfglob"))
 	private ConfigLob config;
 
-	@Column(name = "f_config", insertable = false, updatable = false)
+	@Column(name = "f_config", nullable = false, insertable = false, updatable = false)
 	private String configId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_connection", foreignKey = @ForeignKey(name = "datasrc2dbconn"))
+	@JoinColumn(name = "f_connection", nullable = false, foreignKey = @ForeignKey(name = "datasrc2dbconn"))
 	private DBConnection connection;
 
-	@Column(name = "f_connection", insertable = false, updatable = false)
+	@Column(name = "f_connection", nullable = false, insertable = false, updatable = false)
 	private Long connectionId;
 
 	// --------------- CREATE / MODIFY
@@ -65,12 +65,12 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_creator_user", insertable = false, updatable = false,
+	@JoinColumn(name = "f_creator_user", nullable = false, insertable = false, updatable = false,
 		foreignKey = @ForeignKey(name = "datasrc_crtrusr2user"))
 	private User creatorUser;
 
 	@NotAudited
-	@Column(name = "f_creator_user")
+	@Column(name = "f_creator_user", nullable = false)
 	private Long creatorUserId;
 
 	@NotAudited

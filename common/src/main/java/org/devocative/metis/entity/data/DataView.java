@@ -48,8 +48,8 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "mt_mts_dataview_group",
-		joinColumns = {@JoinColumn(name = "f_data_view")},
-		inverseJoinColumns = {@JoinColumn(name = "f_group")},
+		joinColumns = {@JoinColumn(name = "f_data_view", nullable = false)},
+		inverseJoinColumns = {@JoinColumn(name = "f_group", nullable = false)},
 		foreignKey = @ForeignKey(name = "dataview_group2dataview"),
 		inverseForeignKey = @ForeignKey(name = "dataview_group2group"))
 	private List<DataGroup> groups;
@@ -62,12 +62,12 @@ public class DataView implements ICreationDate, ICreatorUser, IModificationDate,
 
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_creator_user", insertable = false, updatable = false,
+	@JoinColumn(name = "f_creator_user", nullable = false, insertable = false, updatable = false,
 		foreignKey = @ForeignKey(name = "dataview_crtrusr2user"))
 	private User creatorUser;
 
 	@NotAudited
-	@Column(name = "f_creator_user")
+	@Column(name = "f_creator_user", nullable = false)
 	private Long creatorUserId;
 
 	@NotAudited

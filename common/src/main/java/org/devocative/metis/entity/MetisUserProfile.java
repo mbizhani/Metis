@@ -17,15 +17,15 @@ public class MetisUserProfile implements ICreationDate, IModificationDate {
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "id", insertable = false, updatable = false,
+	@JoinColumn(name = "id", nullable = false, insertable = false, updatable = false,
 		foreignKey = @ForeignKey(name = "mtsusrprf2user"))
 	private User user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_dflt_conn", foreignKey = @ForeignKey(name = "mtsusrprf2dbconn"))
+	@JoinColumn(name = "f_dflt_conn", nullable = false, foreignKey = @ForeignKey(name = "mtsusrprf2dbconn"))
 	private DBConnection defaultConnection;
 
-	@Column(name = "f_dflt_conn", insertable = false, updatable = false)
+	@Column(name = "f_dflt_conn", nullable = false, insertable = false, updatable = false)
 	private Long defaultConnectionId;
 
 	// ------------------------------ CREATE / MODIFY

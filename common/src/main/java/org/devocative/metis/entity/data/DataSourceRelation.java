@@ -38,7 +38,7 @@ public class DataSourceRelation implements ICreationDate, ICreatorUser, IModific
 	@JoinColumn(name = "f_src_datasrc", nullable = false, foreignKey = @ForeignKey(name = "datasrcrel_src2datasrc"))
 	private DataSource source;
 
-	@Column(name = "f_src_datasrc", insertable = false, updatable = false)
+	@Column(name = "f_src_datasrc", nullable = false, insertable = false, updatable = false)
 	private String sourceId;
 
 	@ManyToOne(fetch = FetchType.LAZY)

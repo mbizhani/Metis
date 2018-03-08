@@ -50,11 +50,11 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 	@Column(name = "c_test_query")
 	private String testQuery;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "f_group", nullable = false, foreignKey = @ForeignKey(name = "dbconn2group"))
 	private DBConnectionGroup group;
 
-	@Column(name = "f_group", insertable = false, updatable = false)
+	@Column(name = "f_group", nullable = false, insertable = false, updatable = false)
 	private String groupId;
 
 	@OneToOne(fetch = FetchType.LAZY)
@@ -75,12 +75,12 @@ public class DBConnection implements ICreationDate, ICreatorUser, IModificationD
 
 	@NotAudited
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_creator_user", insertable = false, updatable = false,
+	@JoinColumn(name = "f_creator_user", nullable = false, insertable = false, updatable = false,
 		foreignKey = @ForeignKey(name = "dbconn_crtrusr2user"))
 	private User creatorUser;
 
 	@NotAudited
-	@Column(name = "f_creator_user")
+	@Column(name = "f_creator_user", nullable = false)
 	private Long creatorUserId;
 
 	@NotAudited
