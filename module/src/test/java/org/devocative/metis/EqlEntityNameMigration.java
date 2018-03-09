@@ -15,10 +15,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 
 public class EqlEntityNameMigration {
@@ -52,7 +49,7 @@ public class EqlEntityNameMigration {
 				StringBuffer tableReplacerBuffer = new StringBuffer();
 				Matcher tableMatcher = SchemaPlugin.SCHEMA_PATTERN.matcher(query);
 
-				boolean validEntity = true;
+				List<String> invalidEntities = new ArrayList<>();
 
 				while (tableMatcher.find()) {
 					if (tableMatcher.group(6) != null && tableMatcher.group(7) != null) {
@@ -67,14 +64,14 @@ public class EqlEntityNameMigration {
 								tableMatcher.appendReplacement(tableReplacerBuffer, replacement);
 							} else {
 								//System.err.printf("Entity not found: entity=%s ds=%s cfgId=%s\n", entity, xDataSource.getName(), cfgId);
-								validEntity = false;
+								invalidEntities.add(entity);
 								break;
 							}
 						}
 					}
 				}
 
-				if (validEntity) {
+				if (invalidEntities.isEmpty()) {
 					tableMatcher.appendTail(tableReplacerBuffer);
 					xDataSource.getQuery().setText(tableReplacerBuffer.toString());
 
@@ -87,9 +84,9 @@ public class EqlEntityNameMigration {
 							.get())
 						.executeUpdate();
 
-					System.out.printf("DS changed: ds=%s cfgId=%s\n", xDataSource.getName(), cfgId);
+					System.out.printf("Successful\t%s\t%s\n", cfgId, xDataSource.getName());
 				} else {
-					System.err.printf("DS has invalid entity: ds=%s cfgId=%s\n", xDataSource.getName(), cfgId);
+					System.err.printf("Failed\t%s\t%s\t%s\n", cfgId, xDataSource.getName(), invalidEntities);
 				}
 			}
 		}

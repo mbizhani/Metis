@@ -1,0 +1,186 @@
+<list>
+	<query name="dbConnGrp">
+		<sql><![CDATA[
+select
+	grp.id,
+	grp.c_name,
+	grp.c_driver,
+	grp.c_test_query,
+	grp.f_config,
+	grp.n_version,
+	cfg.c_value
+from
+	t_mts_db_conn_grp grp
+	join t_mts_cfg_lob cfg on cfg.id = grp.f_config
+where
+	grp.c_name = :dbConnGrpName
+]]></sql>
+	</query>
+
+	<query name="group">
+		<sql><![CDATA[
+select
+	id,
+	c_name,
+	c_code,
+	n_version
+from
+	t_mts_data_group
+]]></sql>
+	</query>
+
+
+	<query name="dataSource">
+		<sql><![CDATA[
+select
+	ds.id,
+	ds.c_name,
+	ds.c_title,
+	ds.n_version,
+	ds.c_title_field,
+	ds.c_key_field,
+	ds.c_self_rel_pointer_field,
+	ds.e_conn_selection,
+	ds.f_config,
+	cfg.c_value
+from
+	t_mts_data_src ds
+	join t_mts_cfg_lob cfg on cfg.id = ds.f_config
+where
+	ds.id in (
+		select distinct
+			dv.f_data_src
+		from
+			t_mts_data_view dv
+			left join mt_mts_dataview_group mdv on mdv.f_data_view = dv.id
+			left join t_mts_data_group grp on grp.id = mdv.f_group
+		where
+			1=1
+			%FILTER%
+	)
+]]></sql>
+	</query>
+
+	<query name="dataSrcRel">
+		<sql><![CDATA[
+select
+	c_src_ptr_field,
+	f_src_datasrc,
+	f_tgt_datasrc,
+	n_version
+from
+	t_mts_data_src_rel
+]]></sql>
+	</query>
+
+	<query name="impDataSrcRel">
+		<sql><![CDATA[
+merge into t_mts_data_src_rel dest
+using (
+	select
+		:c_src_ptr_field c_src_ptr_field,
+		:f_src_datasrc f_src_datasrc,
+		:f_tgt_datasrc f_tgt_datasrc
+	from dual ) src
+on (
+	dest.c_src_ptr_field   = src.c_src_ptr_field
+	and dest.f_src_datasrc = src.f_src_datasrc
+	and dest.f_tgt_datasrc = src.f_tgt_datasrc )
+when not matched then
+	insert (id,  c_src_ptr_field,  f_src_datasrc,  f_tgt_datasrc,  d_creation,  f_creator_user,  n_version)
+	values (:id, :c_src_ptr_field, :f_src_datasrc, :f_tgt_datasrc, :d_creation, :f_creator_user, :n_version)
+]]></sql>
+	</query>
+
+
+	<query name="dataView">
+		<sql><![CDATA[
+select
+	dv.id,
+	dv.c_name,
+	dv.c_title,
+	dv.f_data_src,
+	dv.f_config,
+	dv.n_version,
+	cfg.c_value
+from
+	t_mts_data_view dv
+	join t_mts_cfg_lob cfg on cfg.id = dv.f_config
+	left join mt_mts_dataview_group mdv on mdv.f_data_view = dv.id
+	left join t_mts_data_group grp on grp.id = mdv.f_group
+where
+	1=1
+	%FILTER%
+]]></sql>
+	</query>
+
+	<query name="group_dataView">
+		<sql><![CDATA[
+select
+	mdv.f_data_view,
+	mdv.f_group
+from
+	mt_mts_dataView_group mdv
+]]></sql>
+	</query>
+
+	<query name="imp_group_dataView">
+		<sql><![CDATA[
+merge into mt_mts_dataView_group dest
+using (
+	select
+		:f_data_view f_data_view,
+		:f_group f_group
+	from dual ) src
+on ( dest.f_data_view = src.f_data_view and dest.f_group = src.f_group)
+when not matched then
+	insert (f_data_view, f_group)
+	values (:f_data_view, :f_group)
+]]></sql>
+	</query>
+
+
+	<query name="report">
+		<sql><![CDATA[
+select
+	rp.id,
+	rp.c_title,
+	rp.c_config,
+	rp.f_data_view,
+	rp.n_version
+from
+	t_mts_report rp
+	join t_mts_data_view dv on dv.id = rp.f_data_view
+	left join mt_mts_dataView_group mdv on mdv.f_data_view = dv.id
+	left join t_mts_data_group grp on grp.id = mdv.f_group
+where
+	1=1
+	%FILTER%
+]]></sql>
+	</query>
+
+	<query name="group_report">
+		<sql><![CDATA[
+select
+	mgrp.f_report,
+	mgrp.f_group
+from
+	mt_mts_report_group mgrp
+]]></sql>
+	</query>
+
+	<query name="imp_group_report">
+		<sql><![CDATA[
+merge into mt_mts_report_group dest
+using (
+	select
+		:f_report f_report,
+		:f_group f_group
+	from dual ) src
+on ( dest.f_report = src.f_report and dest.f_group = src.f_group )
+when not matched then
+	insert (f_report, f_group)
+	values (:f_report, :f_group)
+]]></sql>
+	</query>
+</list>

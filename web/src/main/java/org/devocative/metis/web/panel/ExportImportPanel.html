@@ -2,9 +2,9 @@
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-	<div id="export_import_panel" class="easyui-tabs" data-options="fit:true">
+	<div wicket:id="panel" class="easyui-tabs" data-options="fit:true">
 
-		<div title="Export">
+		<div wicket:id="exportPanel" title="Export">
 			<form wicket:id="exportForm">
 				<table>
 					<tr>
@@ -20,6 +20,12 @@
 						</td>
 					</tr>
 					<tr>
+						<th>DataView Names</th>
+						<td>
+							<textarea wicket:id="dataViewNames" cols="25" rows="3"></textarea>
+						</td>
+					</tr>
+					<tr>
 						<td colspan="2">
 							<button wicket:id="export">Export</button>
 						</td>
@@ -28,7 +34,7 @@
 			</form>
 		</div>
 
-		<div title="Import">
+		<div wicket:id="importPanel" title="Import">
 
 			<form wicket:id="importForm">
 				<table>
@@ -44,11 +50,8 @@
 			</form>
 
 		</div>
-	</div>
 
-	<script>
-		$("#export_import_panel").tabs();
-	</script>
+	</div>
 
 </wicket:panel>
 

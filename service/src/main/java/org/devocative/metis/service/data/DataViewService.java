@@ -4,9 +4,15 @@ import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.CalendarUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
+import org.devocative.adroit.obuilder.ObjectBuilder;
+import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.adroit.sql.SqlHelper;
+import org.devocative.adroit.sql.ei.ExportImportHelper;
+import org.devocative.adroit.sql.ei.Importer;
+import org.devocative.adroit.sql.filter.FilterType;
+import org.devocative.adroit.sql.filter.FilterValue;
+import org.devocative.adroit.sql.plugin.FilterPlugin;
 import org.devocative.adroit.xml.AdroitXStream;
-import org.devocative.demeter.ei.ExportImportHelper;
-import org.devocative.demeter.ei.Importer;
 import org.devocative.demeter.entity.EFileStorage;
 import org.devocative.demeter.entity.EMimeType;
 import org.devocative.demeter.entity.User;
@@ -39,6 +45,8 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+
+import static org.devocative.adroit.sql.XQuery.sql;
 
 @Service("mtsDataViewService")
 public class DataViewService implements IDataViewService, IMissedHitHandler<String, DataView> {
@@ -209,106 +217,74 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 	}
 
 	@Override
-	public String exportAll(DataGroup dataGroup, DBConnectionGroup dbConnectionGroup) {
+	public String exportAll(DataGroup dataGroup, DBConnectionGroup dbConnectionGroup, String dataViewNames) {
 		logger.info("**");
 		logger.info("*** Exporting DataView Start: user=[{}]", securityService.getCurrentUser());
 
-		String dataGroups = "'" + dataGroup.getName() + "'";
+		Map<String, Object> params = new HashMap<>();
+
+		FilterPlugin filter = new FilterPlugin();
+		if (dataGroup != null) {
+			filter.add("grp.c_code", new FilterValue(dataGroup.getCode(), FilterType.Equal));
+		}
+		if (dataViewNames != null) {
+			String[] lines = dataViewNames.split("[\n]");
+			List<String> names = new ArrayList<>();
+			for (String line : lines) {
+				if (line.trim().length() > 0) {
+					names.add(line.trim());
+				}
+			}
+			filter.add("dv.c_name", new FilterValue(names, FilterType.Equal));
+		}
 
 		try {
 			Connection connection = persistorService.createSqlConnection();
 
 			ExportImportHelper helper = new ExportImportHelper(connection);
 
-			helper.exportBySql("dbConnGrp",
-				"select " +
-					"  grp.id, " +
-					"  grp.c_name, " +
-					"  grp.c_driver, " +
-					"  grp.c_test_query, " +
-					"  grp.f_config, " +
-					"  grp.n_version, " +
-					"  cfg.c_value " +
-					"from t_mts_db_conn_grp grp " +
-					"join t_mts_cfg_lob cfg on cfg.id = grp.f_config " +
-					"where grp.c_name='" + dbConnectionGroup.getName() + "'");
+			SqlHelper sqlHelper = new SqlHelper(connection);
+			sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
 
-			helper.exportBySql("dataSource",
-				"select " +
-					"  ds.id, " +
-					"  ds.c_name, " +
-					"  ds.c_title, " +
-					"  ds.n_version, " +
-					"  ds.c_title_field, " +
-					"  ds.c_key_field, " +
-					"  ds.c_self_rel_pointer_field, " +
-					"  ds.e_conn_selection, " +
-					"  ds.f_config, " +
-					"  cfg.c_value " +
-					"from t_mts_data_src ds " +
-					"join t_mts_cfg_lob cfg on cfg.id = ds.f_config " +
-					"where ds.id in ( " +
-					"  select distinct " +
-					"    dv.f_data_src " +
-					"  from t_mts_data_view dv " +
-					"  join mt_mts_dataview_group mdv on mdv.f_data_view = dv.id " +
-					"  join t_mts_data_group grp on grp.id = mdv.f_group " +
-					"  where dv.c_name in (" + dataGroups + ")" +
-					")");
-
-			helper.exportBySql("dataView",
-				"select " +
-					"  dv.id, " +
-					"  dv.c_name, " +
-					"  dv.c_title, " +
-					"  dv.f_data_src, " +
-					"  dv.f_config, " +
-					"  dv.n_version, " +
-					"  cfg.c_value " +
-					"from t_mts_data_view dv " +
-					"join t_mts_cfg_lob cfg on cfg.id = dv.f_config " +
-					"join mt_mts_dataview_group mdv on mdv.f_data_view = dv.id " +
-					"join t_mts_data_group grp on grp.id = mdv.f_group " +
-					"where dv.c_name in (" + dataGroups + ")");
-
-			helper.exportBySql("dataSrcRel",
-				"select " +
-					"  id, " +
-					"  b_deleted, " +
-					"  f_src_datasrc, " +
-					"  c_src_ptr_field, " +
-					"  f_tgt_datasrc, " +
-					"  n_version " +
-					"from t_mts_data_src_rel " +
-					"where b_deleted = 0");
-
-			helper.exportBySql("report",
-				"select " +
-					"  id, " +
-					"  c_title, " +
-					"  c_config, " +
-					"  f_data_view, " +
-					"  n_version " +
-					"from t_mts_report");
+			if (dbConnectionGroup != null) {
+				helper.exportBySql("dbConnGrp",
+					sqlHelper.selectAll("dbConnGrp", ObjectBuilder.<String, Object>createDefaultMap()
+						.put("dbConnGrpName", dbConnectionGroup.getName())
+						.get())
+						.toListOfMap()
+				);
+			}
 
 			helper.exportBySql("group",
-				"select " +
-					"  id, " +
-					"  c_name, " +
-					"  n_version " +
-					"from t_mts_data_group");
+				sqlHelper.selectAll("group").toListOfMap()
+			);
 
-			helper.exportBySql("group_report",
-				"select " +
-					"  f_report, " +
-					"  f_group " +
-					"from mt_mts_report_group");
+
+			helper.exportBySql("dataSource",
+				sqlHelper.selectAll("dataSource", params, filter).toListOfMap()
+			);
+
+			helper.exportBySql("dataSrcRel",
+				sqlHelper.selectAll("dataSrcRel").toListOfMap()
+			);
+
+
+			helper.exportBySql("dataView",
+				sqlHelper.selectAll("dataView", params, filter).toListOfMap()
+			);
 
 			helper.exportBySql("group_dataView",
-				"select " +
-					"  f_data_view, " +
-					"  f_group " +
-					"from mt_mts_dataview_group");
+				sqlHelper.selectAll("group_dataView").toListOfMap()
+			);
+
+
+			helper.exportBySql("report",
+				sqlHelper.selectAll("report", params, filter).toListOfMap()
+			);
+
+			helper.exportBySql("group_report",
+				sqlHelper.selectAll("group_report").toListOfMap()
+			);
 
 			Date now = new Date();
 			//TODO using calendar from User
@@ -339,34 +315,42 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		logger.info("**");
 		logger.info("*** Importing DataView Start: user=[{}]", securityService.getCurrentUser());
 
-		try {
-			Connection connection = persistorService.createSqlConnection();
-			connection.setAutoCommit(false);
+		try (Connection connection = persistorService.createSqlConnection()) {
+			try {
+				connection.setAutoCommit(false);
 
-			ExportImportHelper helper = new ExportImportHelper(connection);
-			helper.importFrom(stream);
+				ExportImportHelper helper = new ExportImportHelper(connection);
+				helper.importFrom(stream);
 
-			Date now = new Date();
-			Map<String, Object> other = new HashMap<>();
-			other.put("d_creation", now);
-			other.put("f_creator_user", securityService.getCurrentUser().getUserId());
-			other.put("d_modification", now);
-			other.put("f_modifier_user", securityService.getCurrentUser().getUserId());
+				SqlHelper sqlHelper = new SqlHelper(connection);
+				sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
 
-			helper.setCommonData(other);
+				Date now = new Date();
+				Map<String, Object> other = new HashMap<>();
+				other.put("d_creation", now);
+				other.put("f_creator_user", securityService.getCurrentUser().getUserId());
+				other.put("d_modification", now);
+				other.put("f_modifier_user", securityService.getCurrentUser().getUserId());
 
-			dbConn(helper);
+				helper.setCommonData(other);
 
-			dataSrc(helper);
-			dataSrcRel(helper);
-			dataView(helper);
-			report(helper);
+				dbConn(helper, sqlHelper);
+				group(helper, sqlHelper);
 
-			group(helper);
-			group_report(helper);
-			group_dataView(helper);
+				dataSrc(helper, sqlHelper);
+				dataSrcRel(helper, sqlHelper);
 
-			connection.commit();
+				dataView(helper, sqlHelper);
+				group_dataView(helper, sqlHelper);
+
+				report(helper, sqlHelper);
+				group_report(helper, sqlHelper);
+
+				connection.commit();
+			} catch (Exception e) {
+				connection.rollback();
+				throw e;
+			}
 
 			cacheService.clear(IDataSourceService.CACHE_KEY);
 			cacheService.clear(IDataViewService.CACHE_KEY);
@@ -376,15 +360,15 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 
 			logger.info("*** Importing DataView Finished: user=[{}]", securityService.getCurrentUser());
 			logger.info("**");
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	// ------------------------------
 
-	private void dbConn(ExportImportHelper helper) throws SQLException {
-		Map<Object, Object> currentDbConnGrp = helper.selectAsMap("select id, n_version from t_mts_db_conn_grp");
+	private void dbConn(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+		Map<Object, Object> currentDbConnGrp = sqlHelper.twoCellsAsMap(sql("select id, n_version from t_mts_db_conn_grp"));
 		logger.info("Current DbConnGrp: size=[{}]", currentDbConnGrp.size());
 
 		Importer dbConnGrp = helper.createImporter("t_mts_db_conn_grp",
@@ -402,11 +386,15 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		helper.merge("dbConnGrp", "id", "n_version", currentDbConnGrp, dbConnGrpLob, dbConnGrp);
 
 
-		Object f_connection = helper.selectFirstCell("select id from t_mts_db_conn where c_name='default'");
+		Object f_connection = sqlHelper.firstCell(sql("select id from t_mts_db_conn where c_name='default'"));
 		if (f_connection == null) {
 			logger.info("No default db connection, creating one!");
 			f_connection = 0; //NOTE: not using sequence, supposing related sequence has been started form one!
-			Object midRPId = helper.selectFirstCell("select id from t_mts_db_conn_grp where c_name='MidRP'");
+			Object midRPId = sqlHelper.firstCell(sql("select id from t_mts_db_conn_grp order by d_creation"));
+
+			if (midRPId == null) {
+				throw new RuntimeException("No DBConnectionGroup Exits!");
+			}
 
 			Map<String, Object> defaultDbConn = new HashMap<>();
 			defaultDbConn.put("id", f_connection);
@@ -416,7 +404,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 			defaultDbConn.put("n_version", 1);
 
 			Importer db_conn = helper.createImporter("t_mts_db_conn",
-				Arrays.asList("id", "c_name", "c_username", "f_group", "f_group", "n_version", "d_creation", "f_creator_user"));
+				Arrays.asList("id", "c_name", "c_username", "f_group", "n_version", "d_creation", "f_creator_user"));
 			db_conn.addInsert(defaultDbConn, helper.getCommonData());
 			db_conn.executeBatch();
 		}
@@ -424,8 +412,8 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		helper.getCommonData().put("f_connection", f_connection);
 	}
 
-	private void dataSrc(ExportImportHelper helper) throws SQLException {
-		Map<Object, Object> currentDataSrc = helper.selectAsMap("select id, n_version from t_mts_data_src");
+	private void dataSrc(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+		Map<Object, Object> currentDataSrc = sqlHelper.twoCellsAsMap(sql("select id, n_version from t_mts_data_src"));
 		logger.info("Current DataSrc: size=[{}]", currentDataSrc.size());
 
 		Importer dataSrc = helper.createImporter("t_mts_data_src",
@@ -443,22 +431,26 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		helper.merge("dataSource", "id", "n_version", currentDataSrc, dataSrcLob, dataSrc);
 	}
 
-	private void dataSrcRel(ExportImportHelper helper) throws SQLException {
-		helper.clearTable("t_mts_data_src_rel");
+	private void dataSrcRel(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+		List<Object> dsIds = sqlHelper.firstColAsList(sql("select id from t_mts_data_src"));
 
-		Importer dataSrcRel = helper.createImporter("t_mts_data_src_rel",
-			Arrays.asList("id", "n_version", "b_deleted", "f_src_datasrc", "c_src_ptr_field", "f_tgt_datasrc", "d_creation", "f_creator_user")
-		);
-
+		NamedParameterStatement nps = sqlHelper.createNPS("impDataSrcRel");
 		for (Map<String, Object> row : helper.getDataSets().get("dataSrcRel")) {
-			dataSrcRel.addInsert(row, helper.getCommonData());
-		}
+			Object f_src_datasrc = row.get("f_src_datasrc");
+			Object f_tgt_datasrc = row.get("f_tgt_datasrc");
+			if (dsIds.contains(f_src_datasrc) && dsIds.contains(f_tgt_datasrc)) {
+				row.putAll(helper.getCommonData());
+				row.put("id", UUID.randomUUID().toString());
 
-		dataSrcRel.executeBatch();
+				nps.setParameters(row);
+				nps.addBatch();
+			}
+		}
+		nps.executeBatch();
 	}
 
-	private void dataView(ExportImportHelper helper) throws SQLException {
-		Map<Object, Object> currentDataView = helper.selectAsMap("select id, n_version from t_mts_data_view");
+	private void dataView(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+		Map<Object, Object> currentDataView = sqlHelper.twoCellsAsMap(sql("select id, n_version from t_mts_data_view"));
 		logger.info("Current DataView: size=[{}]", currentDataView.size());
 
 		Importer dataView = helper.createImporter("t_mts_data_view",
@@ -476,8 +468,8 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		helper.merge("dataView", "id", "n_version", currentDataView, dataViewLob, dataView);
 	}
 
-	private void report(ExportImportHelper helper) throws SQLException {
-		Map<Object, Object> currentReport = helper.selectAsMap("select id, n_version from t_mts_report");
+	private void report(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+		Map<Object, Object> currentReport = sqlHelper.twoCellsAsMap(sql("select id, n_version from t_mts_report"));
 		logger.info("Current Report: size=[{}]", currentReport.size());
 
 		Importer report = helper.createImporter("t_mts_report",
@@ -489,45 +481,48 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		helper.merge("report", "id", "n_version", currentReport, report);
 	}
 
-	private void group(ExportImportHelper helper) throws SQLException {
-		Map<Object, Object> currentGroup = helper.selectAsMap("select id, n_version from t_mts_data_group");
+	private void group(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+		Map<Object, Object> currentGroup = sqlHelper.twoCellsAsMap(sql("select id, n_version from t_mts_data_group"));
 		logger.info("Current DataGroup: size=[{}]", currentGroup.size());
 
 		Importer group = helper.createImporter("t_mts_data_group",
-			Arrays.asList("id", "n_version", "c_name", "d_creation", "f_creator_user"),
-			Arrays.asList("n_version", "c_name", "d_modification", "f_modifier_user"),
+			Arrays.asList("id", "n_version", "c_name", "c_code", "d_creation", "f_creator_user"),
+			Arrays.asList("n_version", "c_name", "c_code", "d_modification", "f_modifier_user"),
 			Collections.singletonList("id")
 		);
 
 		helper.merge("group", "id", "n_version", currentGroup, group);
 	}
 
-	private void group_report(ExportImportHelper helper) throws SQLException {
-		helper.clearTable("mt_mts_report_group");
+	private void group_report(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+		List<Object> grpIds = sqlHelper.firstColAsList(sql("select id from t_mts_report"));
 
-		Importer report = helper.createImporter("mt_mts_report_group",
-			Arrays.asList("f_report", "f_group")
-		);
-
+		NamedParameterStatement nps = sqlHelper.createNPS("imp_group_report");
 		for (Map<String, Object> row : helper.getDataSets().get("group_report")) {
-			report.addInsert(row);
+			Object f_report = row.get("f_report");
+			if (grpIds.contains(f_report)) {
+				row.putAll(helper.getCommonData());
+				nps.setParameters(row);
+				nps.addBatch();
+			}
 		}
 
-		report.executeBatch();
+		nps.executeBatch();
 	}
 
-	private void group_dataView(ExportImportHelper helper) throws SQLException {
-		helper.clearTable("mt_mts_dataview_group");
+	private void group_dataView(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+		List<Object> dvIds = sqlHelper.firstColAsList(sql("select id from t_mts_data_view"));
 
-		Importer report = helper.createImporter("mt_mts_dataview_group",
-			Arrays.asList("f_data_view", "f_group")
-		);
+		NamedParameterStatement nps = sqlHelper.createNPS("imp_group_dataView");
 
 		for (Map<String, Object> row : helper.getDataSets().get("group_dataView")) {
-			report.addInsert(row);
+			Object f_data_view = row.get("f_data_view");
+			if (dvIds.contains(f_data_view)) {
+				row.putAll(helper.getCommonData());
+				nps.setParameters(row);
+				nps.addBatch();
+			}
 		}
-
-		report.executeBatch();
+		nps.executeBatch();
 	}
-
 }

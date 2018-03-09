@@ -42,7 +42,7 @@ public interface IDataViewService {
 
 	List<String> listForOData();
 
-	String exportAll(DataGroup dataGroup, DBConnectionGroup dbConnectionGroup);
+	String exportAll(DataGroup dataGroup, DBConnectionGroup dbConnectionGroup, String dataViewNames);
 
 	void importAll(InputStream stream);
 }

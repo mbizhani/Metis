@@ -7,7 +7,8 @@ public enum MetisPrivilegeKey implements IPrivilegeKey {
 	DBConnectionAdd, DBConnectionEdit,
 	DataGroupAdd, DataGroupEdit,
 	ReportAdd, ReportEdit,
-	DataViewExportImport,
+	DataViewExport,
+	DataViewImport,
 	DBConnectionAliasAdd, DBConnectionAliasEdit;
 
 	private String name;

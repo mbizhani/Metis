@@ -187,7 +187,10 @@ public class DataViewListDPage extends DPage implements IGridDataSource<DataView
 				modalWindow.setContent(new ExportImportPanel(modalWindow.getContentId()));
 				modalWindow.show(target);
 			}
-		}.setVisible(hasPermission(MetisPrivilegeKey.DataViewExportImport)));
+		}.setVisible(
+			hasPermission(MetisPrivilegeKey.DataViewExport)
+				|| hasPermission(MetisPrivilegeKey.DataViewImport)
+		));
 	}
 
 	// ------------------------------
