@@ -620,6 +620,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 		// ---------------
 
+		public ActionBut() {
+		}
+
 		public ActionBut(String name, String title, String icon) {
 			this.name = name;
 			this.title = title;
