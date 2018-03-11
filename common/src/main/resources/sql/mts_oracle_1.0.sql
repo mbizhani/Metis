@@ -299,7 +299,7 @@ ALTER TABLE t_mts_data_src
 ADD CONSTRAINT uk_mts_datasrc_name UNIQUE (c_name);
 
 ALTER TABLE t_mts_data_src_rel
-ADD CONSTRAINT uk_datasrcrel_main UNIQUE (f_tgt_datasrc, f_src_datasrc, c_src_ptr_field);
+ADD CONSTRAINT uk_mts_datasrcrel_main UNIQUE (f_tgt_datasrc, f_src_datasrc, c_src_ptr_field);
 
 ALTER TABLE t_mts_data_view
 ADD CONSTRAINT uk_mts_dataview_name UNIQUE (c_name);

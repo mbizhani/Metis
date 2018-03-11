@@ -12,7 +12,7 @@ import java.util.Date;
 @Entity
 @Table(name = "t_mts_data_src_rel",
 	uniqueConstraints = {
-		@UniqueConstraint(name = "uk_datasrcrel_main", columnNames = {"f_tgt_datasrc", "f_src_datasrc", "c_src_ptr_field"})
+		@UniqueConstraint(name = "uk_mts_datasrcrel_main", columnNames = {"f_tgt_datasrc", "f_src_datasrc", "c_src_ptr_field"})
 	})
 public class DataSourceRelation implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	private static final long serialVersionUID = -8316259666720647816L;
