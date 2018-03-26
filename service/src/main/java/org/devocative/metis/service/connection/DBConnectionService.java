@@ -245,6 +245,8 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@Override
 	public void saveOrUpdate(DBConnection dbConnection, String mappingXML, String password) {
+		persistorService.startTrx();
+
 		if (password != null) {
 			if (ConfigUtil.getBoolean(MetisConfigKey.ConnectionEncryptPassword)) {
 				password = StringEncryptorUtil.encrypt(password);
@@ -626,17 +628,20 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@Override
 	public void updateCustomParam1(Map<String, String> params) {
-		for (Map.Entry<String, String> entry : params.entrySet()) {
-			persistorService
-				.createQueryBuilder()
-				.addSelect("update DBConnection ent set ent.customParam1 = :param where ent.name = :name")
-				.addParam("name", entry.getKey())
-				.addParam("param", entry.getValue())
-				.update();
+		try {
+			persistorService.startTrx();
+			for (Map.Entry<String, String> entry : params.entrySet()) {
+				persistorService
+					.createQueryBuilder()
+					.addSelect("update DBConnection ent set ent.customParam1 = :param where ent.name = :name")
+					.addParam("name", entry.getKey())
+					.addParam("param", entry.getValue())
+					.update();
+			}
+			persistorService.commitOrRollback();
+		} finally {
+			dbConnectionCache.clear();
 		}
-
-		persistorService.commitOrRollback();
-		dbConnectionCache.clear();
 	}
 
 	@Override

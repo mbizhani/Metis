@@ -247,6 +247,8 @@ public class DataService implements IDataService {
 
 	@Override
 	public void saveOrUpdate(DataVO dataVO) {
+		persistorService.startTrx();
+
 		if (dataVO.isDataSourceEditable()) {
 			/*XDataSource xDataSource = dataVO.toXDataSource();
 			DataSource dataSource = dataSourceService.saveOrUpdate(

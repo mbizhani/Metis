@@ -204,17 +204,25 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 		dataSource.setConfig(config);
 
-		persistorService.saveOrUpdate(config);
-		persistorService.saveOrUpdate(dataSource);
+		try {
+			persistorService.startTrx();
 
-		persistorService.createQueryBuilder()
-			.addSelect("delete from DataSourceRelation ent where ent.source.id = :dsId")
-			.addParam("dsId", dataSource.getId())
-			.update();
-		newRelations.forEach(persistorService::saveOrUpdate);
+			persistorService.saveOrUpdate(config);
+			persistorService.saveOrUpdate(dataSource);
 
-		dataSource.setXDataSource(xDataSource);
-		dataSourceCache.update(dataSource.getId(), dataSource);
+			persistorService.createQueryBuilder()
+				.addSelect("delete from DataSourceRelation ent where ent.source.id = :dsId")
+				.addParam("dsId", dataSource.getId())
+				.update();
+			newRelations.forEach(persistorService::saveOrUpdate);
+
+			persistorService.commitOrRollback();
+
+			dataSource.setXDataSource(xDataSource);
+		} finally {
+			//NOTE: it is important to remove, since it is in the middle of a trx and the result may not persist in DB
+			dataSourceCache.remove(dataSource.getId());
+		}
 
 		return dataSource;
 	}

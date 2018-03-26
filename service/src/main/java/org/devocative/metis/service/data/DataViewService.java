@@ -201,11 +201,18 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		dataView.setDataSource(dataSourceService.load(xDataView.getDataSourceId()));
 		dataView.setGroups(groups);
 
-		persistorService.saveOrUpdate(config);
-		persistorService.saveOrUpdate(dataView);
+		try {
+			persistorService.startTrx();
 
-		dataView.setXDataView(xDataView);
-		dataViewCache.update(dataView.getId(), dataView);
+			persistorService.saveOrUpdate(config);
+			persistorService.saveOrUpdate(dataView);
+
+			persistorService.commitOrRollback();
+			dataView.setXDataView(xDataView);
+		} finally {
+			//NOTE: it is important to remove, since it is in the middle of a trx and the result may not persist in DB
+			dataViewCache.remove(dataView.getId());
+		}
 	}
 
 	@Override

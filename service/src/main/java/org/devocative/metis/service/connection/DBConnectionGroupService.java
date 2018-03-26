@@ -85,18 +85,22 @@ public class DBConnectionGroupService implements IDBConnectionGroupService {
 
 	@Override
 	public void saveOrUpdate(DBConnectionGroup dbConnectionGroup, String mappingXML) {
-		if (mappingXML != null) {
-			ConfigLob configLob = dbConnectionGroup.getConfigId() == null ?
-				new ConfigLob() :
-				persistorService.get(ConfigLob.class, dbConnectionGroup.getConfigId());
-			configLob.setValue(mappingXML);
-			persistorService.saveOrUpdate(configLob);
-			dbConnectionGroup.setConfig(configLob);
+		try {
+			persistorService.startTrx();
+
+			if (mappingXML != null) {
+				ConfigLob configLob = dbConnectionGroup.getConfigId() == null ?
+					new ConfigLob() :
+					persistorService.get(ConfigLob.class, dbConnectionGroup.getConfigId());
+				configLob.setValue(mappingXML);
+				persistorService.saveOrUpdate(configLob);
+				dbConnectionGroup.setConfig(configLob);
+			}
+
+			persistorService.saveOrUpdate(dbConnectionGroup);
+			persistorService.commitOrRollback();
+		} finally {
+			connectionService.groupChanged(dbConnectionGroup);
 		}
-
-		persistorService.saveOrUpdate(dbConnectionGroup);
-		persistorService.commitOrRollback();
-
-		connectionService.groupChanged(dbConnectionGroup);
 	}
 }
