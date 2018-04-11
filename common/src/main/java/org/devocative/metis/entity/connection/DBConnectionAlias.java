@@ -31,8 +31,8 @@ public class DBConnectionAlias implements ICreationDate, ICreatorUser, IModifica
 	@Column(name = "c_name", nullable = false)
 	private String name;
 
-	@Embedded
-	@AttributeOverride(name = "id", column = @Column(name = "e_mode", nullable = false))
+	@Column(name = "e_mode", nullable = false)
+	@Convert(converter = EAliasMode.Converter.class)
 	private EAliasMode mode = EAliasMode.NORMAL;
 
 	@ManyToOne(fetch = FetchType.LAZY)

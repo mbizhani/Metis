@@ -39,8 +39,8 @@ public class DataSource implements ICreationDate, ICreatorUser, IModificationDat
 	@Column(name = "c_self_rel_pointer_field")
 	private String selfRelPointerField;
 
-	@Embedded
-	@AttributeOverride(name = "id", column = @Column(name = "e_conn_selection", nullable = false))
+	@Column(name = "e_conn_selection", nullable = false)
+	@Convert(converter = EConnectionSelection.Converter.class)
 	private EConnectionSelection connectionSelection = EConnectionSelection.THREE_STEPS;
 
 	@OneToOne(fetch = FetchType.LAZY)

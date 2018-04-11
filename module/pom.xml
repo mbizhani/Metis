@@ -54,8 +54,8 @@
 
 		<dependency>
 			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc6</artifactId>
-			<version>11.2.0.4.0</version>
+			<artifactId>ojdbc7</artifactId>
+			<version>12.1.0.2</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -78,10 +78,6 @@
 			<testResource>
 				<directory>src/test/resources</directory>
 			</testResource>
-
-			<testResource>
-				<directory>../common/src/main/resources</directory>
-			</testResource>
 		</testResources>
 
 		<plugins>
@@ -99,6 +95,9 @@
 					<httpConnector>
 						<port>${jetty.port}</port>
 					</httpConnector>
+
+					<stopKey>Metis</stopKey>
+					<stopPort>${jetty.port.stop}</stopPort>
 				</configuration>
 			</plugin>
 
@@ -123,12 +122,40 @@
 				</executions>
 			</plugin>
 
-			<!-- Devolcano -->
+			<!-- Copy SQL Resource -->
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+
+				<executions>
+					<execution>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+
+						<configuration>
+							<outputDirectory>src/test/resources</outputDirectory>
+							<overwrite>true</overwrite>
+							<resources>
+								<resource>
+									<directory>../common/src/main/resources</directory>
+									<includes>
+										<include>sql/*</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Devolcano -->
+			<!--<plugin>
 				<groupId>org.devocative</groupId>
 				<artifactId>demeter-maven-plugin</artifactId>
 				<version>1.1-SNAPSHOT</version>
-			</plugin>
+			</plugin>-->
 
 		</plugins>
 
