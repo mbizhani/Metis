@@ -23,6 +23,10 @@ public enum MetisConfigKey implements IConfigKey {
 	GridAssertDuplicateId("mts.grid.assert.duplicate.id", false, Arrays.asList(true, false)),
 	GridAssertInvalidParent("mts.grid.assert.invalid.parent", true, Arrays.asList(true, false)),
 
+	FormDateDefaultHour("mts.form.date.default.hour", 12),
+	FormDateDefaultMinute("mts.form.date.default.minute", 0),
+	FormDateDefaultSecond("mts.form.date.default.second", 0),
+
 	ODataReplaceCharForNonSystemParam("mts.odata.char.replace.non.system", "~"),
 	ODataConsiderParentRelation("mts.odata.consider.parent.relation", false, Arrays.asList(true, false));
 

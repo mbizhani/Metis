@@ -7,8 +7,10 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPanel;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.entity.data.config.XDSFieldFilterType;
 import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
@@ -109,15 +111,9 @@ public class DataViewFilterPanel extends DPanel {
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
 		}
 
-		disabledFilterInputs = webParams.containsKey(MetisWebParam.DISABLED_FILTER_INPUT) ?
-			webParams.get(MetisWebParam.DISABLED_FILTER_INPUT) :
-			Collections.<String>emptyList();
-		invisibleFilterInputs = webParams.containsKey(MetisWebParam.INVISIBLE_FILTER_INPUT) ?
-			webParams.get(MetisWebParam.INVISIBLE_FILTER_INPUT) :
-			Collections.<String>emptyList();
-		requiredFilterInputs = webParams.containsKey(MetisWebParam.REQUIRED_FILTER_INPUT) ?
-			webParams.get(MetisWebParam.REQUIRED_FILTER_INPUT) :
-			Collections.<String>emptyList();
+		disabledFilterInputs = webParams.getOrDefault(MetisWebParam.DISABLED_FILTER_INPUT, Collections.emptyList());
+		invisibleFilterInputs = webParams.getOrDefault(MetisWebParam.INVISIBLE_FILTER_INPUT, Collections.emptyList());
+		requiredFilterInputs = webParams.getOrDefault(MetisWebParam.REQUIRED_FILTER_INPUT, Collections.emptyList());
 
 		WFloatTable floatTable = new WFloatTable("floatTable");
 		//floatTable.setEqualWidth(true);
@@ -205,10 +201,18 @@ public class DataViewFilterPanel extends DPanel {
 			case DateTime:
 				if (XDSFieldFilterType.Range == fieldVO.getFilterType()) {
 					fieldFormItem = new WDateRangeInput(fieldVO.getName())
-						.setTimePartVisible(XDSFieldType.DateTime == fieldVO.getType());
+						.setTimePartVisible(XDSFieldType.DateTime == fieldVO.getType())
+						.setDefaultHour(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultHour))
+						.setDefaultMinute(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultMinute))
+						.setDefaultSecond(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultSecond))
+					;
 				} else {
 					fieldFormItem = new WDateInput(fieldVO.getName())
-						.setTimePartVisible(XDSFieldType.DateTime == fieldVO.getType());
+						.setTimePartVisible(XDSFieldType.DateTime == fieldVO.getType())
+						.setDefaultHour(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultHour))
+						.setDefaultMinute(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultMinute))
+						.setDefaultSecond(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultSecond))
+					;
 				}
 				break;
 
