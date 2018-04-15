@@ -22,6 +22,7 @@ import org.devocative.wickomp.form.WSelectionInput;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.List;
 
 public class ExportImportPanel extends DPanel {
 	private static final long serialVersionUID = -896140188954016556L;
@@ -38,7 +39,7 @@ public class ExportImportPanel extends DPanel {
 	@Inject
 	private IDBConnectionGroupService dbConnectionGroupService;
 
-	private DataGroup dataGroup;
+	private List<DataGroup> dataGroups;
 
 	private DBConnectionGroup dbConnectionGroup;
 
@@ -58,7 +59,7 @@ public class ExportImportPanel extends DPanel {
 		panel.add(exportPanel);
 
 		Form<Void> exportForm = new Form<>("exportForm");
-		exportForm.add(new WSelectionInput("dataGroup", new PropertyModel(this, "dataGroup"), dataGroupService.list(), false));
+		exportForm.add(new WSelectionInput("dataGroups", new PropertyModel(this, "dataGroups"), dataGroupService.list(), true));
 		exportForm.add(new WSelectionInput("dbConnectionGroup", new PropertyModel(this, "dbConnectionGroup"), dbConnectionGroupService.list(), false));
 		exportForm.add(new TextArea<>("dataViewNames", new PropertyModel<>(this, "dataViewNames")));
 		exportForm.add(new DAjaxButton("export") {
@@ -66,7 +67,7 @@ public class ExportImportPanel extends DPanel {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
-				String fileId = dataViewService.exportAll(dataGroup, dbConnectionGroup, dataViewNames);
+				String fileId = dataViewService.exportAll(dataGroups, dbConnectionGroup, dataViewNames);
 				target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId)));
 			}
 		});

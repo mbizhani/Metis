@@ -224,15 +224,19 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 	}
 
 	@Override
-	public String exportAll(DataGroup dataGroup, DBConnectionGroup dbConnectionGroup, String dataViewNames) {
+	public String exportAll(List<DataGroup> dataGroups, DBConnectionGroup dbConnectionGroup, String dataViewNames) {
 		logger.info("**");
 		logger.info("*** Exporting DataView Start: user=[{}]", securityService.getCurrentUser());
 
 		Map<String, Object> params = new HashMap<>();
 
 		FilterPlugin filter = new FilterPlugin();
-		if (dataGroup != null) {
-			filter.add("grp.c_code", new FilterValue(dataGroup.getCode(), FilterType.Equal));
+		if (dataGroups != null) {
+			List<String> ids = new ArrayList<>();
+			for (DataGroup dataGroup : dataGroups) {
+				ids.add(dataGroup.getId());
+			}
+			filter.add("grp.id", new FilterValue(ids, FilterType.Equal));
 		}
 		if (dataViewNames != null) {
 			String[] lines = dataViewNames.split("[\n]");
