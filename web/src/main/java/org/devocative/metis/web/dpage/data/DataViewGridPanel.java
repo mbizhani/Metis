@@ -598,12 +598,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		if (sortFieldList != null && !sortFieldList.isEmpty()) {
 			sortFieldsMap = new LinkedHashMap<>();
 			for (WSortField sortField : sortFieldList) {
-				String field = sortField.getField();
-				//TODO: it must be handled by WBaseGrid itself!!!
-				if (field.startsWith(FIELD_PREFIX)) {
-					field = field.substring(FIELD_PREFIX.length());
-				}
-				sortFieldsMap.put(field, sortField.getOrder());
+				sortFieldsMap.put(sortField.getField(), sortField.getOrder());
 			}
 		}
 		return sortFieldsMap;
