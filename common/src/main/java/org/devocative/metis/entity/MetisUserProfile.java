@@ -22,10 +22,10 @@ public class MetisUserProfile implements ICreationDate, IModificationDate {
 	private User user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "f_dflt_conn", nullable = false, foreignKey = @ForeignKey(name = "mtsusrprf2dbconn"))
+	@JoinColumn(name = "f_dflt_conn", foreignKey = @ForeignKey(name = "mtsusrprf2dbconn"))
 	private DBConnection defaultConnection;
 
-	@Column(name = "f_dflt_conn", nullable = false, insertable = false, updatable = false)
+	@Column(name = "f_dflt_conn", insertable = false, updatable = false)
 	private Long defaultConnectionId;
 
 	// ------------------------------ CREATE / MODIFY
@@ -103,5 +103,22 @@ public class MetisUserProfile implements ICreationDate, IModificationDate {
 	@Override
 	public void setVersion(Integer version) {
 		this.version = version;
+	}
+
+	// ---------------
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof MetisUserProfile)) return false;
+
+		MetisUserProfile that = (MetisUserProfile) o;
+
+		return getId() != null ? getId().equals(that.getId()) : that.getId() == null;
+	}
+
+	@Override
+	public int hashCode() {
+		return getId() != null ? getId().hashCode() : 0;
 	}
 }
