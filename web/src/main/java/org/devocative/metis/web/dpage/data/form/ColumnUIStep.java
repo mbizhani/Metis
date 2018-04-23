@@ -2,7 +2,6 @@ package org.devocative.metis.web.dpage.data.form;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
@@ -30,14 +29,14 @@ class ColumnUIStep extends WWizardStepPanel {
 
 	private DataVO dataVO;
 
-	public ColumnUIStep(DataVO dataVO) {
+	ColumnUIStep(DataVO dataVO) {
 		this.dataVO = dataVO;
 	}
 
 	@Override
 	protected void onInit() {
 
-		add(new TextArea<>("selectionValidationJS", new PropertyModel<>(dataVO, "selectionValidationJS")));
+		add(new WCodeInput("selectionValidationJS", new PropertyModel<>(dataVO, "selectionValidationJS"), new OCode(OCodeMode.JAVA_SCRIPT)));
 
 		add(new WCodeInput("rowStyler", new PropertyModel<>(dataVO, "rowStyler"), new OCode(OCodeMode.GROOVY)));
 

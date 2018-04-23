@@ -245,41 +245,42 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@Override
 	public void saveOrUpdate(DBConnection dbConnection, String mappingXML, String password) {
-		persistorService.startTrx();
+		try {
+			persistorService.startTrx();
 
-		if (password != null) {
-			if (ConfigUtil.getBoolean(MetisConfigKey.ConnectionEncryptPassword)) {
-				password = StringEncryptorUtil.encrypt(password);
+			if (password != null) {
+				if (ConfigUtil.getBoolean(MetisConfigKey.ConnectionEncryptPassword)) {
+					password = StringEncryptorUtil.encrypt(password);
+				}
+				dbConnection.setPassword(password);
 			}
-			dbConnection.setPassword(password);
-		}
 
-		if (ConfigUtil.getBoolean(MetisConfigKey.ConnectionCheckUserPassOnSave)) {
-			try (Connection simpleConnection = createSimpleConnection(dbConnection)) {
-				Statement statement = simpleConnection.createStatement();
-				statement.executeQuery(dbConnection.getSafeTestQuery());
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			if (ConfigUtil.getBoolean(MetisConfigKey.ConnectionCheckUserPassOnSave)) {
+				try (Connection simpleConnection = createSimpleConnection(dbConnection)) {
+					Statement statement = simpleConnection.createStatement();
+					statement.executeQuery(dbConnection.getSafeTestQuery());
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
 			}
+
+			if (mappingXML != null) {
+				ConfigLob configLob = dbConnection.getConfigId() == null ?
+					new ConfigLob() :
+					persistorService.get(ConfigLob.class, dbConnection.getConfigId());
+				configLob.setValue(mappingXML);
+				persistorService.saveOrUpdate(configLob);
+				dbConnection.setConfig(configLob);
+
+				xSchemaCache.update(configLob.getId(), (XSchema) xstream.fromXML(mappingXML));
+			}
+
+			saveOrUpdate(dbConnection);
+			persistorService.commitOrRollback();
+		} finally {
+			dbConnectionCache.remove(dbConnection.getId());
+			connectionChanged(dbConnection.getId());
 		}
-
-		if (mappingXML != null) {
-			ConfigLob configLob = dbConnection.getConfigId() == null ?
-				new ConfigLob() :
-				persistorService.get(ConfigLob.class, dbConnection.getConfigId());
-			configLob.setValue(mappingXML);
-			persistorService.saveOrUpdate(configLob);
-			dbConnection.setConfig(configLob);
-
-			xSchemaCache.update(configLob.getId(), (XSchema) xstream.fromXML(mappingXML));
-		}
-
-		saveOrUpdate(dbConnection);
-		persistorService.commitOrRollback();
-
-		dbConnectionCache.update(dbConnection.getId(), dbConnection);
-
-		connectionChanged(dbConnection.getId());
 	}
 
 	// ---------------
@@ -406,9 +407,9 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 			if (pagination != null) {
 				nps.addPlugin(new PaginationPlugin(
-						pagination.getFirstResult(),
-						pagination.getMaxResults(),
-						PaginationPlugin.findDatabaseType(connection))
+					pagination.getFirstResult(),
+					pagination.getMaxResults(),
+					PaginationPlugin.findDatabaseType(connection))
 				);
 			}
 

@@ -223,8 +223,18 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 
 		if (dataVO.getSelectionValidationJS() != null) {
-			String func = String.format("function %1$sSelValidJS(row){%2$s}\n" +
-					"function %1$sSelValidJSAll(rows){for(var r=0;r<rows.length;r++){var row = rows[r];if(%1$sSelValidJS(row.row)){$.messager.alert('', %1$sSelValidJS(row.row));return;}}}",
+			String func = String.format(
+				"function %1$sSelValidJS(row){%2$s}\n" +
+					"function %1$sSelValidJSAll(rows){" +
+					" for(var r=0; r<rows.length; r++){" +
+					"  var row = rows[r];" +
+					"  if(%1$sSelValidJS(row.row)){" +
+					"   $.messager.alert('', %1$sSelValidJS(row.row));" +
+					"   return false;" +
+					"  }" +
+					" }" +
+					" return true;" +
+					"}",
 				dataVO.getName(), dataVO.getSelectionValidationJS());
 			response.render(JavaScriptHeaderItem.forScript(func, dataVO.getName()));
 		}
@@ -290,7 +300,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					DataViewQVO dataViewQVO = new DataViewQVO();
 					dataViewQVO
 						.setName(DataViewGridPanel.this.dataVO.getName())
-							//TODO .setSortFieldList(getSortFieldsMap(sortFields))
+						//TODO .setSortFieldList(getSortFieldsMap(sortFields))
 						.setFilter(getFilterMap())
 						.setSortFieldList(sortFieldsMap)
 						.setSentDBConnection(sentDBConnection)
@@ -401,19 +411,21 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				sendButtons.setVisible(false);
 
 				if (dataVO.getSelectionValidationJS() == null) {
-					oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
+					oBaseGrid.setSelectionJSHandler(
+						"function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
 				} else {
 					oBaseGrid.setSelectionJSHandler(String.format(
-						"function(rows){%1$sSelValidJSAll(rows);parent.postMessage(JSON.stringify(rows),'*');}",
+						"function(rows){if(%1$sSelValidJSAll(rows)) parent.postMessage(JSON.stringify(rows),'*');}",
 						dataVO.getName()));
 				}
 
 			} else if ("2".equals(returnVer)) { // OBJECT with ACTION
 				if (dataVO.getSelectionValidationJS() == null) {
-					oBaseGrid.setSelectionJSHandler("function(rows){parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}");
+					oBaseGrid.setSelectionJSHandler(
+						"function(rows){parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}");
 				} else {
 					oBaseGrid.setSelectionJSHandler(String.format(
-						"function(rows){%1$sSelValidJSAll(rows);parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}",
+						"function(rows){if(%1$sSelValidJSAll(rows)) parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}",
 						dataVO.getName()));
 				}
 			} else {

@@ -58,21 +58,21 @@ class DefineLookupStep extends WWizardStepPanel {
 
 				item.add(new Label("name", fieldVO.getUiName()));
 				item.add(new WSelectionInput("targetDS", new PropertyModel(fieldVO, "targetDS"),
-						dataSourceList, false)
-						.setLabelVisible(false)
-						.setRequired(true)
-						.setLabel(new Model<>(getString("DataSource") + " " + fieldVO.getName()))
-						.setEnabled(dataVO.isDataSourceEditable())
+					dataSourceList, false)
+					.setLabelVisible(false)
+					.setRequired(true)
+					.setLabel(new Model<>(getString("DataSource") + " " + fieldVO.getName()))
+					.setEnabled(dataVO.isDataSourceEditable())
 				);
 
-				item.add(new WBooleanInput("targetDSMultipleSelection", new PropertyModel<Boolean>(fieldVO, "targetDSMultipleSelection"))
+				item.add(new WBooleanInput("targetDSMultipleSelection", new PropertyModel<>(fieldVO, "targetDSMultipleSelection"))
 					.setLabelVisible(false)
 					.setRequired(true)
 					.setLabel(new Model<>("Multiple Selection " + fieldVO.getName()))); //TODO
 
-				item.add(new WTextInput("targetDSFilter", new PropertyModel<String>(fieldVO, "targetDSFilter"))
-						.setLabelVisible(false)
-						.add(new AttributeModifier("size", "50"))
+				item.add(new WTextInput("targetDSFilter", new PropertyModel<>(fieldVO, "targetDSFilter"))
+					.setLabelVisible(false)
+					.add(new AttributeModifier("size", "50"))
 				);
 			}
 		});

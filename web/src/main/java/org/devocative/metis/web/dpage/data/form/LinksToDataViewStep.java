@@ -36,7 +36,7 @@ public class LinksToDataViewStep extends WWizardStepPanel {
 	@Override
 	protected void onInit() {
 		if (dataVO.getLinksToDV() == null) {
-			dataVO.setLinksToDV(new ArrayList<XDVLink>());
+			dataVO.setLinksToDV(new ArrayList<>());
 		}
 
 		add(rows = new WebMarkupContainer("rows"));
@@ -50,7 +50,7 @@ public class LinksToDataViewStep extends WWizardStepPanel {
 				final XDVLink xdvLink = item.getModelObject();
 
 				item.add(
-					new WTextInput("title", new PropertyModel<String>(xdvLink, "title"))
+					new WTextInput("title", new PropertyModel<>(xdvLink, "title"))
 						.setLabelVisible(false)
 				);
 
