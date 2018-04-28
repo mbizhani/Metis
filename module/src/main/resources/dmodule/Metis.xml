@@ -38,6 +38,7 @@
 			   uri="/dvForm"
 			   inMenu="true"
 			   roles="AuthByDB,AuthByLDAP"
+			   icon="fa fa-plus"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataViewExecutorDPage"
@@ -52,6 +53,7 @@
 			   uri="/dvList"
 			   inMenu="true"
 			   roles="AuthByDB,AuthByLDAP"
+			   icon="fa fa-eye"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataSourceListDPage"
@@ -59,6 +61,7 @@
 			   uri="/dsList"
 			   inMenu="true"
 			   roles="AuthByDB,AuthByLDAP"
+			   icon="fa fa-table"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.DataGroupListDPage"
@@ -66,6 +69,7 @@
 			   uri="/dgList"
 			   inMenu="true"
 			   roles="AuthByDB,AuthByLDAP"
+			   icon="fa fa-object-group"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.ReportListDPage"
@@ -73,6 +77,7 @@
 			   uri="/reports"
 			   inMenu="true"
 			   roles="AuthByDB,AuthByLDAP"
+			   icon="fa fa-list"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.data.menu.ReportMenuDPage"
@@ -80,6 +85,7 @@
 			   uri="/rptmenu"
 			   inMenu="true"
 			   roles="User"
+			   icon="fa fa-bars"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionGroupListDPage"
@@ -87,6 +93,7 @@
 			   uri="/connGroups"
 			   inMenu="true"
 			   roles="AuthByDB,AuthByLDAP"
+			   icon="fa fa-sitemap"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionListDPage"
@@ -94,6 +101,7 @@
 			   uri="/connections"
 			   inMenu="true"
 			   roles="AuthByDB,AuthByLDAP"
+			   icon="fa fa-database"
 				/>
 
 		<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionAliasListDPage"
@@ -101,6 +109,7 @@
 			   uri="/connAliases"
 			   inMenu="true"
 			   roles="Admin"
+			   icon="fa fa-link"
 				/>
 
 		<!--<dPage type="org.devocative.metis.web.dpage.connection.DBConnectionForm"
