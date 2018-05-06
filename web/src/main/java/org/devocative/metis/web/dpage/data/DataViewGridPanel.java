@@ -47,10 +47,7 @@ import org.devocative.wickomp.formatter.OBooleanFormatter;
 import org.devocative.wickomp.formatter.ODateFormatter;
 import org.devocative.wickomp.formatter.ONumberFormatter;
 import org.devocative.wickomp.grid.*;
-import org.devocative.wickomp.grid.column.OColumn;
-import org.devocative.wickomp.grid.column.OColumnList;
-import org.devocative.wickomp.grid.column.OHiddenColumn;
-import org.devocative.wickomp.grid.column.OPropertyColumn;
+import org.devocative.wickomp.grid.column.*;
 import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
 import org.devocative.wickomp.grid.toolbar.OAjaxLinkButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
@@ -254,6 +251,17 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		modalWindow = new WModalWindow("modal");
 		add(modalWindow);
 
+		if (multiSelect == null) {
+			multiSelect = dataVO.getSelectionModeSafely() == XDVGridSelectionMode.Multiple;
+		}
+
+		if (webParams.containsKey(MetisWebParam.MULTI_SELECT)) {
+			multiSelect = getWebRequest()
+				.getRequestParameters()
+				.getParameterValue(MetisWebParam.MULTI_SELECT)
+				.toBoolean();
+		}
+
 		OColumnList<Map<String, Object>> columns = createColumns(dataVO);
 
 		DataFieldVO selfRelPointerField = dataVO.findSelfRelPointerField();
@@ -291,7 +299,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setColumns(columns)
 			.setMultiSort(true)
 			.setSelectionIndicator(true)
-			.setSingleSelect(dataVO.getSelectionModeSafely() == XDVGridSelectionMode.Single)
+			.setSingleSelect(!multiSelect)
 			.setIdField(keyField != null ? keyField.getName() : null)
 			.setTitleField(titleField != null ? titleField.getName() : null)
 			.setPageList(Arrays.asList(100, 200, 500, 1000))
@@ -436,14 +444,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 		}
 
-		if (webParams.containsKey(MetisWebParam.MULTI_SELECT)) {
-			multiSelect = getWebRequest()
-				.getRequestParameters()
-				.getParameterValue(MetisWebParam.MULTI_SELECT)
-				.toBoolean();
-		}
-		oBaseGrid.setSingleSelect(multiSelect != null ? !multiSelect : null);
-
 		layout = new WebMarkupContainer("layout");
 		layout.setOutputMarkupId(true);
 		add(layout);
@@ -468,9 +468,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------
 
 	private OColumnList<Map<String, Object>> createColumns(final DataVO dataVO) {
-		List<String> disabledSortColumns = webParams.containsKey(MetisWebParam.DISABLE_SORT_COLUMN) ?
-			webParams.get(MetisWebParam.DISABLE_SORT_COLUMN) :
-			Collections.<String>emptyList();
+		List<String> disabledSortColumns = webParams.getOrDefault(MetisWebParam.DISABLE_SORT_COLUMN, Collections.emptyList());
 
 		boolean disableAllSorts = false;
 		if (webParams.containsKey(MetisWebParam.DISABLE_SORT_ALL_COLUMN)) {
@@ -478,6 +476,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
+
+		String checkboxColumnMode = ConfigUtil.getString(MetisConfigKey.GridCheckboxColumnMode);
+		if ("Always".equals(checkboxColumnMode) || (multiSelect && "MultiSelect".equals(checkboxColumnMode))) {
+			columns.add(new OCheckboxColumn<>());
+		}
 
 		for (DataFieldVO fieldVO : dataVO.getFields()) {
 			OColumn<Map<String, Object>> column;
