@@ -104,6 +104,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private WModalWindow modalWindow;
 	private WebMarkupContainer layout;
 
+	private String execTime = "?";
+
 	// ------------------------------
 
 	public DataViewGridPanel(String id, final DataVO dataVO, final Map<String, Object> filter) {
@@ -148,6 +150,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	@Override
 	public void onAsyncResult(IPartialPageRequestHandler handler, DataViewRVO result) {
+		execTime = securityService.getCurrentUser().formatDate(new Date(), "yyyyMMddHHmm");
 
 		queryExecInfoList = result.getQueryExecInfoList();
 
@@ -340,21 +343,21 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setFit(true)
 		;
 
-		if (ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger)) {
-			oBaseGrid.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.INFO) {
-				private static final long serialVersionUID = 8420976618508397333L;
+		oBaseGrid.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.INFO) {
+			private static final long serialVersionUID = 8420976618508397333L;
 
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					modalWindow.setContent(new SearchDebugPanel(modalWindow.getContentId(), queryExecInfoList));
-					modalWindow.getOptions()
-						.setFit(null)
-						.setWidth(OSize.fixed(900))
-						.setHeight(OSize.fixed(600));
-					modalWindow.show(target);
-				}
-			});
-		}
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				modalWindow.setContent(new SearchDebugPanel(
+					modalWindow.getContentId(),
+					queryExecInfoList,
+					dataVO.getName(),
+					securityService.getCurrentUser().getFirstName(),
+					execTime));
+
+				modalWindow.show(target);
+			}
+		});
 
 		if (ConfigUtil.getBoolean(MetisConfigKey.GridNoResultShow)) {
 			oBaseGrid.setNoResultMessage(getString("err.mts.NoResult"));

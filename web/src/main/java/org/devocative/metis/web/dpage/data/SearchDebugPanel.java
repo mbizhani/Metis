@@ -1,27 +1,42 @@
 package org.devocative.metis.web.dpage.data;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.request.Url;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPanel;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
 
 import java.util.List;
 
-public class SearchDebugPanel extends DPanel {
+class SearchDebugPanel extends DPanel {
 	private static final long serialVersionUID = -5678280342452888775L;
 
-	public SearchDebugPanel(String id, List<QueryExecInfoRVO> queryExecInfoList) {
+	SearchDebugPanel(String id, List<QueryExecInfoRVO> queryExecInfoList, String dataViewName, String user, String time) {
 		super(id);
+
+		String searchServer = getWebRequest().getClientUrl().getHost();
+		String searchApp = getWebRequest().getContextPath().substring(1);
+		String dbConnName = "";
+		if (!queryExecInfoList.isEmpty()) {
+			dbConnName = queryExecInfoList.get(0).getDbConnName();
+		}
+		String ccbKey = String.format("S=%s:A=%s:C=%s:V=%s:U=%s:T=%s",
+			searchServer, searchApp, dbConnName, dataViewName, user, time);
+
+		add(new Label("issueKey", ccbKey));
+
+		// ---------------
 
 		StringBuilder builder = new StringBuilder();
 		builder
-			.append(getWebRequest().getClientUrl().getHost())
+			.append(searchServer)
 			.append(":")
-			.append(getWebRequest().getClientUrl().getPort())
-		;
+			.append(getWebRequest().getClientUrl().getPort());
 
 		boolean firstParam = true;
 
@@ -40,15 +55,17 @@ public class SearchDebugPanel extends DPanel {
 			}
 		}
 
-		add(new Label("sentURL", builder.toString()));
+		WebMarkupContainer debugInfo = new WebMarkupContainer("debugInfo");
+		debugInfo.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger));
+		add(debugInfo);
 
-		String dbConnName = "";
-		if (!queryExecInfoList.isEmpty()) {
-			dbConnName = queryExecInfoList.get(0).getDbConnName();
-		}
-		add(new Label("dbConnName", dbConnName));
+		debugInfo.add(new Label("sentURL", builder.toString()));
 
-		add(new ListView<QueryExecInfoRVO>("list", queryExecInfoList) {
+		debugInfo.add(new Label("app", searchApp));
+
+		debugInfo.add(new Label("dbConnName", dbConnName));
+
+		debugInfo.add(new ListView<QueryExecInfoRVO>("list", queryExecInfoList) {
 			private static final long serialVersionUID = 8291860105472506977L;
 
 			@Override

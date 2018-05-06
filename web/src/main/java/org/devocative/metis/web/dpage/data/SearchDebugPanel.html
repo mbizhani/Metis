@@ -2,46 +2,58 @@
 <wicket:panel>
 	<div style="direction: ltr; text-align: left">
 
-		<table>
+		<table border="1" cellspacing="0" cellpadding="5" style="width:100%;background-color:#f5f5dc;">
 			<tr>
-				<th>URL</th>
-				<td wicket:id="sentURL"></td>
+				<th style="width:80px;">Issue Key</th>
+				<td wicket:id="issueKey"></td>
 			</tr>
 		</table>
 
-		<table>
-			<tr>
-				<th>DB Connection</th>
-				<td wicket:id="dbConnName"></td>
-			</tr>
-		</table>
+		<wicket:container wicket:id="debugInfo">
+			<div style="max-height:500px;overflow-y:auto">
+				<table>
+					<tr>
+						<th>URL</th>
+						<td wicket:id="sentURL"></td>
+					</tr>
+					<tr>
+						<th>Search App</th>
+						<td wicket:id="app"></td>
+					</tr>
+					<tr>
+						<th>DB Connection</th>
+						<td wicket:id="dbConnName"></td>
+					</tr>
+				</table>
 
-		<table>
-			<tr>
-				<th>SQL</th>
-				<th>Params</th>
-				<th>Dur</th>
-			</tr>
+				<table>
+					<tr>
+						<th>SQL</th>
+						<th>Params</th>
+						<th>Dur</th>
+					</tr>
 
-			<tr wicket:id="list">
-				<td><textarea wicket:id="sql" readonly cols="90" rows="10"></textarea></td>
+					<tr wicket:id="list">
+						<td><textarea wicket:id="sql" readonly cols="90" rows="10"></textarea></td>
 
-				<td align="center" valign="top">
-					<table style="direction: ltr" border="1" cellspacing="0" cellpadding="3">
-						<tr>
-							<th>P</th>
-							<th>V</th>
-						</tr>
-						<tr wicket:id="param">
-							<td wicket:id="paramIndex"></td>
-							<td wicket:id="paramValue"></td>
-						</tr>
-					</table>
-				</td>
+						<td align="center" valign="top">
+							<table style="direction: ltr" border="1" cellspacing="0" cellpadding="3">
+								<tr>
+									<th>P</th>
+									<th>V</th>
+								</tr>
+								<tr wicket:id="param">
+									<td wicket:id="paramIndex"></td>
+									<td wicket:id="paramValue"></td>
+								</tr>
+							</table>
+						</td>
 
-				<td align="center" valign="top" wicket:id="duration"></td>
-			</tr>
-		</table>
+						<td align="center" valign="top" wicket:id="duration"></td>
+					</tr>
+				</table>
+			</div>
+		</wicket:container>
 	</div>
 </wicket:panel>
 </html>
