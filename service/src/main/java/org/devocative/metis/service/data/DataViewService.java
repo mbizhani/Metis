@@ -208,7 +208,6 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 			persistorService.saveOrUpdate(dataView);
 
 			persistorService.commitOrRollback();
-			dataView.setXDataView(xDataView);
 		} finally {
 			//NOTE: it is important to remove, since it is in the middle of a trx and the result may not persist in DB
 			dataViewCache.remove(dataView.getId());

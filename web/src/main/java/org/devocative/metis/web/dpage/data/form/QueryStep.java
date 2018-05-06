@@ -35,7 +35,7 @@ class QueryStep extends WWizardStepPanel {
 
 	private DataVO dataVO;
 
-	private OCode oCode = new OCode(OCodeMode.SQL);
+	private OCode oCode = new OCode(OCodeMode.PG_SQL);
 	private WModalWindow modalWindow;
 	private DAjaxButton showEqlWarns;
 	private boolean waitOnWarn = false;

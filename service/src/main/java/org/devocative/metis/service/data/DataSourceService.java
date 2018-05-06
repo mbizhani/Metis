@@ -217,8 +217,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 			newRelations.forEach(persistorService::saveOrUpdate);
 
 			persistorService.commitOrRollback();
-
-			dataSource.setXDataSource(xDataSource);
 		} finally {
 			//NOTE: it is important to remove, since it is in the middle of a trx and the result may not persist in DB
 			dataSourceCache.remove(dataSource.getId());
@@ -846,7 +844,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 
 			query
 				.append("from (\n")
-					//.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), params))
+				//.append(processDynamicQuery(xDataSource.getName(), xDataSource.getQuery(), params))
 				.append(xDataSource.getQuery().getText())
 				.append("\n)\n");
 			return this;

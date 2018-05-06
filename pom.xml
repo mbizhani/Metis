@@ -56,7 +56,7 @@
 
 		<d.xstream.ver>1.4.9</d.xstream.ver>
 		<d.demeter.ver>1.1-SNAPSHOT</d.demeter.ver>
-		<d.diadem.ver>1.2</d.diadem.ver>
+		<d.diadem.ver>1.3-SNAPSHOT</d.diadem.ver>
 		<d.spring.ver>5.0.5.RELEASE</d.spring.ver>
 		<d.servlet.ver>3.1.0</d.servlet.ver>
 
