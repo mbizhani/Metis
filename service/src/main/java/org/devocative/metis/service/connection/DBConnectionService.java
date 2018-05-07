@@ -456,7 +456,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 				result.getQueryExecInfo().getDuration(), result.getRows().size());
 
 			return result;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			logger.error("Execute Query: Cmnt=[{}] User=[{}] Conn=[{}]",
 				comment, securityService.getCurrentUser(), dbConnName, e);
 

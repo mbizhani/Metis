@@ -28,6 +28,11 @@ class SearchDebugPanel extends DPanel {
 		String ccbKey = String.format("S=%s:A=%s:C=%s:V=%s:U=%s:T=%s",
 			searchServer, searchApp, dbConnName, dataViewName, user, time);
 
+		boolean errorHappened = queryExecInfoList.size() == 1 && queryExecInfoList.get(0).getException() != null;
+		if (errorHappened) {
+			ccbKey += ":E=true";
+		}
+
 		add(new Label("issueKey", ccbKey));
 
 		// ---------------
@@ -56,7 +61,7 @@ class SearchDebugPanel extends DPanel {
 		}
 
 		WebMarkupContainer debugInfo = new WebMarkupContainer("debugInfo");
-		debugInfo.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger));
+		debugInfo.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger) && !errorHappened);
 		add(debugInfo);
 
 		debugInfo.add(new Label("sentURL", builder.toString()));

@@ -9,7 +9,7 @@ import java.util.List;
 public class MetisException extends DModuleException {
 	private static final long serialVersionUID = -3778789679497632312L;
 
-	private List<QueryExecInfoRVO> execInfoList;
+	private List<QueryExecInfoRVO> execInfoList = Collections.emptyList();
 
 	// ------------------------------
 
@@ -36,15 +36,12 @@ public class MetisException extends DModuleException {
 		return execInfoList;
 	}
 
-	public MetisException setExecInfoList(List<QueryExecInfoRVO> execInfoList) {
-		this.execInfoList = execInfoList;
-		return this;
-	}
-
-	// ------------------------------
-
 	public MetisException setExecInfoList(QueryExecInfoRVO execInfo) {
 		this.execInfoList = Collections.singletonList(execInfo);
+
+		if (execInfo.getException() == null) {
+			execInfo.setException(this);
+		}
 		return this;
 	}
 }

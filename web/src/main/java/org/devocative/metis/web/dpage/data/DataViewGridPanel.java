@@ -163,8 +163,13 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	@Override
 	public void onAsyncError(IPartialPageRequestHandler handler, Exception error) {
+		execTime = securityService.getCurrentUser().formatDate(new Date(), "yyyyMMddHHmm");
+
 		if (error instanceof MetisException) {
 			queryExecInfoList = ((MetisException) error).getExecInfoList();
+			if (error.getCause() != null) {
+				error = (Exception) error.getCause();
+			}
 		}
 
 		grid.pushError(handler, error);
@@ -346,26 +351,25 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					modalWindow.show(target);
 				}
 			})
+			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.INFO) {
+				private static final long serialVersionUID = 8420976618508397333L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					modalWindow.setContent(new SearchDebugPanel(
+						modalWindow.getContentId(),
+						queryExecInfoList,
+						dataVO.getName(),
+						securityService.getCurrentUser().getFirstName(),
+						execTime));
+
+					modalWindow.show(target);
+				}
+			})
 			.setReturnField(returnField)
 			.setAsyncLoadingEnabled(ConfigUtil.getBoolean(MetisConfigKey.GridAsyncLoadingShow))
 			.setFit(true)
 		;
-
-		oBaseGrid.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.INFO) {
-			private static final long serialVersionUID = 8420976618508397333L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				modalWindow.setContent(new SearchDebugPanel(
-					modalWindow.getContentId(),
-					queryExecInfoList,
-					dataVO.getName(),
-					securityService.getCurrentUser().getFirstName(),
-					execTime));
-
-				modalWindow.show(target);
-			}
-		});
 
 		if (ConfigUtil.getBoolean(MetisConfigKey.GridNoResultShow)) {
 			oBaseGrid.setNoResultMessage(getString("err.mts.NoResult"));

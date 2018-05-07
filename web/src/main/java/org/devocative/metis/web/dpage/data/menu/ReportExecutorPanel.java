@@ -88,7 +88,7 @@ public class ReportExecutorPanel extends WPanel {
 			protected void onSubmit(AjaxRequestTarget target) {
 				logger.debug("filter = {}", filter);
 				mainGrid.loadData(target);
-				target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
+				//target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
 			}
 		};
 		search.setOutputMarkupId(true);
@@ -101,7 +101,9 @@ public class ReportExecutorPanel extends WPanel {
 		mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
 		mainGrid
 			.setSentDBConnection(sentDBConnection)
-			.setWebParams(targetParam);
+			.setWebParams(targetParam)
+			.setMultiSelect(false)
+		;
 
 		WebMarkupContainer filterPanel = new WebMarkupContainer("filterPanel");
 		filterPanel.add(form);

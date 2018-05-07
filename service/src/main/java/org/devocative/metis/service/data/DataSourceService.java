@@ -287,7 +287,9 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		XSchema xSchema = dbConnectionService.getSchemaOfMapping(dbConnId);
 
 		if (xSchema == null) {
-			throw new MetisException(MetisErrorCode.NoMappingForConnection, dbConnectionService.load(dbConnId).getName());
+			final String name = dbConnectionService.load(dbConnId).getName();
+			throw new MetisException(MetisErrorCode.NoMappingForConnection, name)
+				.setExecInfoList(new QueryExecInfoRVO().setDbConnName(name));
 		}
 
 		EQLMetaDataVO metaDataVO = new EQLMetaDataVO();
