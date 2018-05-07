@@ -15,7 +15,7 @@ public enum MetisErrorCode implements DErrorCode {
 	EqlJoinOnProperty("Join on property"),
 	EqlInvalidAssociationUsage("Invalid association usage"),
 
-	DBConnection("Can't get connection from database"),
+	DBConnection("DB Get Connection Failure:\n1.Please Check DB Connection!\n2.Just Try Again!\n"),
 	InvalidDBConnection("Invalid DB Connection"),
 	DuplicateDBConnectionAlias("Duplicate DBConnectionAlias"),
 	DuplicateDBConnectionName("Duplicate DBConnection Name"),

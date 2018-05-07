@@ -11,6 +11,7 @@ import org.devocative.adroit.sql.plugin.SchemaPlugin;
 import org.devocative.adroit.xml.AdroitXStream;
 import org.devocative.demeter.DBConstraintViolationException;
 import org.devocative.demeter.DLogCtx;
+import org.devocative.demeter.DemeterConfigKey;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ApplicationLifecyclePriority;
 import org.devocative.demeter.iservice.ICacheService;
@@ -53,7 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 @Service("mtsDBConnectionService")
 public class DBConnectionService implements IDBConnectionService, IRequestLifecycle {
@@ -77,6 +78,10 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	private ICache<Long, DBConnection> dbConnectionCache;
 	private ICache<String, XSchema> xSchemaCache;
 	private final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new ConcurrentHashMap<>();
+
+	private ThreadPoolExecutor timeOutExecutor;
+
+	// ---------------
 
 	@Autowired
 	private IPersistorService persistorService;
@@ -128,11 +133,24 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@Override
 	public void init() {
+		if (ConfigUtil.getBoolean(MetisConfigKey.DatabaseCheckTimeoutEnabled)) {
+			timeOutExecutor = new ThreadPoolExecutor(
+				ConfigUtil.getInteger(MetisConfigKey.DatabaseCheckTimeoutMin),
+				ConfigUtil.getInteger(MetisConfigKey.DatabaseCheckTimeoutMax),
+				1, TimeUnit.MINUTES,
+				new ArrayBlockingQueue<>(ConfigUtil.getInteger(MetisConfigKey.DatabaseCheckTimeoutList)));
+
+			logger.info("DBConnectionService -> TimeOutExecutor Created.");
+		}
 	}
 
 	@Override
 	public void shutdown() {
 		closeAllPools();
+
+		if (timeOutExecutor != null) {
+			timeOutExecutor.shutdown();
+		}
 	}
 
 	@Override
@@ -660,11 +678,10 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	// ------------------------------
 
 	private Connection getConnection(long dbConnId) {
-
 		ConnectionInfo info = currentConnection.get();
 		if (info != null) {
 			if (info.dbConnId == dbConnId) {
-				logger.debug("Getting current connection: {}", dbConnId);
+				logger.debug("Getting Current Connection: {}", dbConnId);
 				return info.connection;
 			} else {
 				logger.warn("Different DBConnection: requested=[{}] current=[{}]", dbConnId, info.dbConnId);
@@ -672,24 +689,27 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			}
 		}
 
-		int retry = 0;
+		DBConnection dbConnection = load(dbConnId);
+
+		int noOfRetry = 0;
 		Connection result = null;
 		Exception last = null;
-		while (retry < 3) {
+		while (noOfRetry < 3) {
 			try {
-				result = getUnsureConnection(dbConnId);
+				result = getUnsureConnection(dbConnection);
 				break;
 			} catch (Exception e) {
 				logger.error("Get Connection: Conn=[{}] User=[{}]",
-					load(dbConnId).getName(), securityService.getCurrentUser(), e);
+					dbConnection.getName(), securityService.getCurrentUser(), e);
 				last = e;
-				retry++;
+				noOfRetry++;
 				closePoolSafely(dbConnId);
 			}
 		}
 
 		if (result == null) {
-			throw new MetisException(MetisErrorCode.DBConnection, String.format("%s (%s)", dbConnId, last), last);
+			throw new MetisException(MetisErrorCode.DBConnection, String.format("name = %s (err = %s)",
+				dbConnection.getName(), last != null ? last.getMessage() : "UNKNOWN"), last);
 		}
 
 		logger.debug("Setting current connection: {}", dbConnId);
@@ -698,23 +718,31 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		return result;
 	}
 
-	private Connection getUnsureConnection(Long dbConnId) throws Exception {
-		DBConnection dbConnection = load(dbConnId);
-		if (!CONNECTION_POOL_MAP.containsKey(dbConnId)) {
+	private Connection getUnsureConnection(DBConnection dbConnection) throws Exception {
+		if (!CONNECTION_POOL_MAP.containsKey(dbConnection.getId())) {
 			ComboPooledDataSource cpds = new ComboPooledDataSource();
 			cpds.setDriverClass(dbConnection.getSafeDriver());
 			cpds.setJdbcUrl(dbConnection.getSafeUrl());
 			cpds.setUser(dbConnection.getUsername());
 			cpds.setPassword(getPasswordOf(dbConnection));
 
-			CONNECTION_POOL_MAP.put(dbConnId, cpds);
+			CONNECTION_POOL_MAP.put(dbConnection.getId(), cpds);
 		}
 
-		Connection connection = CONNECTION_POOL_MAP.get(dbConnId).getConnection();
+		Connection connection = CONNECTION_POOL_MAP.get(dbConnection.getId()).getConnection();
 		if (dbConnection.getSafeTestQuery() != null) {
-			Statement st = connection.createStatement();
-			st.executeQuery(dbConnection.getSafeTestQuery());
-			st.close();
+			if (ConfigUtil.getBoolean(MetisConfigKey.DatabaseCheckTimeoutEnabled)) {
+				final Future<Boolean> submit = timeOutExecutor.submit(new TimeOut(connection, dbConnection.getSafeTestQuery()));
+				final Boolean result = submit.get(ConfigUtil.getInteger(DemeterConfigKey.DatabaseCheckTimeoutDur), TimeUnit.SECONDS);
+				if (!result) {
+					throw new RuntimeException("Checking-Query Timeout!");
+				}
+
+			} else {
+				Statement st = connection.createStatement();
+				st.executeQuery(dbConnection.getSafeTestQuery());
+				st.close();
+			}
 		}
 		return connection;
 	}
@@ -777,6 +805,33 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		private ConnectionInfo(long dbConnId, Connection connection) {
 			this.dbConnId = dbConnId;
 			this.connection = connection;
+		}
+	}
+
+	// ------------------------------
+
+	private class TimeOut implements Callable<Boolean> {
+		private Connection connection;
+		private String checkQuery;
+
+		private TimeOut(Connection connection, String checkQuery) {
+			this.connection = connection;
+			this.checkQuery = checkQuery;
+		}
+
+		@Override
+		public Boolean call() {
+			try {
+				Statement st = connection.createStatement();
+				st.executeQuery(checkQuery);
+				st.close();
+
+				return true;
+			} catch (Exception e) {
+				logger.error("Check-Query Timeout Thread Exception: {}", e.getMessage());
+			}
+
+			return false;
 		}
 	}
 }

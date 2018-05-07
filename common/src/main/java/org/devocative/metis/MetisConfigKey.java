@@ -6,6 +6,13 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum MetisConfigKey implements IConfigKey {
+	DatabaseCheckTimeoutEnabled("mts.db.check.timeout.enabled", true, Arrays.asList(true, false)),
+	DatabaseCheckTimeoutDur("mts.db.check.timeout.dur", 15),
+	DatabaseCheckTimeoutMin("mts.db.check.timeout.min", 5),
+	DatabaseCheckTimeoutMax("mts.db.check.timeout.max", 15),
+	DatabaseCheckTimeoutList("mts.db.check.timeout.list", 10),
+	DatabaseCheckTimeoutAlive("mts.db.check.timeout.alive", 10), //minutes
+
 	DBConnParamName("mts.dv.conn.param.name"),
 	UseEqualOnUpperBound("mts.range.equal.upper", false, Arrays.asList(true, false)),
 	ShowSearchDebugger("mts.search.debugger.visible", true, Arrays.asList(true, false)),
@@ -30,6 +37,8 @@ public enum MetisConfigKey implements IConfigKey {
 
 	ODataReplaceCharForNonSystemParam("mts.odata.char.replace.non.system", "~"),
 	ODataConsiderParentRelation("mts.odata.consider.parent.relation", false, Arrays.asList(true, false));
+
+	// ------------------------------
 
 	private String key;
 	private boolean validate = false;
