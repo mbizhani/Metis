@@ -73,7 +73,6 @@ public class ReportMenuDPage extends DPage {
 					.toOptionalString();
 			}
 
-
 			final Map<DataGroup, List<Report>> listPerGroup = reportService.listPerGroup();
 
 			add(new ListView<DataGroup>("group", new ArrayList<>(listPerGroup.keySet())) {

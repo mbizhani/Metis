@@ -360,7 +360,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						modalWindow.getContentId(),
 						queryExecInfoList,
 						dataVO.getName(),
-						securityService.getCurrentUser().getFirstName(),
+						securityService.getCurrentUser().getUsername(),
 						execTime));
 
 					modalWindow.show(target);

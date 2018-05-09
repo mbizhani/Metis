@@ -85,15 +85,17 @@ public class ReportService implements IReportService {
 	public Map<DataGroup, List<Report>> listPerGroup() {
 		List<Report> reports = persistorService
 			.createQueryBuilder()
+			.addSelect("select distinct ent")
 			.addFrom(Report.class, "ent")
 			.addJoin("grp", "ent.groups", EJoinMode.LeftFetch)
+			.setOrderBy("ent.title")
 			.list();
 
 		Map<DataGroup, List<Report>> result = new TreeMap<>();
 		for (Report report : reports) {
 			for (DataGroup group : report.getGroups()) {
 				if (!result.containsKey(group)) {
-					result.put(group, new ArrayList<Report>());
+					result.put(group, new ArrayList<>());
 				}
 				result.get(group).add(report);
 			}
