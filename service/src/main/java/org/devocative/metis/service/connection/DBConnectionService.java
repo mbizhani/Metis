@@ -49,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -171,6 +172,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	// ------------------------------
 
+	@Transactional
 	@Override
 	public void saveOrUpdate(DBConnection entity) {
 		try {
@@ -261,11 +263,10 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	// ==============================
 
+	@Transactional
 	@Override
 	public void saveOrUpdate(DBConnection dbConnection, String mappingXML, String password) {
 		try {
-			persistorService.startTrx();
-
 			if (password != null) {
 				if (ConfigUtil.getBoolean(MetisConfigKey.ConnectionEncryptPassword)) {
 					password = StringEncryptorUtil.encrypt(password);
@@ -294,7 +295,6 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			}
 
 			saveOrUpdate(dbConnection);
-			persistorService.commitOrRollback();
 		} finally {
 			dbConnectionCache.remove(dbConnection.getId());
 			connectionChanged(dbConnection.getId());
@@ -752,16 +752,20 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	}
 
 	private void connectionChanged(Long id) {
-		closePoolSafely(id);
-		logger.info("DBConnection changed: {}", load(id).getName());
+		if (id != null) {
+			closePoolSafely(id);
+			logger.info("DBConnection changed: {}", load(id).getName());
+		}
 	}
 
 	private synchronized void closePoolSafely(Long dbConnId) {
-		ComboPooledDataSource pool = CONNECTION_POOL_MAP.get(dbConnId);
-		if (pool != null) {
-			//TODO assert safely closing
-			pool.close();
-			CONNECTION_POOL_MAP.remove(dbConnId);
+		if (dbConnId != null) {
+			ComboPooledDataSource pool = CONNECTION_POOL_MAP.get(dbConnId);
+			if (pool != null) {
+				//TODO assert safely closing
+				pool.close();
+				CONNECTION_POOL_MAP.remove(dbConnId);
+			}
 		}
 	}
 
@@ -799,7 +803,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	// ------------------------------
 
 	private class ConnectionInfo {
-		private long dbConnId = -123;
+		private long dbConnId;
 		private Connection connection;
 
 		private ConnectionInfo(long dbConnId, Connection connection) {
