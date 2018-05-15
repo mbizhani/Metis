@@ -11,6 +11,7 @@ import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 class SearchDebugPanel extends DPanel {
@@ -19,39 +20,57 @@ class SearchDebugPanel extends DPanel {
 	SearchDebugPanel(String id, List<QueryExecInfoRVO> queryExecInfoList, String dataViewName, String user, String time) {
 		super(id);
 
-		String searchServer = getWebRequest().getClientUrl().getHost();
+		String clientHost = getWebRequest().getClientUrl().getHost();
+		Integer clientPort = getWebRequest().getClientUrl().getPort();
+
+		String serverHost = "?";
+		int serverPort = 0;
+
+		if (getWebRequest().getContainerRequest() instanceof HttpServletRequest) {
+			HttpServletRequest rq = (HttpServletRequest) getWebRequest().getContainerRequest();
+			serverHost = rq.getLocalAddr();
+			serverPort = rq.getLocalPort();
+		}
+
 		String searchApp = getWebRequest().getContextPath().substring(1);
 		String dbConnName = "";
 		if (!queryExecInfoList.isEmpty()) {
 			dbConnName = queryExecInfoList.get(0).getDbConnName();
 		}
-		String ccbKey = String.format("S=%s:A=%s:C=%s:V=%s:U=%s:T=%s",
-			searchServer, searchApp, dbConnName, dataViewName, user, time);
+		StringBuilder issueKey = new StringBuilder(String.format("R=%s:%s#L=%s:%s#A=%s#C=%s#V=%s#U=%s#T=%s",
+			clientHost, clientPort, serverHost, serverPort, searchApp, dbConnName, dataViewName, user, time));
 
 		boolean errorHappened = queryExecInfoList.size() == 1 && queryExecInfoList.get(0).getException() != null;
 		if (errorHappened) {
-			ccbKey += ":E=true";
+			issueKey.append("#E=true");
 		}
 
-		add(new Label("issueKey", ccbKey));
+		if (ConfigUtil.getBoolean(MetisConfigKey.ShowParamsInIssueKey)) {
+			issueKey = issueKey.append("#P=");
+			for (Url.QueryParameter parameter : getWebRequest().getClientUrl().getQueryParameters()) {
+				String name = parameter.getName();
+				if (name.startsWith("amp;")) {
+					name = name.substring(4);
+				}
+				if (!parameter.getValue().isEmpty() && !name.startsWith("$")) {
+					issueKey.append(String.format("%s=%s", name, parameter.getValue()));
+				}
+			}
+		}
+
+		add(new Label("issueKey", issueKey.toString()));
 
 		// ---------------
 
 		StringBuilder builder = new StringBuilder();
 		builder
-			.append(searchServer)
+			.append(clientHost)
 			.append(":")
-			.append(getWebRequest().getClientUrl().getPort());
-
-		boolean firstParam = true;
+			.append(clientPort)
+			.append(" || ");
 
 		for (Url.QueryParameter parameter : getWebRequest().getClientUrl().getQueryParameters()) {
 			if (!parameter.getValue().isEmpty()) {
-				if (firstParam) {
-					builder.append(" || ");
-					firstParam = false;
-				}
-
 				String name = parameter.getName();
 				if (name.startsWith("amp;")) {
 					name = name.substring(4);

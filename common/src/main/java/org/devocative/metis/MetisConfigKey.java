@@ -15,8 +15,9 @@ public enum MetisConfigKey implements IConfigKey {
 
 	DBConnParamName("mts.dv.conn.param.name"),
 	UseEqualOnUpperBound("mts.range.equal.upper", false, Arrays.asList(true, false)),
-	ShowSearchDebugger("mts.search.debugger.visible", true, Arrays.asList(true, false)),
+	ShowSearchDebugger("mts.debugger.visible", true, Arrays.asList(true, false)),
 	IgnoreParameterValues("mts.ignore.param.values"),
+	ShowParamsInIssueKey("mts.issue.params.visible", true, Arrays.asList(true, false)),
 
 	ExportReportExpireDays("mts.export.days", 3),
 	ExportExcelMaxSize("mts.excel.export.max.size", 10000L),
