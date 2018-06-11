@@ -1,4 +1,4 @@
-function sendRows(action, gridId, name) {
+function sendRows(action, gridId, name, ver) {
 	var grid = $("#" + gridId);
 	var selData = grid.datagrid("getSelections");
 	var opt = grid.datagrid("options");
@@ -26,13 +26,22 @@ function sendRows(action, gridId, name) {
 			}
 
 			if (typeof window[name + "SelValidJSAll"] === "function") {
-				window[name + "SelValidJSAll"](kvList);
+				var result = window[name + "SelValidJSAll"](kvList);
+				if (!result) {
+					return;
+				}
 			}
 
-			var result = {};
-			result["action"] = action;
-			result["data"] = kvList;
-			parent.postMessage(JSON.stringify(result), '*');
+			if (ver === '1') {
+				parent.postMessage(JSON.stringify(kvList), '*');
+			} else if (ver === '2') {
+				var result = {};
+				result["action"] = action;
+				result["data"] = kvList;
+				parent.postMessage(JSON.stringify(result), '*');
+			} else {
+				$.messager.alert("Error", "Invalid Send Data Version: " + ver);
+			}
 		} catch (e) {
 			$.messager.alert("Error", e);
 		}

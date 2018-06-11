@@ -387,12 +387,17 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 
 		WebMarkupContainer sendButtons = new WebMarkupContainer("sendButtons");
-		sendButtons.setVisible(false);
 
 		if (selectionJSCallback != null) {
 			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
 		} else if (webParams.containsKey(MetisWebParam.WINDOW)) {
-			sendButtons.setVisible(true);
+
+			final String returnVer;
+			if (webParams.containsKey(MetisWebParam.RETURN_VERSION)) {
+				returnVer = webParams.get(MetisWebParam.RETURN_VERSION).get(0);
+			} else {
+				returnVer = ConfigUtil.getString(MetisConfigKey.GridReturnResultVersion);
+			}
 
 			List<ActionBut> actions = new ArrayList<>();
 			if (webParams.containsKey(MetisWebParam.ACTIONS)) {
@@ -411,20 +416,14 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				protected void populateItem(ListItem<ActionBut> item) {
 					ActionBut action = item.getModelObject();
 					WebMarkupContainer button = new WebMarkupContainer("button");
-					button.add(new AttributeModifier("onclick", String.format("sendRows('%s','%s', '%s')",
-						action.getName(), grid.getMarkupId(), dataVO.getName())));
+					button.add(new AttributeModifier("onclick", String.format("sendRows('%s','%s', '%s', '%s')",
+						action.getName(), grid.getMarkupId(), dataVO.getName(), returnVer)));
 					button.add(new Label("label", action.getTitle()));
 					item.add(button);
 				}
 			});
 
-			String returnVer = ConfigUtil.getString(MetisConfigKey.GridReturnResultVersion);
-			if (webParams.containsKey(MetisWebParam.RETURN_VERSION)) {
-				returnVer = webParams.get(MetisWebParam.RETURN_VERSION).get(0);
-			}
 			if ("1".equals(returnVer)) { // LIST (just rows)
-				sendButtons.setVisible(false);
-
 				if (dataVO.getSelectionValidationJS() == null) {
 					oBaseGrid.setSelectionJSHandler(
 						"function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
