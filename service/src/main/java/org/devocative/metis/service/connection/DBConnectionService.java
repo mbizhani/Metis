@@ -56,6 +56,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service("mtsDBConnectionService")
 public class DBConnectionService implements IDBConnectionService, IRequestLifecycle {
@@ -79,6 +80,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	private ICache<Long, DBConnection> dbConnectionCache;
 	private ICache<String, XSchema> xSchemaCache;
 	private final Map<Long, ComboPooledDataSource> CONNECTION_POOL_MAP = new ConcurrentHashMap<>();
+	private final Map<Long, AtomicInteger> CONNECTION_POOL_CLOSE_COUNTER_MAP = new ConcurrentHashMap<>();
 
 	private ThreadPoolExecutor timeOutExecutor;
 
@@ -297,7 +299,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			saveOrUpdate(dbConnection);
 		} finally {
 			dbConnectionCache.remove(dbConnection.getId());
-			connectionChanged(dbConnection.getId());
+			connectionChanged(dbConnection);
 		}
 	}
 
@@ -355,15 +357,21 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 	@Override
 	public void closeAllPools() {
-		logger.info("Closing all db connection pools");
+		logger.info("Closing All DBConnection Pools, size=[{}]", CONNECTION_POOL_MAP.size());
 
-		for (Map.Entry<Long, ComboPooledDataSource> entry : CONNECTION_POOL_MAP.entrySet()) {
-			try {
-				entry.getValue().close();
-				logger.info("DB connection pool closed: {}", entry.getKey());
-			} catch (Exception e) {
-				logger.warn("Closing db connection pool problem: {}", entry.getKey(), e);
+		synchronized (CONNECTION_POOL_MAP) {
+			for (Map.Entry<Long, ComboPooledDataSource> entry : CONNECTION_POOL_MAP.entrySet()) {
+				final String name = load(entry.getKey()).getName();
+				try {
+					logger.info("DBConnection Pool Closing: id=[{}] name=[{}]", entry.getKey(), name);
+					entry.getValue().close();
+					logger.info("DBConnection Pool Closed: id=[{}] name=[{}]", entry.getKey(), name);
+				} catch (Exception e) {
+					logger.warn("Closing DBConnection Pool Problem: id=[{}] name=[{}]", entry.getKey(), name, e);
+				}
 			}
+
+			CONNECTION_POOL_MAP.clear();
 		}
 	}
 
@@ -424,11 +432,11 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			}
 
 			if (pagination != null) {
-				nps.addPlugin(new PaginationPlugin(
+				nps.addPlugin(PaginationPlugin.of(
+					connection,
 					pagination.getFirstResult(),
-					pagination.getMaxResults(),
-					PaginationPlugin.findDatabaseType(connection))
-				);
+					pagination.getMaxResults()
+				));
 			}
 
 			if (params != null) {
@@ -586,16 +594,15 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			xSchemaCache.update(group.getConfig().getId(), xSchema);
 		}
 
-		List<Long> ids = persistorService
+		List<DBConnection> connections = persistorService
 			.createQueryBuilder()
-			.addSelect("select ent.id")
 			.addFrom(DBConnection.class, "ent")
 			.addWhere("and ent.group.id = :groupId")
 			.addParam("groupId", group.getId())
 			.list();
 
-		ids.forEach(this::connectionChanged);
-		logger.info(" DBConnectionGroup changed = [{}] => DBConnection(s) updated = [{}] ", group.getName(), ids.size());
+		connections.forEach(this::connectionChanged);
+		logger.info(" DBConnectionGroup changed = [{}] => DBConnection(s) updated = [{}] ", group.getName(), connections.size());
 	}
 
 	@Override
@@ -675,6 +682,25 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		return loadByName(name);
 	}
 
+	@Override
+	public String getPoolInfo(Long id) {
+		String result = "-";
+		if (CONNECTION_POOL_MAP.containsKey(id)) {
+			final ComboPooledDataSource cpds = CONNECTION_POOL_MAP.get(id);
+			try {
+				result = String.format("%s/%s - %s", cpds.getNumBusyConnections(), cpds.getNumConnections(), cpds.getNumIdleConnections());
+			} catch (SQLException e) {
+				logger.error("getPoolInfo", e);
+				result = "Err";
+			}
+		}
+
+		if (CONNECTION_POOL_CLOSE_COUNTER_MAP.containsKey(id)) {
+			result += " #" + CONNECTION_POOL_CLOSE_COUNTER_MAP.get(id).get();
+		}
+		return result;
+	}
+
 	// ------------------------------
 
 	private Connection getConnection(long dbConnId) {
@@ -703,7 +729,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 					dbConnection.getName(), securityService.getCurrentUser(), e);
 				last = e;
 				noOfRetry++;
-				closePoolSafely(dbConnId);
+				closePoolSafely(dbConnection);
 			}
 		}
 
@@ -751,20 +777,31 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		return load(dbConnId).getSchema();
 	}
 
-	private void connectionChanged(Long id) {
-		if (id != null) {
-			closePoolSafely(id);
-			logger.info("DBConnection changed: {}", load(id).getName());
-		}
+	private void connectionChanged(DBConnection dbConnection) {
+		closePoolSafely(dbConnection);
+		logger.info("DBConnection Changed: id=[{}] name=[{}]", dbConnection.getName(), dbConnection.getId());
 	}
 
-	private synchronized void closePoolSafely(Long dbConnId) {
-		if (dbConnId != null) {
-			ComboPooledDataSource pool = CONNECTION_POOL_MAP.get(dbConnId);
-			if (pool != null) {
-				//TODO assert safely closing
-				pool.close();
+	private void closePoolSafely(DBConnection dbConnection) {
+		synchronized (CONNECTION_POOL_MAP) {
+			Long dbConnId = dbConnection.getId();
+
+			if (dbConnId != null && CONNECTION_POOL_MAP.containsKey(dbConnId)) {
+				logger.warn("ClosePoolSafely: id=[{}] name=[{}] info=[{}]",
+					dbConnection.getId(), dbConnection.getName(), getPoolInfo(dbConnId));
+
+				if (!CONNECTION_POOL_CLOSE_COUNTER_MAP.containsKey(dbConnId)) {
+					CONNECTION_POOL_CLOSE_COUNTER_MAP.put(dbConnId, new AtomicInteger(0));
+				}
+				CONNECTION_POOL_CLOSE_COUNTER_MAP.get(dbConnId).incrementAndGet();
+
+				ComboPooledDataSource pool = CONNECTION_POOL_MAP.get(dbConnId);
 				CONNECTION_POOL_MAP.remove(dbConnId);
+				dbConnectionCache.remove(dbConnId);
+
+				if (pool != null) {
+					pool.close();
+				}
 			}
 		}
 	}

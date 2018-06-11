@@ -1,11 +1,11 @@
 package org.devocative.metis.service.data;
 
 import com.thoughtworks.xstream.XStream;
-import org.devocative.adroit.CalendarUtil;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
+import org.devocative.adroit.date.UniDate;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
@@ -971,7 +971,7 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 									Object upper;
 									if (equalOnUpper && xdsField.getType() == XDSFieldType.Date) {
 										Date upperDt = (Date) rangeVO.getUpper();
-										upper = CalendarUtil.add(upperDt, Calendar.DATE, 1);
+										upper = UniDate.of(upperDt).updateDay(1).toDate();
 									} else {
 										upper = rangeVO.getUpper();
 									}

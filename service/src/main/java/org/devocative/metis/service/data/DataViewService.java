@@ -1,15 +1,15 @@
 package org.devocative.metis.service.data;
 
 import com.thoughtworks.xstream.XStream;
-import org.devocative.adroit.CalendarUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.cache.IMissedHitHandler;
+import org.devocative.adroit.date.EUniCalendar;
+import org.devocative.adroit.date.UniDate;
 import org.devocative.adroit.obuilder.ObjectBuilder;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.sql.SqlHelper;
 import org.devocative.adroit.sql.ei.ExportImportHelper;
 import org.devocative.adroit.sql.ei.Importer;
-import org.devocative.adroit.sql.filter.FilterType;
 import org.devocative.adroit.sql.filter.FilterValue;
 import org.devocative.adroit.sql.plugin.FilterPlugin;
 import org.devocative.adroit.xml.AdroitXStream;
@@ -199,7 +199,9 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		dataView.setTitle(title);
 		dataView.setConfig(config);
 		dataView.setDataSource(dataSourceService.load(xDataView.getDataSourceId()));
-		dataView.setGroups(groups);
+
+		//NOTE: weired error in audit table persistence! try to insert null in A_MT_MTS_DATAVIEW_GROUP.F_DATA_VIEW!!! Now it is ok!
+		dataView.setGroups(new ArrayList<>(groups));
 
 		try {
 			persistorService.startTrx();
@@ -235,7 +237,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 			for (DataGroup dataGroup : dataGroups) {
 				ids.add(dataGroup.getId());
 			}
-			filter.add("grp.id", new FilterValue(ids, FilterType.Equal));
+			filter.add("grp.id", FilterValue.equal(ids));
 		}
 		if (dataViewNames != null) {
 			String[] lines = dataViewNames.split("[\n]");
@@ -245,7 +247,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 					names.add(line.trim());
 				}
 			}
-			filter.add("dv.c_name", new FilterValue(names, FilterType.Equal));
+			filter.add("dv.c_name", FilterValue.equal(names));
 		}
 
 		try {
@@ -258,7 +260,7 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 
 			if (dbConnectionGroup != null) {
 				helper.exportBySql("dbConnGrp",
-					sqlHelper.selectAll("dbConnGrp", ObjectBuilder.<String, Object>createDefaultMap()
+					sqlHelper.selectAll("dbConnGrp", ObjectBuilder.<String, Object>map()
 						.put("dbConnGrpName", dbConnectionGroup.getName())
 						.get())
 						.toListOfMap()
@@ -298,12 +300,12 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 
 			Date now = new Date();
 			//TODO using calendar from User
-			String fileName = String.format("exportDataView-%s.xml", CalendarUtil.toPersian(now, "yyyyMMdd"));
+			String fileName = String.format("exportDataView-%s.xml", UniDate.now().updateCalendar(EUniCalendar.Persian).format("yyyyMMdd"));
 			FileStoreHandler fileStoreHandler = fileStoreService.create(
 				fileName,
 				EFileStorage.DISK,
 				EMimeType.XML,
-				CalendarUtil.add(now, Calendar.DATE, 15),
+				UniDate.now().updateDay(15).toDate(),
 				"exportDataView"
 			);
 			helper.exportTo(fileStoreHandler);

@@ -83,7 +83,7 @@ public class PkXmlMigrate {
 
 				String newXml = xStream.toXML(xDataView);
 				updateCfg
-					.setParameters(ObjectBuilder.<String, Object>createDefaultMap()
+					.setParameters(ObjectBuilder.<String, Object>map()
 						.put("xml", newXml)
 						.put("id", cfgId)
 						.get())
@@ -127,7 +127,7 @@ public class PkXmlMigrate {
 			String newXml = xStream.toXML(xDataView);
 
 			updateCfg
-				.setParameters(ObjectBuilder.<String, Object>createDefaultMap()
+				.setParameters(ObjectBuilder.<String, Object>map()
 					.put("xml", newXml)
 					.put("id", cfgId)
 					.get())
@@ -153,7 +153,7 @@ public class PkXmlMigrate {
 
 			for (XDSField xdsField : xDataSource.getFields()) {
 				if (xdsField.getTargetDSId() != null) {
-					BigDecimal oldId = null;
+					BigDecimal oldId;
 					try {
 						oldId = new BigDecimal(xdsField.getTargetDSId());
 					} catch (Exception e) {
@@ -179,7 +179,7 @@ public class PkXmlMigrate {
 
 			for (XDSParameter xdsParameter : xDataSource.getParams()) {
 				if (xdsParameter.getTargetDSId() != null) {
-					BigDecimal oldId = null;
+					BigDecimal oldId;
 					try {
 						oldId = new BigDecimal(xdsParameter.getTargetDSId());
 					} catch (Exception e) {
@@ -206,7 +206,7 @@ public class PkXmlMigrate {
 			String newXml = xstream.toXML(xDataSource);
 
 			updateCfg
-				.setParameters(ObjectBuilder.<String, Object>createDefaultMap()
+				.setParameters(ObjectBuilder.<String, Object>map()
 					.put("xml", newXml)
 					.put("id", cfgId)
 					.get())

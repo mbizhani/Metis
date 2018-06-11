@@ -47,7 +47,7 @@ public class EqlEntityNameMigration {
 				String query = xDataSource.getQuery().getText();
 
 				StringBuffer tableReplacerBuffer = new StringBuffer();
-				Matcher tableMatcher = SchemaPlugin.SCHEMA_PATTERN.matcher(query);
+				Matcher tableMatcher = SchemaPlugin.getSchemaPattern().matcher(query);
 
 				List<String> invalidEntities = new ArrayList<>();
 
@@ -78,7 +78,7 @@ public class EqlEntityNameMigration {
 					String newXml = xstream.toXML(xDataSource);
 
 					updateCfg
-						.setParameters(ObjectBuilder.<String, Object>createDefaultMap()
+						.setParameters(ObjectBuilder.<String, Object>map()
 							.put("xml", newXml)
 							.put("id", cfgId)
 							.get())

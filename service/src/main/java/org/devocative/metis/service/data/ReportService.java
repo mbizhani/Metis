@@ -1,6 +1,7 @@
 package org.devocative.metis.service.data;
 
 import org.devocative.demeter.entity.User;
+import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.metis.entity.data.DataGroup;

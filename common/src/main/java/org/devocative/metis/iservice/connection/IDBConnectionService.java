@@ -87,4 +87,6 @@ public interface IDBConnectionService extends IApplicationLifecycle, IEntityServ
 	void updateCustomParam1(Map<String, String> params);
 
 	DBConnection findByName(String name);
+
+	String getPoolInfo(Long id);
 }

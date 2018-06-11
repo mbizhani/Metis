@@ -81,34 +81,29 @@ public class DataSourceListDPage extends DPage {
 		add(form);
 
 		OColumnList<DataSource> columnList = new OColumnList<>();
-		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.name"), "name"));
-		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.title"), "title"));
-		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.connection"), "connection"));
-		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.keyField"), "keyField"));
-		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.titleField"), "titleField"));
-		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("DataSource.selfRelPointerField"), "selfRelPointerField"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataSource.name"), "name"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataSource.title"), "title"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataSource.connection"), "connection"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataSource.keyField"), "keyField"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataSource.titleField"), "titleField"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("DataSource.selfRelPointerField"), "selfRelPointerField"));
 
 		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.creationDate"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
-		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.creatorUser"), "creatorUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.creatorUser"), "creatorUser"));
 		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.modificationDate"), "modificationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference()));
-		columnList.add(new OPropertyColumn<DataSource>(new ResourceModel("entity.modifierUser"), "modifierUser"));
+		columnList.add(new OPropertyColumn<>(new ResourceModel("entity.modifierUser"), "modifierUser"));
 
-		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataViewFormDPage.class, "name", MetisIcon.EDIT));
-		columnList.add(new ORESTLinkColumn<DataSource>(new Model<String>(), DataViewExecutorDPage.class, "name", MetisIcon.EXECUTE));
-		columnList.add(new OColumn<DataSource>(new Model<String>()) {
+		columnList.add(new ORESTLinkColumn<>(new Model<>(), DataViewFormDPage.class, "name", MetisIcon.EDIT));
+		columnList.add(new ORESTLinkColumn<>(new Model<>(), DataViewExecutorDPage.class, "name", MetisIcon.EXECUTE));
+		columnList.add(new OColumn<DataSource>(new Model<>()) {
 			private static final long serialVersionUID = 2676890534453105099L;
 
 			@Override
 			public String cellValue(DataSource bean, String id, int colNo, String url) {
 				String baseUri = UrlUtil.createUri(DataViewFormDPage.class, true);
 				return String.format("<a href=\"%s?dsName=%s\">%s</a>", baseUri, bean.getName(), MetisIcon.ADD);
-			}
-
-			@Override
-			public String footerCellValue(Object bean, int colNo, String url) {
-				throw new RuntimeException("Footer not supported!");
 			}
 		});
 

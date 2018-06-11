@@ -141,11 +141,6 @@ public class DBConnectionGroupListDPage extends DPage implements IGridDataSource
 			public String cellValue(DBConnectionGroup bean, String id, int colNo, String url) {
 				return bean.getTestQuery() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
 			}
-
-			@Override
-			public String footerCellValue(Object bean, int colNo, String url) {
-				return null;
-			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OColumn<DBConnectionGroup>(new ResourceModel("DBConnectionGroup.config")) {
 			private static final long serialVersionUID = 7514001254778483999L;
@@ -153,11 +148,6 @@ public class DBConnectionGroupListDPage extends DPage implements IGridDataSource
 			@Override
 			public String cellValue(DBConnectionGroup bean, String id, int colNo, String url) {
 				return bean.getConfigId() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
-			}
-
-			@Override
-			public String footerCellValue(Object bean, int colNo, String url) {
-				return null;
 			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OPropertyColumn<DBConnectionGroup>(new ResourceModel("entity.creationDate"), "creationDate")

@@ -161,11 +161,25 @@ public class DBConnectionListDPage extends DPage implements IGridDataSource<DBCo
 				grid.loadData(target);
 			}
 		});
+		form.add(new WAjaxLink("closeAll") {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				dBConnectionService.closeAllPools();
+			}
+		}.setConfirmationMessage(new ResourceModel("label.confirm"))
+			.setVisible(hasPermission(MetisPrivilegeKey.DBConnectionCloseAll)));
 		add(form);
 
 		OColumnList<DBConnection> columnList = new OColumnList<>();
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.name"), "name"));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.url"), "safeUrl").setWidth(OSize.fixed(180)));
+		columnList.add(new OColumn<DBConnection>(new Model<>("Pool")) {
+			@Override
+			public String cellValue(DBConnection bean, String id, int colNo, String url) {
+				return dBConnectionService.getPoolInfo(bean.getId());
+			}
+		}.setStyle("direction:ltr"));
+		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.url"), "safeUrl")
+			.setWidth(OSize.fixed(180)));
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.username"), "username"));
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.schema"), "schema"));
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.group"), "group"));
@@ -177,11 +191,6 @@ public class DBConnectionListDPage extends DPage implements IGridDataSource<DBCo
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
 				return bean.getSafeTestQuery() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
 			}
-
-			@Override
-			public String footerCellValue(Object bean, int colNo, String url) {
-				return null;
-			}
 		}.setAlign(OHorizontalAlign.Center));
 		columnList.add(new OColumn<DBConnection>(new ResourceModel("DBConnection.config")) {
 			private static final long serialVersionUID = 1389013353865170084L;
@@ -190,15 +199,11 @@ public class DBConnectionListDPage extends DPage implements IGridDataSource<DBCo
 			public String cellValue(DBConnection bean, String id, int colNo, String url) {
 				return bean.getSafeConfigId() != null ? MetisIcon.TRUE.toString() : MetisIcon.FALSE.toString();
 			}
-
-			@Override
-			public String footerCellValue(Object bean, int colNo, String url) {
-				return null;
-			}
 		}.setAlign(OHorizontalAlign.Center));
 
 		columnList.add(new OPropertyColumn<>(new ResourceModel("DBConnection.customParam1"), "customParam1"));
-		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.driver"), "safeDriver").setWidth(OSize.fixed(130)));
+		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("DBConnection.driver"), "safeDriver")
+			.setWidth(OSize.fixed(130)));
 		columnList.add(new OPropertyColumn<DBConnection>(new ResourceModel("entity.creationDate"), "creationDate")
 			.setFormatter(ODateFormatter.getDateTimeByUserPreference())
 			.setStyle("direction:ltr"));

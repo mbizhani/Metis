@@ -1,6 +1,11 @@
 package org.devocative.metis.service;
 
-import org.devocative.adroit.*;
+import org.devocative.adroit.AdroitList;
+import org.devocative.adroit.ConfigUtil;
+import org.devocative.adroit.ExcelExporter;
+import org.devocative.adroit.ObjectUtil;
+import org.devocative.adroit.date.EUniCalendar;
+import org.devocative.adroit.date.UniDate;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
@@ -40,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -245,10 +251,9 @@ public class DataService implements IDataService {
 		dataVO.getFields().addAll(temp);
 	}
 
+	@Transactional
 	@Override
 	public void saveOrUpdate(DataVO dataVO) {
-		persistorService.startTrx();
-
 		if (dataVO.isDataSourceEditable()) {
 			/*XDataSource xDataSource = dataVO.toXDataSource();
 			DataSource dataSource = dataSourceService.saveOrUpdate(
@@ -265,8 +270,6 @@ public class DataService implements IDataService {
 		xDataView.setDataSourceId(dataVO.getDataSourceId());
 
 		dataViewService.saveOrUpdate(dataVO.getDataViewId(), dataVO.getTitle(), xDataView, dataVO.getGroups());
-
-		persistorService.commitOrRollback();
 
 		for (IDataEventHandler handler : handlers) {
 			handler.handleDataVoSaved(dataVO);
@@ -406,17 +409,15 @@ public class DataService implements IDataService {
 			exporter.addRowData(row);
 		}
 
-		Date now = new Date();
-		Date expire = CalendarUtil.add(now, Calendar.DATE,
-			ConfigUtil.getInteger(MetisConfigKey.ExportReportExpireDays));
-		//TODO using calendar from User
+		UniDate now = UniDate.now();
+		UniDate expire = now.updateDay(ConfigUtil.getInteger(MetisConfigKey.ExportReportExpireDays));
 		String name = String.format("%s-%s.xlsx", dataView.getName(),
-			securityService.getCurrentUser().getCalendar().convertToString(now, "yyyyMMdd-HHmmss"));
+			securityService.getCurrentUser().formatDate(now.toDate(), "yyyyMMdd-HHmmss"));
 		FileStoreHandler fileStoreHandler = fileStoreService.create(
 			name,
 			EFileStorage.DISK,
 			EMimeType.EXCEL,
-			expire,
+			expire.toDate(),
 			dataView.getName());
 
 		try {
@@ -905,9 +906,14 @@ public class DataService implements IDataService {
 						} else if (value instanceof String) {
 							String str = (String) value;
 							if (fieldType == XDSFieldType.Date) {
-								result = CalendarUtil.parseDate(str, DATE_PATTERN);
+								result = UniDate.of(EUniCalendar.Gregorian, str, DATE_PATTERN)
+									.setTime(
+										ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultHour),
+										ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultMinute),
+										ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultSecond))
+									.toDate();
 							} else {
-								result = CalendarUtil.parseDate(str, DATE_TIME_PATTERN);
+								result = UniDate.of(EUniCalendar.Gregorian, str, DATE_TIME_PATTERN).toDate();
 							}
 						} else {
 							throw new RuntimeException("Not Date/String Value");
@@ -945,11 +951,16 @@ public class DataService implements IDataService {
 					break;
 
 				case Date:
-					result = CalendarUtil.parseDate(value, DATE_PATTERN);
+					result = UniDate.of(EUniCalendar.Gregorian, value, DATE_PATTERN)
+						.setTime(
+							ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultHour),
+							ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultMinute),
+							ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultSecond))
+						.toDate();
 					break;
 
 				case DateTime:
-					result = CalendarUtil.parseDate(value, DATE_TIME_PATTERN);
+					result = UniDate.of(EUniCalendar.Gregorian, value, DATE_TIME_PATTERN).toDate();
 					break;
 
 				case Boolean:
