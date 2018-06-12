@@ -26,7 +26,9 @@ public enum MetisErrorCode implements DErrorCode {
 	NoDataViewName("No data view name"),
 	InvalidDataViewState("Invalid DataView State"),
 
-	InvalidFilterValue("Invalid filter value");
+	InvalidFilterValue("Invalid filter value"),
+
+	ReportAccessDenied("Report Access Denied");
 
 	private String defaultDescription;
 

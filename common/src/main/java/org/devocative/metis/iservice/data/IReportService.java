@@ -30,5 +30,7 @@ public interface IReportService {
 
 	// ==============================
 
-	Map<DataGroup, List<Report>> listPerGroup();
+	Map<DataGroup, List<Report>> listPerGroup(String sentDBConnection);
+
+	void assertReportAuthorization(Report report, String sentDBConnection);
 }

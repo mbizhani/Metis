@@ -2,7 +2,6 @@ package org.devocative.metis.web.dpage.data.menu;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
@@ -15,6 +14,7 @@ import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.iservice.data.IReportService;
 import org.devocative.wickomp.WPanel;
 import org.devocative.wickomp.html.WAjaxLink;
+import org.devocative.wickomp.html.WMessager;
 import org.devocative.wickomp.html.tab.OTab;
 import org.devocative.wickomp.html.tab.OTabbedPanel;
 import org.devocative.wickomp.html.tab.WTabbedPanel;
@@ -73,7 +73,7 @@ public class ReportMenuDPage extends DPage {
 					.toOptionalString();
 			}
 
-			final Map<DataGroup, List<Report>> listPerGroup = reportService.listPerGroup();
+			final Map<DataGroup, List<Report>> listPerGroup = reportService.listPerGroup(sentDBConnection);
 
 			add(new ListView<DataGroup>("group", new ArrayList<>(listPerGroup.keySet())) {
 				private static final long serialVersionUID = -4234474135351171102L;
@@ -98,6 +98,8 @@ public class ReportMenuDPage extends DPage {
 								@Override
 								public void onClick(AjaxRequestTarget target) {
 									try {
+										reportService.assertReportAuthorization(report, sentDBConnection);
+
 										tabPanel.addTab(target, new ReportExecutorPanel(
 												tabPanel.getTabContentId(),
 												report.getId(),
@@ -105,8 +107,7 @@ public class ReportMenuDPage extends DPage {
 											new OTab(new Model<>(report.getTitle()), true));
 									} catch (Exception e) {
 										logger.error("Showing Report: ", e);
-										tabPanel.addTab(target, new Label(tabPanel.getTabContentId(), "Error"),
-											new OTab(new Model<>(report.getTitle()), true));
+										WMessager.show(e, target);
 									}
 								}
 							};

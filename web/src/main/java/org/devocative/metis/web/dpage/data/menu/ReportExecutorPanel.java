@@ -55,8 +55,8 @@ public class ReportExecutorPanel extends WPanel {
 	protected void onInitialize() {
 		super.onInitialize();
 
-		Report report = reportService.load(reportId);
-		DataVO dataVO = dataService.loadDataVO(report.getDataViewId());
+		final Report report = reportService.load(reportId);
+		final DataVO dataVO = dataService.loadDataVO(report.getDataViewId());
 
 		final Map<String, Object> filter = new HashMap<>();
 
@@ -86,6 +86,8 @@ public class ReportExecutorPanel extends WPanel {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
+				reportService.assertReportAuthorization(report, sentDBConnection);
+
 				logger.debug("filter = {}", filter);
 				mainGrid.loadData(target);
 				//target.appendJavaScript(String.format("$('#%s').datagrid('loading');", mainGrid.getGridHtmlId()));
