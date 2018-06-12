@@ -191,7 +191,7 @@
 			</fields>
 		</class>
 		<class fqn="org.devocative.metis.entity.data.DataSource">
-			<cinfo/>
+			<cinfo hasForm="false"/>
 			<id ref="id"/>
 			<fields>
 				<field name="id">
@@ -212,23 +212,20 @@
 				<field name="selfRelPointerField">
 					<finfo/>
 				</field>
-				<field name="config">
+				<field name="connectionSelection">
 					<finfo/>
 				</field>
+				<field name="config">
+					<finfo ignore="true"/>
+				</field>
 				<field name="configId">
-					<finfo/>
+					<finfo ignore="true"/>
 				</field>
 				<field name="connection">
 					<finfo/>
 				</field>
 				<field name="connectionId">
-					<finfo/>
-				</field>
-				<field name="group">
-					<finfo/>
-				</field>
-				<field name="groupId">
-					<finfo/>
+					<finfo ignore="true"/>
 				</field>
 				<field name="creationDate">
 					<finfo hasForm="false" hasTimePart="true"/>
@@ -254,13 +251,10 @@
 				<field name="xDataSource">
 					<finfo ignore="true"/>
 				</field>
-				<field name="connectionSelection">
-					<finfo/>
-				</field>
 			</fields>
 		</class>
 		<class fqn="org.devocative.metis.entity.data.DataSourceRelation">
-			<cinfo/>
+			<cinfo ignore="true"/>
 			<id ref="id"/>
 			<fields>
 				<field name="id">
@@ -415,7 +409,7 @@
 			</fields>
 		</class>
 		<class fqn="org.devocative.metis.entity.MetisUserProfile">
-			<cinfo/>
+			<cinfo ignore="true"/>
 			<id ref="id"/>
 			<fields>
 				<field name="id">
@@ -456,6 +450,9 @@
 				</field>
 				<field name="connection">
 					<finfo/>
+				</field>
+				<field name="connectionId">
+					<finfo ignore="true"/>
 				</field>
 				<field name="creationDate">
 					<finfo hasForm="false" hasTimePart="true"/>

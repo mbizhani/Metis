@@ -1,6 +1,8 @@
 package org.devocative.metis.iservice.data;
 
 import org.devocative.adroit.vo.KeyValueVO;
+import org.devocative.demeter.entity.User;
+import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.config.XDSQueryMode;
 import org.devocative.metis.vo.DataVO;
@@ -12,9 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDataSourceService {
-	String CACHE_KEY = "MTS_DATA_SOURCE";
-
-	// ---------------
+	void saveOrUpdate(DataSource entity);
 
 	DataSource load(String id);
 
@@ -22,15 +22,23 @@ public interface IDataSourceService {
 
 	List<DataSource> list();
 
-	DataSource saveOrUpdate(DataVO dataVO);
-
 	List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize);
 
 	long count(DataSourceFVO filter);
 
-	List<DataSource> getAllDataSourcesAsLookup();
+	List<DBConnection> getConnectionList();
 
-	// ---------------
+	List<User> getCreatorUserList();
+
+	List<User> getModifierUserList();
+
+	// ==============================
+
+	String CACHE_KEY = "MTS_DATA_SOURCE";
+
+	DataSource saveOrUpdate(DataVO dataVO);
+
+	List<DataSource> getAllDataSourcesAsLookup();
 
 	String processQuery(Long dbConnId, String query, XDSQueryMode mode);
 

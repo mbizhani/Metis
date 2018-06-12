@@ -1,32 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!--overwrite-->
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:panel>
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
 	<form wicket:id="form">
 		<div class="dmt-form">
 			<div wicket:id="floatTable">
-				<div>
-					<div wicket:id="name"></div>
-				</div>
-				<div>
-					<div wicket:id="title"></div>
-				</div>
-				<div>
-					<div wicket:id="connection"></div>
-				</div>
-				<div>
-					<div wicket:id="creationDate"></div>
-				</div>
-				<div>
-					<div wicket:id="creatorUser"></div>
-				</div>
-				<div>
-					<div wicket:id="modificationDate"></div>
-				</div>
-				<div>
-					<div wicket:id="modifierUser"></div>
-				</div>
+				<div wicket:id="name"></div>
+				<div wicket:id="title"></div>
+				<div wicket:id="keyField"></div>
+				<div wicket:id="titleField"></div>
+				<div wicket:id="selfRelPointerField"></div>
+				<div wicket:id="connectionSelection"></div>
+				<div wicket:id="connection"></div>
+				<div wicket:id="creationDate"></div>
+				<div wicket:id="creatorUser"></div>
+				<div wicket:id="modificationDate"></div>
+				<div wicket:id="modifierUser"></div>
+
 			</div>
+
 			<button wicket:id="search"></button>
 			<button type="reset">
 				<wicket:message key="label.reset"/>
@@ -36,6 +29,7 @@
 	</form>
 
 	<div wicket:id="grid"></div>
+
 </wicket:panel>
-</body>
+
 </html>

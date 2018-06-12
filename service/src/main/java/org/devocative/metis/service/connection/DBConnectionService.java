@@ -108,16 +108,14 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		xstream.processAnnotations(XMany2One.class);
 		xstream.processAnnotations(XOne2Many.class);
 
-		dbConnectionCache = cacheService.create(CACHE_KEY_DB_CONNECTION, 20);
-		dbConnectionCache.setMissedHitHandler(key -> persistorService.createQueryBuilder()
+		dbConnectionCache = cacheService.create(CACHE_KEY_DB_CONNECTION, 20, key -> persistorService.createQueryBuilder()
 			.addFrom(DBConnection.class, "ent")
 			.addJoin("grp", "ent.group", EJoinMode.LeftFetch)
 			.addWhere("and ent.id = :id")
 			.addParam("id", key)
 			.object());
 
-		xSchemaCache = cacheService.create(CACHE_KEY_X_SCHEMA, 5);
-		xSchemaCache.setMissedHitHandler(key -> {
+		xSchemaCache = cacheService.create(CACHE_KEY_X_SCHEMA, 5, key -> {
 			String config = persistorService.createQueryBuilder()
 				.addSelect("select ent.value")
 				.addFrom(ConfigLob.class, "ent")
@@ -293,7 +291,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 				persistorService.saveOrUpdate(configLob);
 				dbConnection.setConfig(configLob);
 
-				xSchemaCache.update(configLob.getId(), (XSchema) xstream.fromXML(mappingXML));
+				xSchemaCache.remove(configLob.getId());
 			}
 
 			saveOrUpdate(dbConnection);
@@ -590,8 +588,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		logger.info("DBConnection(s) updating: DBConnectionGroup changed = [{}]", group.getName());
 
 		if (group.getConfig() != null) {
-			XSchema xSchema = (XSchema) xstream.fromXML(group.getConfig().getValue());
-			xSchemaCache.update(group.getConfig().getId(), xSchema);
+			xSchemaCache.remove(group.getConfig().getId());
 		}
 
 		List<DBConnection> connections = persistorService

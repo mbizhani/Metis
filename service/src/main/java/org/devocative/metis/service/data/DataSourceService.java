@@ -4,13 +4,13 @@ import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.cache.ICache;
-import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.date.UniDate;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.adroit.xml.AdroitXStream;
 import org.devocative.demeter.DLogCtx;
+import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ICacheService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
@@ -45,7 +45,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service("mtsDataSourceService")
-public class DataSourceService implements IDataSourceService, IMissedHitHandler<String, DataSource> {
+public class DataSourceService implements IDataSourceService {
 	private static final Logger logger = LoggerFactory.getLogger(DataSourceService.class);
 
 	private static final String EMBED_FILTER_EXPRESSION = "%FILTER_EXPR%";
@@ -75,11 +75,28 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		xStream = new AdroitXStream();
 		xStream.processAnnotations(XDataSource.class);
 
-		dataSourceCache = cacheService.create(CACHE_KEY, 70);
-		dataSourceCache.setMissedHitHandler(this);
+		dataSourceCache = cacheService.create(CACHE_KEY, 70, key -> {
+			DataSource ds = persistorService
+				.createQueryBuilder()
+				.addFrom(DataSource.class, "ent")
+				.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+				.addJoin("con", "ent.connection", EJoinMode.LeftFetch)
+				.addWhere("and ent.id = :id")
+				.addParam("id", key)
+				.object();
+
+			ds.setXDataSource((XDataSource) xStream.fromXML(ds.getConfig().getValue()));
+
+			return ds;
+		});
 	}
 
 	// ------------------------------
+
+	@Override
+	public void saveOrUpdate(DataSource entity) {
+		persistorService.saveOrUpdate(entity);
+	}
 
 	@Override
 	public DataSource load(String id) {
@@ -104,27 +121,47 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		return ds;
 	}
 
-	// IMissedHitHandler
-	@Override
-	public DataSource loadForCache(String key) {
-		DataSource ds = persistorService
-			.createQueryBuilder()
-			.addFrom(DataSource.class, "ent")
-			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
-			.addJoin("con", "ent.connection", EJoinMode.LeftFetch)
-			.addWhere("and ent.id = :id")
-			.addParam("id", key)
-			.object();
-
-		ds.setXDataSource((XDataSource) xStream.fromXML(ds.getConfig().getValue()));
-
-		return ds;
-	}
-
 	@Override
 	public List<DataSource> list() {
 		return persistorService.list(DataSource.class);
 	}
+
+	@Override
+	public List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize) {
+		return persistorService
+			.createQueryBuilder()
+			.addSelect("select ent")
+			.addFrom(DataSource.class, "ent")
+			.applyFilter(DataSource.class, "ent", filter)
+			.list((pageIndex - 1) * pageSize, pageSize);
+	}
+
+	@Override
+	public long count(DataSourceFVO filter) {
+		return persistorService
+			.createQueryBuilder()
+			.addSelect("select count(1)")
+			.addFrom(DataSource.class, "ent")
+			.applyFilter(DataSource.class, "ent", filter)
+			.object();
+	}
+
+	@Override
+	public List<DBConnection> getConnectionList() {
+		return persistorService.list(DBConnection.class);
+	}
+
+	@Override
+	public List<User> getCreatorUserList() {
+		return persistorService.list(User.class);
+	}
+
+	@Override
+	public List<User> getModifierUserList() {
+		return persistorService.list(User.class);
+	}
+
+	// ==============================
 
 	@Override
 	public DataSource saveOrUpdate(DataVO dataVO) {
@@ -223,26 +260,6 @@ public class DataSourceService implements IDataSourceService, IMissedHitHandler<
 		}
 
 		return dataSource;
-	}
-
-	@Override
-	public List<DataSource> search(DataSourceFVO filter, long pageIndex, long pageSize) {
-		return persistorService
-			.createQueryBuilder()
-			.addSelect("select ent")
-			.addFrom(DataSource.class, "ent")
-			.applyFilter(DataSource.class, "ent", filter)
-			.list((pageIndex - 1) * pageSize, pageSize);
-	}
-
-	@Override
-	public long count(DataSourceFVO filter) {
-		return persistorService
-			.createQueryBuilder()
-			.addSelect("select count(1)")
-			.addFrom(DataSource.class, "ent")
-			.applyFilter(DataSource.class, "ent", filter)
-			.object();
 	}
 
 	// ---------------

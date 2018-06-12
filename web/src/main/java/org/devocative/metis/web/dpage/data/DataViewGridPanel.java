@@ -387,6 +387,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 
 		WebMarkupContainer sendButtons = new WebMarkupContainer("sendButtons");
+		sendButtons.setVisible(false);
 
 		if (selectionJSCallback != null) {
 			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
@@ -409,6 +410,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				actions.add(new ActionBut("_DEFAULT_", getString("label.send"), null));
 			}
 
+			sendButtons.setVisible(true);
 			sendButtons.add(new ListView<ActionBut>("buttons", actions) {
 				private static final long serialVersionUID = 8248347500988483292L;
 

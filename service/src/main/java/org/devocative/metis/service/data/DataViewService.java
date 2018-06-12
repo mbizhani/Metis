@@ -2,7 +2,6 @@ package org.devocative.metis.service.data;
 
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.cache.ICache;
-import org.devocative.adroit.cache.IMissedHitHandler;
 import org.devocative.adroit.date.EUniCalendar;
 import org.devocative.adroit.date.UniDate;
 import org.devocative.adroit.obuilder.ObjectBuilder;
@@ -49,7 +48,7 @@ import java.util.*;
 import static org.devocative.adroit.sql.XQuery.sql;
 
 @Service("mtsDataViewService")
-public class DataViewService implements IDataViewService, IMissedHitHandler<String, DataView> {
+public class DataViewService implements IDataViewService {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewService.class);
 
 	// ------------------------------
@@ -79,8 +78,18 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 		xStream = new AdroitXStream();
 		xStream.processAnnotations(XDataView.class);
 
-		dataViewCache = cacheService.create(CACHE_KEY, 50);
-		dataViewCache.setMissedHitHandler(this);
+		dataViewCache = cacheService.create(CACHE_KEY, 50, key -> {
+			DataView dv = persistorService
+				.createQueryBuilder()
+				.addFrom(DataView.class, "ent")
+				.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
+				.addJoin("grp", "ent.groups", EJoinMode.LeftFetch)
+				.addWhere("and ent.id = :id")
+				.addParam("id", key)
+				.object();
+			dv.setXDataView((XDataView) xStream.fromXML(dv.getConfig().getValue()));
+			return dv;
+		});
 	}
 
 	// ------------------------------
@@ -164,21 +173,6 @@ public class DataViewService implements IDataViewService, IMissedHitHandler<Stri
 	}
 
 	// ==============================
-
-	// IMissedHitHandler
-	@Override
-	public DataView loadForCache(String key) {
-		DataView dv = persistorService
-			.createQueryBuilder()
-			.addFrom(DataView.class, "ent")
-			.addJoin("cfg", "ent.config", EJoinMode.LeftFetch)
-			.addJoin("grp", "ent.groups", EJoinMode.LeftFetch)
-			.addWhere("and ent.id = :id")
-			.addParam("id", key)
-			.object();
-		dv.setXDataView((XDataView) xStream.fromXML(dv.getConfig().getValue()));
-		return dv;
-	}
 
 	@Override
 	public void saveOrUpdate(String dataViewId, String title, XDataView xDataView, List<DataGroup> groups) {
