@@ -19,6 +19,7 @@ import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.WFileInput;
 import org.devocative.wickomp.form.WSelectionInput;
+import org.devocative.wickomp.html.WMessager;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -92,6 +93,8 @@ public class ExportImportPanel extends DPanel {
 				if (fileUpload != null) {
 					try {
 						dataViewService.importAll(fileUpload.getInputStream());
+
+						WMessager.show("Info", "Imported Successfully", target);
 					} catch (IOException e) {
 						throw new RuntimeException(e);
 					}
