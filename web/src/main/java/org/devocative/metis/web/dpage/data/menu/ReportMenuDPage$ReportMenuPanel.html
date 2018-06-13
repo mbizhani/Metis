@@ -21,7 +21,13 @@
 </wicket:head>
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-	<div class="easyui-accordion" data-options="multiple:true">
+	<div style="width:100%; padding: 5px 10px">
+		<input id="searchTxt" type="text" style="padding:0;width:400px"/>
+		<button id="searchBut" type="button" style="margin:0"><i class="fa fa-search"></i></button>
+		[ <span id="noOfReport"></span> ]
+	</div>
+
+	<div id="groups" class="easyui-accordion" data-options="multiple:true">
 		<div wicket:id="group" style="overflow:auto;padding:10px;">
 
 			<wicket:container wicket:id="report">
@@ -30,17 +36,75 @@
 		</div>
 	</div>
 
-	<!--<script type="text/javascript">
-		$('.btn').tooltip({
-			onShow: function () {
-				$(this).tooltip('tip').css({
-					borderColor: '#4CAF50',
-					backgroundColor: '#E1FF00',
-					borderRadius: '7px'
-				});
-			}
+	<script type="text/javascript">
+		$("#searchTxt")
+			.keyup(function (event) {
+				if (event.keyCode === 13) {
+					filter($(this).val());
+					event.preventDefault();
+				} else if (event.keyCode === 27 || $(this).val().length === 0) {
+					$(this).val("");
+					filter("");
+				}
+			});
+
+		$("#searchBut").click(function () {
+			filter($("#searchTxt").val());
 		});
-	</script>-->
+
+		function filter(txt) {
+			var len = $("#groups").accordion("panels").length;
+
+			if (txt && txt !== "") {
+				for (var i = 0; i < len; i++) {
+					$("#groups").accordion("unselect", i);
+				}
+
+				var filter = txt.toUpperCase().split("&");
+				$("button.btn").each(function () {
+					var hide = false;
+					var cap = $(this).text().toUpperCase();
+
+					for (var i = 0; i < filter.length; i++) {
+						if (cap.indexOf(filter[i].trim()) < 0) {
+							hide = true;
+							break;
+						}
+					}
+
+					if (hide) {
+						$(this).hide();
+					} else {
+						$(this).show();
+						$("#groups").accordion("select", parseInt($(this).attr("gidx")));
+					}
+
+				});
+			} else {
+				$("button.btn").show();
+				$("#groups").accordion("select", 0);
+
+				for (var j = 1; j < len; j++) {
+					$("#groups").accordion("unselect", j);
+				}
+			}
+
+			showNoOfReport();
+		}
+
+		function showNoOfReport() {
+			var cnt = 0;
+			$("button.btn").each(function () {
+				if ($(this).css("display") === "inline-block") {
+					cnt++;
+				}
+			});
+			$("#noOfReport").html(cnt);
+		}
+
+		showNoOfReport();
+	</script>
+
 </wicket:panel>
 
 </html>

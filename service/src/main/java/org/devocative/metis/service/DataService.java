@@ -15,7 +15,6 @@ import org.devocative.demeter.entity.EMimeType;
 import org.devocative.demeter.iservice.FileStoreHandler;
 import org.devocative.demeter.iservice.IFileStoreService;
 import org.devocative.demeter.iservice.ISecurityService;
-import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.demeter.iservice.task.ITaskResultCallback;
 import org.devocative.demeter.iservice.task.ITaskService;
 import org.devocative.demeter.iservice.template.IStringTemplate;
@@ -60,9 +59,6 @@ public class DataService implements IDataService {
 	private static final String DATE_TIME_PATTERN = "yyyyMMddHHmmss";
 
 	private List<IDataEventHandler> handlers = Collections.synchronizedList(new ArrayList<>());
-
-	@Autowired
-	private IPersistorService persistorService;
 
 	@Autowired
 	private IDBConnectionService dbConnectionService;

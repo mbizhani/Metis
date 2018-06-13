@@ -79,13 +79,13 @@ public class ReportMenuDPage extends DPage {
 				private static final long serialVersionUID = -4234474135351171102L;
 
 				@Override
-				protected void populateItem(ListItem<DataGroup> item) {
-					DataGroup group = item.getModelObject();
+				protected void populateItem(ListItem<DataGroup> groupItem) {
+					DataGroup group = groupItem.getModelObject();
 
 					//item.add(new Label("groupTitle", group.getName()));
-					item.add(new AttributeModifier("title", group.getName()));
+					groupItem.add(new AttributeModifier("title", group.getName()));
 
-					item.add(new ListView<Report>("report", listPerGroup.get(group)) {
+					groupItem.add(new ListView<Report>("report", listPerGroup.get(group)) {
 						private static final long serialVersionUID = 7979832690560075180L;
 
 						@Override
@@ -111,7 +111,7 @@ public class ReportMenuDPage extends DPage {
 									}
 								}
 							};
-							//run.add(new AttributeModifier("title", report.getTitle()));
+							run.add(new AttributeModifier("gidx", groupItem.getIndex()));
 							item.add(run);
 						}
 					});
