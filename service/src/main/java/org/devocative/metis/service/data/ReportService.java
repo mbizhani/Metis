@@ -1,9 +1,12 @@
 package org.devocative.metis.service.data;
 
+import com.ibm.icu.text.Collator;
+import com.ibm.icu.util.ULocale;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
+import org.devocative.demeter.vo.UserVO;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.connection.DBConnection;
@@ -17,10 +20,8 @@ import org.devocative.metis.vo.filter.data.ReportFVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.Serializable;
+import java.util.*;
 
 @Service("mtsReportService")
 public class ReportService implements IReportService {
@@ -114,12 +115,12 @@ public class ReportService implements IReportService {
 			}
 		}
 
-		final Long userId = securityService.getCurrentUser().getUserId();
+		final UserVO currentUser = securityService.getCurrentUser();
 
-		Map<DataGroup, List<Report>> result = new TreeMap<>();
+		Map<DataGroup, List<Report>> result = new TreeMap<>(new DataGroupComparator(currentUser.getLocale().getCode()));
 		for (Report report : reports) {
 			if (externalAuthorizationService == null ||
-				externalAuthorizationService.authorizeReport(report, dbConnectionId, userId)) {
+				externalAuthorizationService.authorizeReport(report, dbConnectionId, currentUser.getUserId())) {
 				for (DataGroup group : report.getGroups()) {
 					if (!result.containsKey(group)) {
 						result.put(group, new ArrayList<>());
@@ -130,6 +131,21 @@ public class ReportService implements IReportService {
 		}
 
 		return result;
+
+		/*final Collator collator = Collator.getInstance(new ULocale(securityService.getCurrentUser().getLocale().getCode()));
+		return reports.parallelStream()
+			.filter(report ->
+				externalAuthorizationService == null ||
+					externalAuthorizationService.authorizeReport(report, null, currentUser.getUserId())
+			)
+			.flatMap(report -> report.getGroups().stream().map(dataGroup -> new KeyValueVO<>(dataGroup, report)))
+			.collect(Collectors.groupingBy(
+				KeyValueVO::getKey,
+				() -> new TreeMap<>((o1, o2) -> collator.compare(o1.getName(), o2.getName())),
+				Collectors.mapping(
+					KeyValueVO::getValue,
+					Collectors.toList()))
+			);*/
 	}
 
 	@Override
@@ -149,5 +165,23 @@ public class ReportService implements IReportService {
 			throw new MetisException(MetisErrorCode.ReportAccessDenied, report.getTitle());
 		}
 
+	}
+
+	// ------------------------------
+
+	private static class DataGroupComparator implements Serializable, Comparator<DataGroup> {
+		private static final long serialVersionUID = -8168584838409853933L;
+
+		private String locale;
+
+		DataGroupComparator(String locale) {
+			this.locale = locale;
+		}
+
+		@Override
+		public int compare(DataGroup o1, DataGroup o2) {
+			Collator collator = Collator.getInstance(new ULocale(locale));
+			return collator.compare(o1.getName(), o2.getName());
+		}
 	}
 }

@@ -14,7 +14,7 @@ import java.util.Date;
 	@UniqueConstraint(name = "uk_mts_datagrp_name", columnNames = {"c_name"}),
 	@UniqueConstraint(name = "uk_mts_datagrp_code", columnNames = {"c_code"})
 })
-public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser, Comparable<DataGroup> {
+public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate, IModifierUser {
 	private static final long serialVersionUID = 6455487013206016555L;
 
 	@Id
@@ -175,16 +175,5 @@ public class DataGroup implements ICreationDate, ICreatorUser, IModificationDate
 	@Override
 	public int hashCode() {
 		return getId() != null ? getId().hashCode() : 0;
-	}
-
-	// ---------------
-
-	@Override
-	public int compareTo(DataGroup o) {
-		if (getName() != null && o != null && o.getName() != null) {
-			return getName().compareTo(o.getName());
-		}
-
-		return 0;
 	}
 }
