@@ -1,6 +1,8 @@
 package org.devocative.metis.iservice;
 
+import org.devocative.adroit.date.TimeFieldVO;
 import org.devocative.demeter.iservice.task.ITaskResultCallback;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
@@ -57,4 +59,6 @@ public interface IDataService {
 	void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams);
 
 	void addDataEventHandler(IDataEventHandler handler);
+
+	TimeFieldVO extractTimeFields(MetisConfigKey configKey);
 }

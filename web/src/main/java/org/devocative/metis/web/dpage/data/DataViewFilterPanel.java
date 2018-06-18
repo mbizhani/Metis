@@ -7,7 +7,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
-import org.devocative.adroit.ConfigUtil;
+import org.devocative.adroit.date.TimeFieldVO;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.metis.MetisConfigKey;
@@ -200,19 +200,19 @@ public class DataViewFilterPanel extends DPanel {
 			case Date:
 			case DateTime:
 				if (XDSFieldFilterType.Range == fieldVO.getFilterType()) {
+					final TimeFieldVO fromTime = dataService.extractTimeFields(MetisConfigKey.FormDateTimeDefaultFrom);
+					final TimeFieldVO toTime = dataService.extractTimeFields(MetisConfigKey.FormDateTimeDefaultTo);
+
 					fieldFormItem = new WDateRangeInput(fieldVO.getName())
 						.setTimePartVisible(XDSFieldType.DateTime == fieldVO.getType())
-						.setDefaultHour(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultHour))
-						.setDefaultMinute(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultMinute))
-						.setDefaultSecond(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultSecond))
-					;
+						.setFromDefaultTime(fromTime)
+						.setToDefaultTime(toTime);
 				} else {
+					final TimeFieldVO timeFieldVO = dataService.extractTimeFields(MetisConfigKey.FormDateDefaultTime);
+
 					fieldFormItem = new WDateInput(fieldVO.getName())
 						.setTimePartVisible(XDSFieldType.DateTime == fieldVO.getType())
-						.setDefaultHour(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultHour))
-						.setDefaultMinute(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultMinute))
-						.setDefaultSecond(ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultSecond))
-					;
+						.setDefaultTime(timeFieldVO);
 				}
 				break;
 

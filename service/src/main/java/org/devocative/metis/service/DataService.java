@@ -5,6 +5,7 @@ import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ExcelExporter;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.date.EUniCalendar;
+import org.devocative.adroit.date.TimeFieldVO;
 import org.devocative.adroit.date.UniDate;
 import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
@@ -49,6 +50,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service("mtsDataService")
@@ -57,6 +60,7 @@ public class DataService implements IDataService {
 
 	private static final String DATE_PATTERN = "yyyyMMdd";
 	private static final String DATE_TIME_PATTERN = "yyyyMMddHHmmss";
+	private static final Pattern DEFAULT_TIME = Pattern.compile("(\\d\\d):(\\d\\d):(\\d\\d).(\\d\\d\\d)");
 
 	private List<IDataEventHandler> handlers = Collections.synchronizedList(new ArrayList<>());
 
@@ -791,6 +795,21 @@ public class DataService implements IDataService {
 		handlers.add(handler);
 	}
 
+	@Override
+	public TimeFieldVO extractTimeFields(MetisConfigKey configKey) {
+		String text = ConfigUtil.getString(configKey);
+		final Matcher matcher = DEFAULT_TIME.matcher(text);
+		if (matcher.find()) {
+			return new TimeFieldVO(
+				Integer.parseInt(matcher.group(1)),
+				Integer.parseInt(matcher.group(2)),
+				Integer.parseInt(matcher.group(3)),
+				Integer.parseInt(matcher.group(4)));
+		}
+
+		throw new RuntimeException(String.format("Invalid format for %s: %s", configKey.getKey(), text));
+	}
+
 	// ------------------------------ PRIVATE METHODS
 
 	private DataVO loadDataVOByDataView(DataView dataView) {
@@ -902,11 +921,10 @@ public class DataService implements IDataService {
 						} else if (value instanceof String) {
 							String str = (String) value;
 							if (fieldType == XDSFieldType.Date) {
+								final TimeFieldVO timeFieldVO = extractTimeFields(MetisConfigKey.FormDateDefaultTime);
+
 								result = UniDate.of(EUniCalendar.Gregorian, str, DATE_PATTERN)
-									.setTime(
-										ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultHour),
-										ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultMinute),
-										ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultSecond))
+									.setTime(timeFieldVO)
 									.toDate();
 							} else {
 								result = UniDate.of(EUniCalendar.Gregorian, str, DATE_TIME_PATTERN).toDate();
@@ -947,11 +965,10 @@ public class DataService implements IDataService {
 					break;
 
 				case Date:
+					final TimeFieldVO timeFieldVO = extractTimeFields(MetisConfigKey.FormDateDefaultTime);
+
 					result = UniDate.of(EUniCalendar.Gregorian, value, DATE_PATTERN)
-						.setTime(
-							ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultHour),
-							ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultMinute),
-							ConfigUtil.getInteger(MetisConfigKey.FormDateDefaultSecond))
+						.setTime(timeFieldVO)
 						.toDate();
 					break;
 

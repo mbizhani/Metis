@@ -32,9 +32,9 @@ public enum MetisConfigKey implements IConfigKey {
 	GridAssertInvalidParent("mts.grid.assert.invalid.parent", true, Arrays.asList(true, false)),
 	GridCheckboxColumnMode("mts.grid.column.checkbox.mode", "MultiSelect", Arrays.asList("Never", "MultiSelect", "Always")),
 
-	FormDateDefaultHour("mts.form.date.default.hour", 12),
-	FormDateDefaultMinute("mts.form.date.default.minute", 0),
-	FormDateDefaultSecond("mts.form.date.default.second", 0),
+	FormDateDefaultTime("mts.form.date.default.time", "12:00:00.000"),
+	FormDateTimeDefaultFrom("mts.form.datetime.default.from", "00:00:00.000"),
+	FormDateTimeDefaultTo("mts.form.datetime.default.to", "23:59:59.999"),
 
 	ODataReplaceCharForNonSystemParam("mts.odata.char.replace.non.system", "~"),
 	ODataConsiderParentRelation("mts.odata.consider.parent.relation", false, Arrays.asList(true, false));
