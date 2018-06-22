@@ -2,6 +2,7 @@ package org.devocative.metis.service.data;
 
 import com.ibm.icu.text.Collator;
 import com.ibm.icu.util.ULocale;
+import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
@@ -21,7 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service("mtsReportService")
 public class ReportService implements IReportService {
@@ -99,7 +105,7 @@ public class ReportService implements IReportService {
 
 	@Override
 	public Map<DataGroup, List<Report>> listPerGroup(String sentDBConnection) {
-		List<Report> reports = persistorService
+		final List<Report> reports = persistorService
 			.createQueryBuilder()
 			.addSelect("select distinct ent")
 			.addFrom(Report.class, "ent")
@@ -107,45 +113,34 @@ public class ReportService implements IReportService {
 			.setOrderBy("ent.title")
 			.list();
 
-		Long dbConnectionId = null;
+		final Long dbConnectionId;
 		if (sentDBConnection != null) {
 			final DBConnection dbConnection = dbConnectionService.loadByName(sentDBConnection);
 			if (dbConnection != null) {
 				dbConnectionId = dbConnection.getId();
+			} else {
+				dbConnectionId = null;
 			}
+		} else {
+			dbConnectionId = null;
 		}
 
 		final UserVO currentUser = securityService.getCurrentUser();
+		final LocaleStringComparator<DataGroup> ldc = new LocaleStringComparator<>(currentUser.getLocale().getCode(), DataGroup::getName);
 
-		Map<DataGroup, List<Report>> result = new TreeMap<>(new DataGroupComparator(currentUser.getLocale().getCode()));
-		for (Report report : reports) {
-			if (externalAuthorizationService == null ||
-				externalAuthorizationService.authorizeReport(report, dbConnectionId, currentUser.getUserId())) {
-				for (DataGroup group : report.getGroups()) {
-					if (!result.containsKey(group)) {
-						result.put(group, new ArrayList<>());
-					}
-					result.get(group).add(report);
-				}
-			}
-		}
-
-		return result;
-
-		/*final Collator collator = Collator.getInstance(new ULocale(securityService.getCurrentUser().getLocale().getCode()));
 		return reports.parallelStream()
 			.filter(report ->
 				externalAuthorizationService == null ||
-					externalAuthorizationService.authorizeReport(report, null, currentUser.getUserId())
+					externalAuthorizationService.authorizeReport(report, dbConnectionId, currentUser.getUserId())
 			)
 			.flatMap(report -> report.getGroups().stream().map(dataGroup -> new KeyValueVO<>(dataGroup, report)))
 			.collect(Collectors.groupingBy(
 				KeyValueVO::getKey,
-				() -> new TreeMap<>((o1, o2) -> collator.compare(o1.getName(), o2.getName())),
+				() -> new TreeMap<>(ldc),
 				Collectors.mapping(
 					KeyValueVO::getValue,
 					Collectors.toList()))
-			);*/
+			);
 	}
 
 	@Override
@@ -169,19 +164,29 @@ public class ReportService implements IReportService {
 
 	// ------------------------------
 
-	private static class DataGroupComparator implements Serializable, Comparator<DataGroup> {
-		private static final long serialVersionUID = -8168584838409853933L;
+	interface AFunction<T, R> extends Function<T, R>, Serializable {
+	}
 
-		private String locale;
+	private static class LocaleStringComparator<T> implements Comparator<T>, Serializable {
+		private static final long serialVersionUID = 61690144572014573L;
 
-		DataGroupComparator(String locale) {
+		private final String locale;
+		private final AFunction<T, String> stringExtractor;
+
+		// ------------------------------
+
+		LocaleStringComparator(String locale, AFunction<T, String> stringExtractor) {
 			this.locale = locale;
+			this.stringExtractor = stringExtractor;
 		}
+
+		// ------------------------------
 
 		@Override
-		public int compare(DataGroup o1, DataGroup o2) {
+		public int compare(T o1, T o2) {
 			Collator collator = Collator.getInstance(new ULocale(locale));
-			return collator.compare(o1.getName(), o2.getName());
+			return collator.compare(stringExtractor.apply(o1), stringExtractor.apply(o2));
 		}
 	}
+
 }
