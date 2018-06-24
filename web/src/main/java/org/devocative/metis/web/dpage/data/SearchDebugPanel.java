@@ -12,7 +12,9 @@ import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class SearchDebugPanel extends DPanel {
 	private static final long serialVersionUID = -5678280342452888775L;
@@ -80,7 +82,7 @@ class SearchDebugPanel extends DPanel {
 		}
 
 		WebMarkupContainer debugInfo = new WebMarkupContainer("debugInfo");
-		debugInfo.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger) && !errorHappened);
+		debugInfo.setVisible(ConfigUtil.getBoolean(MetisConfigKey.ShowSearchDebugger));
 		add(debugInfo);
 
 		debugInfo.add(new Label("sentURL", builder.toString()));
@@ -98,7 +100,10 @@ class SearchDebugPanel extends DPanel {
 
 				item.add(new Label("sql", infoRVO.getFinalSQL()).setEscapeModelStrings(true));
 
-				item.add(new ListView<KeyValueVO<Integer, Object>>("param", KeyValueVO.fromMap(infoRVO.getFinalParams())) {
+				final Map<Integer, Object> params = infoRVO.getFinalParams() != null ?
+					infoRVO.getFinalParams() :
+					new HashMap<>();
+				item.add(new ListView<KeyValueVO<Integer, Object>>("param", KeyValueVO.fromMap(params)) {
 					private static final long serialVersionUID = 3470976981108949137L;
 
 					@Override
