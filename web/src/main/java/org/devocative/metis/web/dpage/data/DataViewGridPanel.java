@@ -552,6 +552,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 			} else if (XDSFieldResultType.Hidden.equals(fieldVO.getResultType())) {
 				column = new OHiddenColumn<>(fieldVO.getName());
+				switch (fieldVO.getType()) {
+					case Date:
+					case DateTime:
+						column.setFormatter(ODateFormatter.millis());
+						break;
+				}
 				columns.add(column);
 			}
 		}
