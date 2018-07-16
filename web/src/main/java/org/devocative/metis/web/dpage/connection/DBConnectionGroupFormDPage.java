@@ -85,9 +85,9 @@ public class DBConnectionGroupFormDPage extends DPage {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				String mappingXML = null;
-				FileUpload fileUpload = config.getFileUpload();
-				if (fileUpload != null) {
-					mappingXML = new String(fileUpload.getBytes(), Charset.forName("UTF-8"));
+				List<FileUpload> fileUploads = config.getFileUpload();
+				if (!fileUploads.isEmpty()) {
+					mappingXML = new String(fileUploads.get(0).getBytes(), Charset.forName("UTF-8"));
 				}
 				dBConnectionGroupService.saveOrUpdate(entity, mappingXML);
 

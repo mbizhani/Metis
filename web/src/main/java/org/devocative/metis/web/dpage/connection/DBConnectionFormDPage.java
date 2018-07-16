@@ -47,7 +47,7 @@ public class DBConnectionFormDPage extends DPage {
 
 	// Main Constructor - For Ajax Call
 	public DBConnectionFormDPage(String id, DBConnection entity) {
-		super(id, Collections.<String>emptyList());
+		super(id, Collections.emptyList());
 
 		this.entity = entity;
 	}
@@ -140,9 +140,9 @@ public class DBConnectionFormDPage extends DPage {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				String mappingXML = null;
-				FileUpload fileUpload = config.getFileUpload();
-				if (fileUpload != null) {
-					mappingXML = new String(fileUpload.getBytes(), Charset.forName("UTF-8"));
+				List<FileUpload> fileUploads = config.getFileUpload();
+				if (!fileUploads.isEmpty()) {
+					mappingXML = new String(fileUploads.get(0).getBytes(), Charset.forName("UTF-8"));
 				}
 				dBConnectionService.saveOrUpdate(entity, mappingXML, password.getModelObject());
 

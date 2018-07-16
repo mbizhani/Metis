@@ -5,6 +5,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.PropertyModel;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.demeter.web.UrlUtil;
@@ -19,10 +20,8 @@ import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.WFileInput;
 import org.devocative.wickomp.form.WSelectionInput;
-import org.devocative.wickomp.html.WMessager;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.util.List;
 
 public class ExportImportPanel extends DPanel {
@@ -80,24 +79,32 @@ public class ExportImportPanel extends DPanel {
 		importPanel.setVisible(hasPermission(MetisPrivilegeKey.DataViewImport));
 		panel.add(importPanel);
 
+		FeedbackPanel feedback = new FeedbackPanel("feedback");
+		feedback.setEscapeModelStrings(false).setOutputMarkupId(true);
+		importPanel.add(feedback);
+
 		Form<Void> importForm = new Form<>("importForm");
 		file = new WFileInput("file");
-		file.setRequired(true);
+		file
+			.setMultiple(true)
+			.setRequired(true);
 		importForm.add(file);
 		importForm.add(new DAjaxButton("import", MetisIcon.UPLOAD) {
 			private static final long serialVersionUID = -6659127554044856922L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
-				FileUpload fileUpload = file.getFileUpload();
-				if (fileUpload != null) {
+				List<FileUpload> fileUploads = file.getFileUpload();
+				for (FileUpload fileUpload : fileUploads) {
 					try {
 						dataViewService.importAll(fileUpload.getInputStream());
 
-						WMessager.show("Info", "Imported Successfully", target);
-					} catch (IOException e) {
-						throw new RuntimeException(e);
+						info("Ok <br/>File: " + fileUpload.getClientFileName());
+					} catch (Exception e) {
+						error("Error <br/>File: " + fileUpload.getClientFileName() + "<br/>Message: " + e.getMessage());
 					}
+
+					target.add(feedback);
 				}
 			}
 		});
