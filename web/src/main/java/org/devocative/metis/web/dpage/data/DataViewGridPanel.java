@@ -507,42 +507,47 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						case Integer:
 							column
 								.setField(FIELD_PREFIX + fieldVO.getName())
-								.setFormatter(ONumberFormatter.integer())
+								.setFormatter(ONumberFormatter.of(fieldVO.getFormatSafely()))
 								.setStyle("direction:ltr");
 
 							columns.add(new OHiddenColumn<>(fieldVO.getName()));
 							break;
+
 						case Real:
 							column
 								.setField(FIELD_PREFIX + fieldVO.getName())
-								.setFormatter(ONumberFormatter.real())
+								.setFormatter(ONumberFormatter.of(fieldVO.getFormatSafely()))
 								.setStyle("direction:ltr");
 
 							columns.add(new OHiddenColumn<>(fieldVO.getName()));
 							break;
+
 						case Date:
 							column
 								.setField(FIELD_PREFIX + fieldVO.getName())
-								.setFormatter(ODateFormatter.prDate())
+								.setFormatter(ODateFormatter.of(fieldVO.getFormatSafely()))
 								.setStyle("direction:ltr");
 
 							columns.add(
 								new OHiddenColumn<Map<String, Object>>(fieldVO.getName())
 									.setFormatter(ODateFormatter.millis()));
 							break;
+
 						case DateTime:
 							column
 								.setField(FIELD_PREFIX + fieldVO.getName())
-								.setFormatter(ODateFormatter.prDateTime())
+								.setFormatter(ODateFormatter.of(fieldVO.getFormatSafely()))
 								.setStyle("direction:ltr");
 
 							columns.add(
 								new OHiddenColumn<Map<String, Object>>(fieldVO.getName())
 									.setFormatter(ODateFormatter.millis()));
 							break;
+
 						case Boolean:
 							column.setFormatter(OBooleanFormatter.bool());
 							break;
+
 						default:
 					}
 				}

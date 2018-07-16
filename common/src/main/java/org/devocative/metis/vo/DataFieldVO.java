@@ -128,6 +128,10 @@ public class DataFieldVO extends DataAbstractFieldVO {
 		return ObjectUtil.isTrue(isTitleField);
 	}
 
+	public String getFormatSafely() {
+		return getFormat() != null ? getFormat() : getType().getFormat();
+	}
+
 
 	public XDSField toXDSField() {
 		XDSField xdsField = new XDSField();
@@ -138,6 +142,13 @@ public class DataFieldVO extends DataAbstractFieldVO {
 	public XDVField toXDVField() {
 		XDVField xdvField = new XDVField();
 		ObjectUtil.merge(xdvField, this, true);
+
+		if (!getIsKeyFieldSafely() && getFormat() != null && !getFormat().equals(getType().getFormat()) && getResultType() == XDSFieldResultType.Shown) {
+			xdvField.setFormat(getFormat());
+		} else {
+			xdvField.setFormat(null);
+		}
+
 		return xdvField;
 	}
 

@@ -15,6 +15,7 @@ import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WNumberInput;
 import org.devocative.wickomp.form.WSelectionInput;
 import org.devocative.wickomp.form.WSelectionInputAjaxUpdatingBehavior;
+import org.devocative.wickomp.form.WTextInput;
 import org.devocative.wickomp.form.code.OCode;
 import org.devocative.wickomp.form.code.OCodeMode;
 import org.devocative.wickomp.form.code.WCodeInput;
@@ -68,6 +69,15 @@ class ColumnUIStep extends WWizardStepPanel {
 					.setOutputMarkupPlaceholderTag(true)
 					.setVisible(fieldVO.getResultType() == null || fieldVO.getResultType() == XDSFieldResultType.Shown);
 
+				WTextInput format = new WTextInput("format", new PropertyModel<>(fieldVO, "format"));
+				format
+					.setOutputMarkupId(true)
+					.setOutputMarkupPlaceholderTag(true)
+					.setVisible(!fieldVO.getIsKeyFieldSafely() &&
+						(fieldVO.getResultType() != null && fieldVO.getResultType() == XDSFieldResultType.Shown));
+				item.add(format);
+
+
 				WSelectionInput resultType;
 				item.add(resultType = new WSelectionInput("resultType", new PropertyModel<String>(fieldVO, "resultType"), resultTypeList, false));
 				resultType
@@ -82,7 +92,9 @@ class ColumnUIStep extends WWizardStepPanel {
 					protected void onUpdate(AjaxRequestTarget target) {
 						XDSFieldResultType resultType = (XDSFieldResultType) getComponent().getDefaultModelObject();
 						columnWidth.setVisible(resultType == XDSFieldResultType.Shown);
+						format.setVisible(resultType == XDSFieldResultType.Shown);
 						target.add(columnWidth);
+						target.add(format);
 					}
 				});
 
@@ -91,9 +103,9 @@ class ColumnUIStep extends WWizardStepPanel {
 					!fieldVO.getIsSelfRelPointerFieldSafely();
 
 				item.add(new WSelectionInput("footer", new PropertyModel<String>(fieldVO, "footer"),
-						Arrays.asList(XDVAggregatorFunction.values()), true)
-						.setLabelVisible(false)
-						.setVisible(showFooter)
+					Arrays.asList(XDVAggregatorFunction.values()), true)
+					.setLabelVisible(false)
+					.setVisible(showFooter)
 				);
 			}
 		});

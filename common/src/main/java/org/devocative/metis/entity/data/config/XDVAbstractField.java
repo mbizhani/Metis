@@ -92,4 +92,9 @@ public class XDVAbstractField implements Serializable {
 	public int hashCode() {
 		return getName() != null ? getName().hashCode() : 0;
 	}
+
+	@Override
+	public String toString() {
+		return getName();
+	}
 }

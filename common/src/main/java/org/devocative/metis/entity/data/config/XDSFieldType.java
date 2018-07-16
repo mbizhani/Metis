@@ -7,34 +7,41 @@ import java.util.List;
 public enum XDSFieldType {
 	String(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Contain, XDSFieldFilterType.Range},
-		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Contain, XDSFieldFilterType.Range}
+		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Contain, XDSFieldFilterType.Range},
+		null
 	),
 	Integer(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
-		new XDSFieldFilterType[]{XDSFieldFilterType.Equal}
+		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
+		"#,###"
 	),
 	Real(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
-		new XDSFieldFilterType[]{XDSFieldFilterType.Equal}
+		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
+		"#,###.###"
 	),
 	Date(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
-		new XDSFieldFilterType[]{XDSFieldFilterType.Equal}
+		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
+		"yyyy/MM/dd"
 	),
 	DateTime(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
-		new XDSFieldFilterType[]{XDSFieldFilterType.Equal}
+		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
+		"yyyy/MM/dd HH:mm:ss"
 	),
 	Boolean(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
-		new XDSFieldFilterType[]{XDSFieldFilterType.Equal}
+		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
+		null
 	),
 	LookUp(
 		new XDSFieldFilterType[]{XDSFieldFilterType.List, XDSFieldFilterType.Search},
-		new XDSFieldFilterType[]{XDSFieldFilterType.List, XDSFieldFilterType.Search}
+		new XDSFieldFilterType[]{XDSFieldFilterType.List, XDSFieldFilterType.Search},
+		null
 	),
 
-	Unknown(new XDSFieldFilterType[]{XDSFieldFilterType.Unknown}, null);
+	Unknown(new XDSFieldFilterType[]{XDSFieldFilterType.Unknown}, null, null);
 
 	// ------------------------------
 
@@ -42,9 +49,12 @@ public enum XDSFieldType {
 
 	private XDSFieldFilterType[] paramProperFilterTypes;
 
-	XDSFieldType(XDSFieldFilterType[] fieldProperFilterTypes, XDSFieldFilterType[] paramProperFilterTypes) {
+	private String format;
+
+	XDSFieldType(XDSFieldFilterType[] fieldProperFilterTypes, XDSFieldFilterType[] paramProperFilterTypes, String format) {
 		this.fieldProperFilterTypes = fieldProperFilterTypes;
 		this.paramProperFilterTypes = paramProperFilterTypes;
+		this.format = format;
 	}
 
 	public XDSFieldFilterType[] getFieldProperFilterTypes() {
@@ -55,8 +65,16 @@ public enum XDSFieldType {
 		return paramProperFilterTypes;
 	}
 
+	public java.lang.String getFormat() {
+		return format;
+	}
+
 	public boolean isNumerical() {
 		return this == Integer || this == Real;
+	}
+
+	public boolean isFormatted() {
+		return format != null;
 	}
 
 	public static List<XDSFieldType> getParameterProperTypes() {
