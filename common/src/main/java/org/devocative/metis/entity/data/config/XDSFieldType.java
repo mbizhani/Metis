@@ -1,5 +1,9 @@
 package org.devocative.metis.entity.data.config;
 
+import org.devocative.adroit.ConfigUtil;
+import org.devocative.adroit.IConfigKey;
+import org.devocative.metis.MetisConfigKey;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,22 +17,22 @@ public enum XDSFieldType {
 	Integer(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
-		"#,###"
+		MetisConfigKey.GridFormatInteger
 	),
 	Real(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
-		"#,###.###"
+		MetisConfigKey.GridFormatReal
 	),
 	Date(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
-		"yyyy/MM/dd"
+		MetisConfigKey.GridFormatDate
 	),
 	DateTime(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal, XDSFieldFilterType.Range},
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
-		"yyyy/MM/dd HH:mm:ss"
+		MetisConfigKey.GridFormatDateTime
 	),
 	Boolean(
 		new XDSFieldFilterType[]{XDSFieldFilterType.Equal},
@@ -49,9 +53,9 @@ public enum XDSFieldType {
 
 	private XDSFieldFilterType[] paramProperFilterTypes;
 
-	private String format;
+	private IConfigKey format;
 
-	XDSFieldType(XDSFieldFilterType[] fieldProperFilterTypes, XDSFieldFilterType[] paramProperFilterTypes, String format) {
+	XDSFieldType(XDSFieldFilterType[] fieldProperFilterTypes, XDSFieldFilterType[] paramProperFilterTypes, IConfigKey format) {
 		this.fieldProperFilterTypes = fieldProperFilterTypes;
 		this.paramProperFilterTypes = paramProperFilterTypes;
 		this.format = format;
@@ -65,8 +69,8 @@ public enum XDSFieldType {
 		return paramProperFilterTypes;
 	}
 
-	public java.lang.String getFormat() {
-		return format;
+	public String getFormat() {
+		return ConfigUtil.getString(format);
 	}
 
 	public boolean isNumerical() {

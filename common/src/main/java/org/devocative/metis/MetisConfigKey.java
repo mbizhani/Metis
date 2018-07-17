@@ -31,6 +31,10 @@ public enum MetisConfigKey implements IConfigKey {
 	GridAssertDuplicateId("mts.grid.assert.duplicate.id", false, Arrays.asList(true, false)),
 	GridAssertInvalidParent("mts.grid.assert.invalid.parent", true, Arrays.asList(true, false)),
 	GridCheckboxColumnMode("mts.grid.column.checkbox.mode", "MultiSelect", Arrays.asList("Never", "MultiSelect", "Always")),
+	GridFormatInteger("mts.grid.format.integer", "#,###"),
+	GridFormatReal("mts.grid.format.real", "#,##0.000"),
+	GridFormatDate("mts.grid.format.date", "yyyy/MM/dd"),
+	GridFormatDateTime("mts.grid.format.datetime", "yyyy/MM/dd HH:mm:ss"),
 
 	FormDateDefaultTime("mts.form.date.default.time", "12:00:00.000"),
 	FormDateTimeDefaultFrom("mts.form.datetime.default.from", "00:00:00.000"),

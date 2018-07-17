@@ -74,6 +74,7 @@ class ColumnUIStep extends WWizardStepPanel {
 					.setOutputMarkupId(true)
 					.setOutputMarkupPlaceholderTag(true)
 					.setVisible(!fieldVO.getIsKeyFieldSafely() &&
+						fieldVO.getType().isFormatted() &&
 						(fieldVO.getResultType() != null && fieldVO.getResultType() == XDSFieldResultType.Shown));
 				item.add(format);
 
