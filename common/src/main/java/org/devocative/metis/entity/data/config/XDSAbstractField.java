@@ -1,6 +1,8 @@
 package org.devocative.metis.entity.data.config;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
+import com.thoughtworks.xstream.converters.basic.BooleanConverter;
 
 import java.io.Serializable;
 
@@ -25,7 +27,11 @@ public abstract class XDSAbstractField implements Serializable {
 	@XStreamAsAttribute
 	protected String targetDSName;
 
+	/*
+	Here, 'false' literal needs to be saved the same as 'true'.
+	 */
 	@XStreamAsAttribute
+	@XStreamConverter(BooleanConverter.class)
 	private Boolean targetDSMultipleSelection;
 
 	@XStreamAsAttribute
