@@ -21,6 +21,7 @@ import org.devocative.demeter.iservice.task.ITaskService;
 import org.devocative.demeter.iservice.template.IStringTemplate;
 import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.demeter.iservice.template.TemplateEngineType;
+import org.devocative.demeter.vo.UserVO;
 import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
@@ -367,8 +368,10 @@ public class DataService implements IDataService {
 			.put("dataView", request.getName())
 			.put("sentDB", request.getSentDBConnection());
 
+		UserVO currentUser = securityService.getCurrentUser();
+
 		logger.info("Exporting DataView: DV=[{}] Usr=[{}] SentDB=[{}]",
-			request.getName(), securityService.getCurrentUser(), request.getSentDBConnection());
+			request.getName(), currentUser, request.getSentDBConnection());
 
 		long start = System.currentTimeMillis();
 
@@ -380,7 +383,7 @@ public class DataService implements IDataService {
 
 		List<String> titleFields = xDataView.getFields()
 			.stream()
-			.filter(xdvField -> XDSFieldResultType.Shown.equals(xdvField.getResultType()))
+			.filter(xdvField -> XDSFieldResultType.Shown == xdvField.getResultType())
 			.map(xdvField -> xDataSource.getField(xdvField.getName()).getSafeTitle())
 			.collect(Collectors.toList());
 
@@ -402,17 +405,36 @@ public class DataService implements IDataService {
 		exporter.setColumnsHeader(titleFields);
 
 		for (Map<String, Object> map : listRVO.getResult()) {
-			List<Object> row = selectFields
-				.stream()
-				.map(map::get)
-				.collect(Collectors.toList());
+			List<Object> row = new ArrayList<>();
+			for (String field : selectFields) {
+				final XDSField xdsField = xDataSource.getField(field);
+				final Object cell = map.get(field);
+				switch (xdsField.getType()) {
+					case Date:
+						if (cell instanceof Date) {
+							row.add(currentUser.formatDate((Date) cell));
+						} else {
+							row.add(cell);
+						}
+						break;
+					case DateTime:
+						if (cell instanceof Date) {
+							row.add(currentUser.formatDateTime((Date) cell));
+						} else {
+							row.add(cell);
+						}
+						break;
+					default:
+						row.add(cell);
+				}
+			}
 			exporter.addRowData(row);
 		}
 
 		UniDate now = UniDate.now();
 		UniDate expire = now.updateDay(ConfigUtil.getInteger(MetisConfigKey.ExportReportExpireDays));
 		String name = String.format("%s-%s.xlsx", dataView.getName(),
-			securityService.getCurrentUser().formatDate(now.toDate(), "yyyyMMdd-HHmmss"));
+			currentUser.formatDate(now.toDate(), "yyyyMMdd-HHmmss"));
 		FileStoreHandler fileStoreHandler = fileStoreService.create(
 			name,
 			EFileStorage.DISK,
