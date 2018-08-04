@@ -389,16 +389,38 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		WebMarkupContainer sendButtons = new WebMarkupContainer("sendButtons");
 		sendButtons.setVisible(false);
 
-		if (selectionJSCallback != null) {
-			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
-		} else if (webParams.containsKey(MetisWebParam.WINDOW)) {
+		final String returnVer;
+		if (webParams.containsKey(MetisWebParam.RETURN_VERSION)) {
+			returnVer = webParams.get(MetisWebParam.RETURN_VERSION).get(0);
+		} else {
+			returnVer = ConfigUtil.getString(MetisConfigKey.GridReturnResultVersion);
+		}
 
-			final String returnVer;
-			if (webParams.containsKey(MetisWebParam.RETURN_VERSION)) {
-				returnVer = webParams.get(MetisWebParam.RETURN_VERSION).get(0);
+		if (selectionJSCallback == null && webParams.containsKey(MetisWebParam.WINDOW)) {
+			if ("1".equals(returnVer)) { // LIST (just rows)
+				if (dataVO.getSelectionValidationJS() == null) {
+					selectionJSCallback = "function(rows){parent.postMessage(JSON.stringify(rows),'*');}";
+				} else {
+					selectionJSCallback = String.format(
+						"function(rows){if(%1$sSelValidJSAll(rows)) parent.postMessage(JSON.stringify(rows),'*');}",
+						dataVO.getName());
+				}
+
+			} else if ("2".equals(returnVer)) { // OBJECT with ACTION
+				if (dataVO.getSelectionValidationJS() == null) {
+					selectionJSCallback = "function(rows){parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}";
+				} else {
+					selectionJSCallback = String.format(
+						"function(rows){if(%1$sSelValidJSAll(rows)) parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}",
+						dataVO.getName());
+				}
 			} else {
-				returnVer = ConfigUtil.getString(MetisConfigKey.GridReturnResultVersion);
+				throw new RuntimeException("Invalid return version: " + returnVer);
 			}
+		}
+
+		if (selectionJSCallback != null || webParams.containsKey(MetisWebParam.WINDOW)) {
+			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
 
 			List<ActionBut> actions = new ArrayList<>();
 			if (webParams.containsKey(MetisWebParam.ACTIONS)) {
@@ -418,35 +440,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				protected void populateItem(ListItem<ActionBut> item) {
 					ActionBut action = item.getModelObject();
 					WebMarkupContainer button = new WebMarkupContainer("button");
-					button.add(new AttributeModifier("onclick", String.format("sendRows('%s','%s', '%s', '%s')",
-						action.getName(), grid.getMarkupId(), dataVO.getName(), returnVer)));
+					button.add(new AttributeModifier("onclick", String.format("sendRows('%s','%s', '%s', '%s', %s)",
+						action.getName(), grid.getMarkupId(), dataVO.getName(), returnVer, selectionJSCallback)));
 					button.add(new Label("label", action.getTitle()));
 					item.add(button);
 				}
 			});
-
-			if ("1".equals(returnVer)) { // LIST (just rows)
-				if (dataVO.getSelectionValidationJS() == null) {
-					oBaseGrid.setSelectionJSHandler(
-						"function(rows){parent.postMessage(JSON.stringify(rows),'*');}");
-				} else {
-					oBaseGrid.setSelectionJSHandler(String.format(
-						"function(rows){if(%1$sSelValidJSAll(rows)) parent.postMessage(JSON.stringify(rows),'*');}",
-						dataVO.getName()));
-				}
-
-			} else if ("2".equals(returnVer)) { // OBJECT with ACTION
-				if (dataVO.getSelectionValidationJS() == null) {
-					oBaseGrid.setSelectionJSHandler(
-						"function(rows){parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}");
-				} else {
-					oBaseGrid.setSelectionJSHandler(String.format(
-						"function(rows){if(%1$sSelValidJSAll(rows)) parent.postMessage(JSON.stringify({\"action\":\"_DEFAULT_\",\"data\":rows}),'*');}",
-						dataVO.getName()));
-				}
-			} else {
-				throw new RuntimeException("Invalid return version: " + returnVer);
-			}
 		}
 
 		layout = new WebMarkupContainer("layout");

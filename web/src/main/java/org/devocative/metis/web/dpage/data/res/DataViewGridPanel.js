@@ -1,4 +1,4 @@
-function sendRows(action, gridId, name, ver) {
+function sendRows(action, gridId, name, ver, callback) {
 	var grid = $("#" + gridId);
 	var selData = grid.datagrid("getSelections");
 	var opt = grid.datagrid("options");
@@ -32,7 +32,9 @@ function sendRows(action, gridId, name, ver) {
 				}
 			}
 
-			if (ver === '1') {
+			if (callback) {
+				callback(kvList);
+			} else if (ver === '1') {
 				parent.postMessage(JSON.stringify(kvList), '*');
 			} else if (ver === '2') {
 				var result = {};
