@@ -286,6 +286,10 @@ public class DataVO implements Serializable {
 		this.dataSourceEditable = dataSourceEditable;
 	}
 
+	public boolean isNewInstance() {
+		return getDataSourceId() == null;
+	}
+
 	// ------------------------------ BIZ METHODS
 
 	public DataGroup getGroup() {
