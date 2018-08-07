@@ -53,6 +53,47 @@
 
 		</div>
 
+		<div wicket:id="exportReportPanel" title="Export Report">
+			<form wicket:id="form">
+				<table>
+					<tr>
+						<th>Data Group</th>
+						<td>
+							<div wicket:id="dataGroups"></div>
+						</td>
+					</tr>
+					<tr>
+						<th>Report</th>
+						<td>
+							<div wicket:id="reports"></div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<button wicket:id="export">Export</button>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+
+		<div wicket:id="importReportPanel" title="Import Report">
+			<form wicket:id="form">
+				<table>
+					<tr>
+						<td>
+							<div wicket:id="file"></div>
+						</td>
+						<td>
+							<button wicket:id="import"></button>
+						</td>
+					</tr>
+				</table>
+			</form>
+
+			<div style="direction:ltr; text-align:left" wicket:id="feedback"></div>
+		</div>
+
 	</div>
 
 </wicket:panel>

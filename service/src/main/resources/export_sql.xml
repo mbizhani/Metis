@@ -64,12 +64,17 @@ where
 	<query name="dataSrcRel">
 		<sql><![CDATA[
 select
-	c_src_ptr_field,
-	f_src_datasrc,
-	f_tgt_datasrc,
-	n_version
+	rel.c_src_ptr_field,
+	rel.f_src_datasrc,
+	rel.f_tgt_datasrc,
+	rel.n_version
 from
-	t_mts_data_src_rel
+	t_mts_data_src_rel rel
+	join t_mts_data_src srcDs on srcDs.id = rel.f_src_datasrc
+	join t_mts_data_src tgtDs on tgtDs.id = rel.f_tgt_datasrc
+where
+	srcDs.c_name in (:dv_name)
+	or tgtDs.c_name in (:dv_name)
 ]]></sql>
 	</query>
 
@@ -121,6 +126,11 @@ select
 	mdv.f_group
 from
 	mt_mts_dataView_group mdv
+	join t_mts_data_view dv on dv.id = mdv.f_data_view
+	join t_mts_data_group grp on grp.id = mdv.f_group
+where
+	1=1
+	%FILTER%
 ]]></sql>
 	</query>
 
@@ -136,6 +146,30 @@ on ( dest.f_data_view = src.f_data_view and dest.f_group = src.f_group)
 when not matched then
 	insert (f_data_view, f_group)
 	values (:f_data_view, :f_group)
+]]></sql>
+	</query>
+
+	<query name="dataGroupsByDataView">
+		<sql><![CDATA[
+select
+	mtdvgr.f_group
+from
+	mt_mts_dataview_group mtdvgr
+	join t_mts_data_view dv on dv.id = mtdvgr.f_data_view
+where
+	dv.c_name in (:dv_name)
+]]></sql>
+	</query>
+
+	<query name="dataViewsByGroup">
+		<sql><![CDATA[
+select
+	dv.c_name
+from
+	mt_mts_dataview_group mtdvgr
+	join t_mts_data_view dv on dv.id = mtdvgr.f_data_view
+where
+	mtdvgr.f_group in (:grp)
 ]]></sql>
 	</query>
 
@@ -166,6 +200,11 @@ select
 	mgrp.f_group
 from
 	mt_mts_report_group mgrp
+	join t_mts_report rp on rp.id = mgrp.f_report
+	join t_mts_data_view dv on dv.id = rp.f_data_view
+where
+	1=1
+	%FILTER%
 ]]></sql>
 	</query>
 
@@ -181,6 +220,44 @@ on ( dest.f_report = src.f_report and dest.f_group = src.f_group )
 when not matched then
 	insert (f_report, f_group)
 	values (:f_report, :f_group)
+]]></sql>
+	</query>
+
+
+	<!-- EXPORT REPORT -->
+
+	<query name="reportsByDataGroup">
+		<sql><![CDATA[
+select
+	rp.id
+from
+	t_mts_report rp
+	join mt_mts_report_group mtrp on mtrp.f_report = rp.id
+where
+	mtrp.f_group in (:grp_id)
+]]></sql>
+	</query>
+
+	<query name="dataGroupsByReport">
+		<sql><![CDATA[
+select
+	mtrp.f_group
+from
+	t_mts_report rp
+	join mt_mts_report_group mtrp on mtrp.f_report = rp.id
+where
+	rp.id in (:rp_id)
+]]></sql>
+	</query>
+
+	<query name="dataViewsByReport">
+		<sql><![CDATA[
+select
+	f_data_view
+from
+	t_mts_report
+where
+	id in (:rp_id)
 ]]></sql>
 	</query>
 </list>

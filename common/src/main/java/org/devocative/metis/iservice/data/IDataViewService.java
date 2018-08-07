@@ -5,6 +5,7 @@ import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
+import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.entity.data.config.XDataView;
 import org.devocative.metis.vo.filter.data.DataViewFVO;
 
@@ -45,4 +46,8 @@ public interface IDataViewService {
 	String exportAll(List<DataGroup> dataGroups, DBConnectionGroup dbConnectionGroup, String dataViewNames);
 
 	void importAll(InputStream stream);
+
+	String exportReport(List<DataGroup> dataGroups, List<Report> reports);
+
+	void importReport(InputStream stream);
 }

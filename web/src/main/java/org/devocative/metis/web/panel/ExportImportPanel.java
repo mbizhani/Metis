@@ -13,13 +13,16 @@ import org.devocative.demeter.web.component.DAjaxButton;
 import org.devocative.metis.MetisPrivilegeKey;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.data.DataGroup;
+import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.iservice.connection.IDBConnectionGroupService;
 import org.devocative.metis.iservice.data.IDataGroupService;
 import org.devocative.metis.iservice.data.IDataViewService;
+import org.devocative.metis.iservice.data.IReportService;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.wickomp.WebUtil;
 import org.devocative.wickomp.form.WFileInput;
 import org.devocative.wickomp.form.WSelectionInput;
+import org.devocative.wickomp.html.WMessager;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -28,7 +31,6 @@ public class ExportImportPanel extends DPanel {
 	private static final long serialVersionUID = -896140188954016556L;
 
 	private WebMarkupContainer panel;
-	private WFileInput file;
 
 	@Inject
 	private IDataViewService dataViewService;
@@ -39,11 +41,16 @@ public class ExportImportPanel extends DPanel {
 	@Inject
 	private IDBConnectionGroupService dbConnectionGroupService;
 
+	@Inject
+	private IReportService reportService;
+
 	private List<DataGroup> dataGroups;
 
 	private DBConnectionGroup dbConnectionGroup;
 
 	private String dataViewNames;
+
+	private List<Report> reports;
 
 	// ------------------------------
 
@@ -54,6 +61,25 @@ public class ExportImportPanel extends DPanel {
 		panel.setOutputMarkupId(true);
 		add(panel);
 
+		exportAll();
+
+		importAll();
+
+		exportReport();
+
+		importReport();
+	}
+
+	@Override
+	protected void onAfterRender() {
+		super.onAfterRender();
+
+		WebUtil.writeJQueryCall(String.format("$('#%s').tabs()", panel.getMarkupId()), true);
+	}
+
+	// ------------------------------
+
+	private void exportAll() {
 		WebMarkupContainer exportPanel = new WebMarkupContainer("exportPanel");
 		exportPanel.setVisible(hasPermission(MetisPrivilegeKey.DataViewExport));
 		panel.add(exportPanel);
@@ -67,14 +93,18 @@ public class ExportImportPanel extends DPanel {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
-				String fileId = dataViewService.exportAll(dataGroups, dbConnectionGroup, dataViewNames);
-				target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId)));
+				if (dataGroups != null || dataViewNames != null) {
+					String fileId = dataViewService.exportAll(dataGroups, dbConnectionGroup, dataViewNames);
+					target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId)));
+				} else {
+					WMessager.show("Error", "'Data Group' or 'DataView Names' are required!", target);
+				}
 			}
 		});
 		exportPanel.add(exportForm);
+	}
 
-		// --------------- IMPORT
-
+	private void importAll() {
 		WebMarkupContainer importPanel = new WebMarkupContainer("importPanel");
 		importPanel.setVisible(hasPermission(MetisPrivilegeKey.DataViewImport));
 		panel.add(importPanel);
@@ -84,7 +114,7 @@ public class ExportImportPanel extends DPanel {
 		importPanel.add(feedback);
 
 		Form<Void> importForm = new Form<>("importForm");
-		file = new WFileInput("file");
+		WFileInput file = new WFileInput("file");
 		file
 			.setMultiple(true)
 			.setRequired(true);
@@ -111,10 +141,64 @@ public class ExportImportPanel extends DPanel {
 		importPanel.add(importForm);
 	}
 
-	@Override
-	protected void onAfterRender() {
-		super.onAfterRender();
+	private void exportReport() {
+		WebMarkupContainer exportReportPanel = new WebMarkupContainer("exportReportPanel");
+		exportReportPanel.setVisible(hasPermission(MetisPrivilegeKey.ReportExport));
+		panel.add(exportReportPanel);
 
-		WebUtil.writeJQueryCall(String.format("$('#%s').tabs()", panel.getMarkupId()), true);
+		Form<Void> form = new Form<>("form");
+		form.add(new WSelectionInput("dataGroups", new PropertyModel(this, "dataGroups"), dataGroupService.list(), true));
+		form.add(new WSelectionInput("reports", new PropertyModel(this, "reports"), reportService.list(), true));
+		form.add(new DAjaxButton("export") {
+			private static final long serialVersionUID = 5291830965686594210L;
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target) {
+				if (dataGroups != null || reports != null) {
+					String fileId = dataViewService.exportReport(dataGroups, reports);
+					target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId)));
+				} else {
+					WMessager.show("Error", "'Data Group' or 'Report' are required!", target);
+				}
+			}
+		});
+		exportReportPanel.add(form);
+	}
+
+	private void importReport() {
+		WebMarkupContainer importReportPanel = new WebMarkupContainer("importReportPanel");
+		importReportPanel.setVisible(hasPermission(MetisPrivilegeKey.ReportImport));
+		panel.add(importReportPanel);
+
+		FeedbackPanel feedback = new FeedbackPanel("feedback");
+		feedback.setEscapeModelStrings(false).setOutputMarkupId(true);
+		importReportPanel.add(feedback);
+
+		Form<Void> form = new Form<>("form");
+		WFileInput file = new WFileInput("file");
+		file
+			.setMultiple(true)
+			.setRequired(true);
+		form.add(file);
+		form.add(new DAjaxButton("import", MetisIcon.UPLOAD) {
+			private static final long serialVersionUID = 5829859770226623834L;
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target) {
+				List<FileUpload> fileUploads = file.getFileUpload();
+				for (FileUpload fileUpload : fileUploads) {
+					try {
+						dataViewService.importReport(fileUpload.getInputStream());
+
+						info("Ok <br/>File: " + fileUpload.getClientFileName());
+					} catch (Exception e) {
+						error("Error <br/>File: " + fileUpload.getClientFileName() + "<br/>Message: " + e.getMessage());
+					}
+
+					target.add(feedback);
+				}
+			}
+		});
+		importReportPanel.add(form);
 	}
 }

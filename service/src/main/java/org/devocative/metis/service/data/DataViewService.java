@@ -1,8 +1,10 @@
 package org.devocative.metis.service.data;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.XStreamException;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.devocative.adroit.StringEncryptorUtil;
 import org.devocative.adroit.cache.ICache;
-import org.devocative.adroit.date.EUniCalendar;
 import org.devocative.adroit.date.UniDate;
 import org.devocative.adroit.obuilder.ObjectBuilder;
 import org.devocative.adroit.sql.NamedParameterStatement;
@@ -22,6 +24,7 @@ import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.demeter.iservice.template.IStringTemplateService;
+import org.devocative.demeter.vo.UserVO;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
@@ -29,6 +32,7 @@ import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
+import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.entity.data.config.XDataView;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
@@ -40,10 +44,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.devocative.adroit.sql.XQuery.sql;
 
@@ -221,36 +229,43 @@ public class DataViewService implements IDataViewService {
 	@Override
 	public String exportAll(List<DataGroup> dataGroups, DBConnectionGroup dbConnectionGroup, String dataViewNames) {
 		logger.info("**");
-		logger.info("*** Exporting DataView Start: user=[{}]", securityService.getCurrentUser());
+		logger.info("*** Exporting All Start: user=[{}]", securityService.getCurrentUser());
 
 		Map<String, Object> params = new HashMap<>();
 
-		FilterPlugin filter = new FilterPlugin();
-		if (dataGroups != null) {
-			List<String> ids = new ArrayList<>();
-			for (DataGroup dataGroup : dataGroups) {
-				ids.add(dataGroup.getId());
-			}
-			filter.add("grp.id", FilterValue.equal(ids));
-		}
-		if (dataViewNames != null) {
-			String[] lines = dataViewNames.split("[\n]");
-			List<String> names = new ArrayList<>();
-			for (String line : lines) {
-				if (line.trim().length() > 0) {
-					names.add(line.trim());
-				}
-			}
-			filter.add("dv.c_name", FilterValue.equal(names));
-		}
+		//Set<String> groupIds = new HashSet<>();
+		Set<String> dvNames = new HashSet<>();
 
-		try {
-			Connection connection = persistorService.createSqlConnection();
-
+		try (Connection connection = persistorService.createSqlConnection()) {
 			ExportImportHelper helper = new ExportImportHelper(connection);
 
 			SqlHelper sqlHelper = new SqlHelper(connection);
 			sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
+
+			if (dataGroups != null) {
+				List<String> groupIds = dataGroups.stream().map(DataGroup::getId).collect(Collectors.toList());
+
+				List<String> dv = sqlHelper.firstColAsList("dataViewsByGroup", ObjectBuilder
+					.<String, Object>map()
+					.put("grp", groupIds)
+					.get());
+				dvNames.addAll(dv);
+			}
+
+			if (dataViewNames != null) {
+				String[] lines = dataViewNames.split("[\n]");
+				List<String> names = Arrays.stream(lines).filter(s -> s.trim().length() > 0).collect(Collectors.toList());
+				dvNames.addAll(names);
+
+				/*List<String> grpIds = sqlHelper.firstColAsList("dataGroupsByDataView",
+					ObjectBuilder
+						.<String, Object>map()
+						.put("dv_name", names)
+						.get());
+				groupIds.addAll(grpIds);*/
+			}
+
+			// ---------------
 
 			if (dbConnectionGroup != null) {
 				helper.exportBySql("dbConnGrp",
@@ -265,13 +280,18 @@ public class DataViewService implements IDataViewService {
 				sqlHelper.selectAll("group").toListOfMap()
 			);
 
+			FilterPlugin filter = new FilterPlugin();
+			if (!dvNames.isEmpty()) {
+				filter.add("dv.c_name", FilterValue.equal(dvNames));
+			}
 
 			helper.exportBySql("dataSource",
 				sqlHelper.selectAll("dataSource", params, filter).toListOfMap()
 			);
 
 			helper.exportBySql("dataSrcRel",
-				sqlHelper.selectAll("dataSrcRel").toListOfMap()
+				sqlHelper.selectAll("dataSrcRel", ObjectBuilder.<String, Object>map().put("dv_name", dvNames).get())
+					.toListOfMap()
 			);
 
 
@@ -280,7 +300,7 @@ public class DataViewService implements IDataViewService {
 			);
 
 			helper.exportBySql("group_dataView",
-				sqlHelper.selectAll("group_dataView").toListOfMap()
+				sqlHelper.selectAll("group_dataView", params, filter).toListOfMap()
 			);
 
 
@@ -289,27 +309,15 @@ public class DataViewService implements IDataViewService {
 			);
 
 			helper.exportBySql("group_report",
-				sqlHelper.selectAll("group_report").toListOfMap()
+				sqlHelper.selectAll("group_report", params, filter).toListOfMap()
 			);
 
-			Date now = new Date();
-			//TODO using calendar from User
-			String fileName = String.format("exportDataView-%s.xml", UniDate.now().updateCalendar(EUniCalendar.Persian).format("yyyyMMdd"));
-			FileStoreHandler fileStoreHandler = fileStoreService.create(
-				fileName,
-				EFileStorage.DISK,
-				EMimeType.XML,
-				UniDate.now().updateDay(15).toDate(),
-				"exportDataView"
-			);
-			helper.exportTo(fileStoreHandler);
-			fileStoreHandler.close();
-			connection.close();
+			String fileId = export2("exportDataView", "ALL", helper, true);
 
-			logger.info("*** Exporting DataView Finished: user=[{}]", securityService.getCurrentUser());
+			logger.info("*** Exporting All Finished: user=[{}]", securityService.getCurrentUser());
 			logger.info("**");
 
-			return fileStoreHandler.getFileStore().getFileId();
+			return fileId;
 		} catch (Exception e) {
 			logger.error("exportAll", e);
 			throw new RuntimeException(e);
@@ -319,14 +327,16 @@ public class DataViewService implements IDataViewService {
 	@Override
 	public void importAll(InputStream stream) {
 		logger.info("**");
-		logger.info("*** Importing DataView Start: user=[{}]", securityService.getCurrentUser());
+		logger.info("*** Importing All Start: user=[{}]", securityService.getCurrentUser());
+
+		String xml = readText("ALL", stream, false);
 
 		try (Connection connection = persistorService.createSqlConnection()) {
 			try {
 				connection.setAutoCommit(false);
 
 				ExportImportHelper helper = new ExportImportHelper(connection);
-				helper.importFrom(stream);
+				helper.importFrom(new ByteArrayInputStream(xml.getBytes("UTF-8")));
 
 				SqlHelper sqlHelper = new SqlHelper(connection);
 				sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
@@ -367,11 +377,245 @@ public class DataViewService implements IDataViewService {
 			logger.info("*** Importing DataView Finished: user=[{}]", securityService.getCurrentUser());
 			logger.info("**");
 		} catch (Exception e) {
+			logger.error("importAll", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public String exportReport(List<DataGroup> dataGroups, List<Report> reports) {
+		logger.info("**");
+		logger.info("*** Exporting Report Start: user=[{}]", securityService.getCurrentUser());
+
+		Map<String, Object> params = new HashMap<>();
+
+		//Set<String> groupIds = new HashSet<>();
+		Set<String> reportIds = new HashSet<>();
+
+		try (Connection connection = persistorService.createSqlConnection()) {
+			ExportImportHelper helper = new ExportImportHelper(connection);
+
+			SqlHelper sqlHelper = new SqlHelper(connection);
+			sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
+
+			if (dataGroups != null) {
+				List<String> groupIds = dataGroups.stream().map(DataGroup::getId).collect(Collectors.toList());
+
+				List<String> rptIds = sqlHelper.firstColAsList("reportsByDataGroup",
+					ObjectBuilder
+						.<String, Object>map()
+						.put("grp_id", groupIds)
+						.get());
+				reportIds.addAll(rptIds);
+			}
+
+			if (reports != null) {
+				List<String> rptIds = reports.stream().map(Report::getId).collect(Collectors.toList());
+				reportIds.addAll(rptIds);
+			}
+
+			/*List<String> grpIds = sqlHelper.firstColAsList("dataGroupsByReport",
+				ObjectBuilder
+					.<String, Object>map()
+					.put("rp_id", reportIds)
+					.get());
+			groupIds.addAll(grpIds);*/
+
+
+			helper.exportBySql("group",
+				sqlHelper.selectAll("group").toListOfMap()
+			);
+
+
+			// ---------------
+
+			List<String> dataViewIds = sqlHelper.firstColAsList("dataViewsByReport",
+				ObjectBuilder
+					.<String, Object>map()
+					.put("rp_id", reportIds)
+					.get());
+
+			FilterPlugin filter = new FilterPlugin();
+			filter.add("dv.id", FilterValue.equal(dataViewIds));
+
+			helper.exportBySql("dataSource",
+				sqlHelper.selectAll("dataSource", params, filter).toListOfMap()
+			);
+
+			helper.exportBySql("dataView",
+				sqlHelper.selectAll("dataView", params, filter).toListOfMap()
+			);
+
+			helper.exportBySql("group_dataView",
+				sqlHelper.selectAll("group_dataView", params, filter).toListOfMap()
+			);
+
+			filter = new FilterPlugin().add("rp.id", FilterValue.equal(reportIds));
+			helper.exportBySql("report",
+				sqlHelper.selectAll("report", params, filter).toListOfMap()
+			);
+
+			helper.exportBySql("group_report",
+				sqlHelper.selectAll("group_report", params, filter).toListOfMap()
+			);
+
+			String fileId = export2("export-report", "REPORT", helper, true);
+
+			logger.info("*** Exporting Report Finished: user=[{}]", securityService.getCurrentUser());
+			logger.info("**");
+
+			return fileId;
+		} catch (Exception e) {
+			logger.error("exportReport", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void importReport(InputStream stream) {
+		logger.info("**");
+		logger.info("*** Importing Report Start: user=[{}]", securityService.getCurrentUser());
+
+		String xml = readText("REPORT", stream, true);
+
+		try (Connection connection = persistorService.createSqlConnection()) {
+			try {
+				connection.setAutoCommit(false);
+
+				ExportImportHelper helper = new ExportImportHelper(connection);
+				helper.importFrom(new ByteArrayInputStream(xml.getBytes("UTF-8")));
+
+				SqlHelper sqlHelper = new SqlHelper(connection);
+				sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
+
+				Date now = new Date();
+				Map<String, Object> other = new HashMap<>();
+				other.put("d_creation", now);
+				other.put("f_creator_user", securityService.getCurrentUser().getUserId());
+				other.put("d_modification", now);
+				other.put("f_modifier_user", securityService.getCurrentUser().getUserId());
+
+				helper.setCommonData(other);
+
+				dbConn(helper, sqlHelper);
+				group(helper, sqlHelper);
+
+				dataSrc(helper, sqlHelper);
+				//dataSrcRel(helper, sqlHelper);
+
+				dataView(helper, sqlHelper);
+				group_dataView(helper, sqlHelper);
+
+				report(helper, sqlHelper);
+				group_report(helper, sqlHelper);
+
+				connection.commit();
+			} catch (Exception e) {
+				connection.rollback();
+				throw e;
+			}
+
+			cacheService.clear(IDataSourceService.CACHE_KEY);
+			cacheService.clear(IDataViewService.CACHE_KEY);
+			cacheService.clear(IDBConnectionService.CACHE_KEY_DB_CONNECTION);
+			cacheService.clear(IDBConnectionService.CACHE_KEY_X_SCHEMA);
+			cacheService.clear(IStringTemplateService.CACHE_KEY);
+
+			logger.info("*** Importing Report Finished: user=[{}]", securityService.getCurrentUser());
+			logger.info("**");
+
+		} catch (Exception e) {
+			logger.error("importReport", e);
 			throw new RuntimeException(e);
 		}
 	}
 
 	// ------------------------------
+
+	private String export2(String name, String target, ExportImportHelper helper, boolean writeMeta) {
+		try {
+			final UserVO currentUser = securityService.getCurrentUser();
+
+			String fileName = String.format("%s-%s.xml", name,
+				securityService.getCurrentUser().formatDate(new Date(), "yyyyMMdd"));
+
+
+			FileStoreHandler fileStoreHandler = fileStoreService.create(
+				fileName,
+				EFileStorage.DISK,
+				EMimeType.XML,
+				UniDate.now().updateDay(5).toDate(),
+				name
+			);
+
+			XStream xStream = new XStream();
+			xStream.autodetectAnnotations(true);
+			String xml = xStream.toXML(helper.getDataSets());
+
+			if (writeMeta) {
+				EMD emd = new EMD("1", target, currentUser.getUsername(), new Date().getTime(),
+					StringEncryptorUtil.hash(xml));
+
+				String header = StringEncryptorUtil.encodeBase64(xStream.toXML(emd).getBytes("UTF-8"));
+
+				fileStoreHandler.write("<!-- ".getBytes("UTF-8"));
+				fileStoreHandler.write(header.getBytes("UTF-8"));
+				fileStoreHandler.write(" -->\n".getBytes("UTF-8"));
+			}
+			fileStoreHandler.write(xml.getBytes("UTF-8"));
+
+			fileStoreHandler.close();
+
+			return fileStoreHandler.getFileStore().getFileId();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private String readText(String target, InputStream stream, boolean checkHeader) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+			String text = reader.lines().collect(Collectors.joining("\n"));
+
+			if (checkHeader || text.startsWith("<!-- ")) {
+				if (checkHeader && !text.startsWith("<!-- ")) {
+					throw new RuntimeException("Invalid Import File: No Header!");
+				}
+
+				final int lrIdx = text.indexOf('\n');
+				String header = text.substring(0, lrIdx);
+				header = header.substring(5, header.length() - 4);
+				logger.info("Import - Raw Header = [{}]", header);
+				header = StringEncryptorUtil.decodeBase64(header);
+				logger.info("Import - XML Header = [{}]", header);
+
+				XStream xStream = new XStream();
+				xStream.processAnnotations(EMD.class);
+				EMD emd = (EMD) xStream.fromXML(header);
+				logger.info("Import - Raw Meta Data = [{}] - [{}]", emd, target);
+
+				if (!target.equals(emd.getT())) {
+					throw new RuntimeException(String.format("Invalid Import Target: %s, Expected %s", emd.getT(), target));
+				}
+
+				text = text.substring(lrIdx + 1);
+				String chk = StringEncryptorUtil.hash(text);
+
+				if (!chk.equals(emd.getC())) {
+					throw new RuntimeException("Invalid Import File: Checksum Error");
+				}
+
+				return text;
+			}
+
+			return text;
+		} catch (XStreamException e) {
+			logger.error("checkImport, XStream Conversion", e);
+			throw new RuntimeException("Invalid Import Header");
+		} catch (Exception e) {
+			logger.error("checkImport", e);
+			throw new RuntimeException(e);
+		}
+	}
 
 	private void dbConn(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
 		Map<Object, Object> currentDbConnGrp = sqlHelper.twoCellsAsMap(sql("select id, n_version from t_mts_db_conn_grp"));
@@ -399,7 +643,19 @@ public class DataViewService implements IDataViewService {
 			Object midRPId = sqlHelper.firstCell(sql("select id from t_mts_db_conn_grp order by d_creation"));
 
 			if (midRPId == null) {
-				throw new RuntimeException("No DBConnectionGroup Exits!");
+				logger.info("No DBConnectionGroup, creating one!");
+				midRPId = 0;
+
+				Map<String, Object> defDbConnGrp = ObjectBuilder.<String, Object>map()
+					.put("id", midRPId)
+					.put("c_name", "DefaultGroup")
+					.put("n_version", 1)
+					.get();
+
+				Importer db_conn_grp = helper.createImporter("t_mts_db_conn_grp",
+					Arrays.asList("id", "c_name", "n_version", "d_creation", "f_creator_user"));
+				db_conn_grp.addInsert(defDbConnGrp, helper.getCommonData());
+				db_conn_grp.executeBatch();
 			}
 
 			Map<String, Object> defaultDbConn = new HashMap<>();
@@ -531,4 +787,53 @@ public class DataViewService implements IDataViewService {
 		}
 		nps.executeBatch();
 	}
+
+	// ------------------------------
+
+	@XStreamAlias("emd")
+	private static class EMD {
+		private String v;
+		private String t;
+		private String u;
+		private Long d;
+		private String c;
+
+		public EMD() {
+		}
+
+		public EMD(String v, String t, String u, Long d, String c) {
+			this.v = v;
+			this.t = t;
+			this.u = u;
+			this.d = d;
+			this.c = c;
+		}
+
+		public String getV() {
+			return v;
+		}
+
+		public String getT() {
+			return t;
+		}
+
+		public String getU() {
+			return u;
+		}
+
+		public Long getD() {
+			return d;
+		}
+
+		public String getC() {
+			return c;
+		}
+
+		@Override
+		public String toString() {
+			Date dt = new Date(d);
+			return String.format("Ver=%s, User=%s, Date=%s", v, u, dt);
+		}
+	}
+
 }
