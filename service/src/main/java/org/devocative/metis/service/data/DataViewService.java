@@ -3,6 +3,7 @@ package org.devocative.metis.service.data;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.StringEncryptorUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.date.UniDate;
@@ -25,6 +26,7 @@ import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
 import org.devocative.demeter.iservice.template.IStringTemplateService;
 import org.devocative.demeter.vo.UserVO;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
@@ -312,7 +314,7 @@ public class DataViewService implements IDataViewService {
 				sqlHelper.selectAll("group_report", params, filter).toListOfMap()
 			);
 
-			String fileId = export2("exportDataView", "ALL", helper, true);
+			String fileId = export2("exportDataView", "ALL", helper, ConfigUtil.getBoolean(MetisConfigKey.ExportAllWriteMeta));
 
 			logger.info("*** Exporting All Finished: user=[{}]", securityService.getCurrentUser());
 			logger.info("**");
@@ -329,7 +331,7 @@ public class DataViewService implements IDataViewService {
 		logger.info("**");
 		logger.info("*** Importing All Start: user=[{}]", securityService.getCurrentUser());
 
-		String xml = readText("ALL", stream, false);
+		String xml = readText("ALL", stream, ConfigUtil.getBoolean(MetisConfigKey.ImportAllVerify));
 
 		try (Connection connection = persistorService.createSqlConnection()) {
 			try {
@@ -459,7 +461,7 @@ public class DataViewService implements IDataViewService {
 				sqlHelper.selectAll("group_report", params, filter).toListOfMap()
 			);
 
-			String fileId = export2("export-report", "REPORT", helper, true);
+			String fileId = export2("export-report", "REPORT", helper, ConfigUtil.getBoolean(MetisConfigKey.ExportReportWriteMeta));
 
 			logger.info("*** Exporting Report Finished: user=[{}]", securityService.getCurrentUser());
 			logger.info("**");
@@ -476,7 +478,7 @@ public class DataViewService implements IDataViewService {
 		logger.info("**");
 		logger.info("*** Importing Report Start: user=[{}]", securityService.getCurrentUser());
 
-		String xml = readText("REPORT", stream, true);
+		String xml = readText("REPORT", stream, ConfigUtil.getBoolean(MetisConfigKey.ImportReportVerify));
 
 		try (Connection connection = persistorService.createSqlConnection()) {
 			try {
