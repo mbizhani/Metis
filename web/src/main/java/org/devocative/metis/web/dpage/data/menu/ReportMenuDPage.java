@@ -9,15 +9,20 @@ import org.apache.wicket.model.ResourceModel;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.DPage;
 import org.devocative.metis.MetisConfigKey;
+import org.devocative.metis.MetisPrivilegeKey;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.iservice.data.IReportService;
+import org.devocative.metis.web.MetisIcon;
+import org.devocative.metis.web.panel.ExportImportPanel;
 import org.devocative.wickomp.WPanel;
 import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.WMessager;
 import org.devocative.wickomp.html.tab.OTab;
 import org.devocative.wickomp.html.tab.OTabbedPanel;
 import org.devocative.wickomp.html.tab.WTabbedPanel;
+import org.devocative.wickomp.html.window.WModalWindow;
+import org.devocative.wickomp.opt.OSize;
 import org.devocative.wickomp.wrcs.CommonBehavior;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +70,25 @@ public class ReportMenuDPage extends DPage {
 		@Override
 		protected void onInitialize() {
 			super.onInitialize();
+
+			WModalWindow modalWindow = new WModalWindow("modalWindow");
+			add(modalWindow);
+
+			add(new WAjaxLink("exportImport", MetisIcon.EXPORT_IMPORT) {
+				private static final long serialVersionUID = -1334810219991176112L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					modalWindow.getOptions()
+						.setWidth(OSize.fixed(400))
+						.setHeight(OSize.fixed(400));
+					modalWindow.setContent(new ExportImportPanel(modalWindow.getContentId()));
+					modalWindow.show(target);
+				}
+			}.setVisible(
+				hasPermission(MetisPrivilegeKey.ReportImport)
+					|| hasPermission(MetisPrivilegeKey.ReportExport)
+			));
 
 			if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
 				sentDBConnection = getWebRequest()

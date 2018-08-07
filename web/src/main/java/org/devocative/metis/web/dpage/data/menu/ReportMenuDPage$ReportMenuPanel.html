@@ -21,10 +21,14 @@
 </wicket:head>
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
+	<div wicket:id="modalWindow"></div>
+
 	<div style="width:100%; padding: 5px 10px">
 		<input id="searchTxt" type="text" style="padding:0;width:400px"/>
 		<button id="searchBut" type="button" style="margin:0"><i class="fa fa-search"></i></button>
 		[ <span id="noOfReport"></span> ]
+
+		<button style="margin: 0 20px;" wicket:id="exportImport"></button>
 	</div>
 
 	<div id="groups" class="easyui-accordion" data-options="multiple:true">
