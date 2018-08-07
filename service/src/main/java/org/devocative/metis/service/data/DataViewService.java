@@ -30,12 +30,14 @@ import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.MetisErrorCode;
 import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.ConfigLob;
+import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.connection.DBConnectionGroup;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.entity.data.config.XDataView;
+import org.devocative.metis.iservice.IExternalAuthorizationService;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.iservice.data.IDataViewService;
@@ -80,6 +82,12 @@ public class DataViewService implements IDataViewService {
 
 	@Autowired
 	private IFileStoreService fileStoreService;
+
+	@Autowired(required = false)
+	private IExternalAuthorizationService externalAuthorizationService;
+
+	@Autowired
+	private IDBConnectionService dbConnectionService;
 
 	// ------------------------------
 
@@ -474,10 +482,14 @@ public class DataViewService implements IDataViewService {
 	}
 
 	@Override
-	public void importReport(InputStream stream) {
-		logger.info("**");
-		logger.info("*** Importing Report Start: user=[{}]", securityService.getCurrentUser());
+	public void importReport(InputStream stream, String sentDBConnection) {
+		final UserVO currentUser = securityService.getCurrentUser();
 
+
+		logger.info("**");
+		logger.info("*** Importing Report Start: user=[{}]", currentUser);
+
+		List<String> importedReports = new ArrayList<>();
 		String xml = readText("REPORT", stream, ConfigUtil.getBoolean(MetisConfigKey.ImportReportVerify));
 
 		try (Connection connection = persistorService.createSqlConnection()) {
@@ -486,6 +498,10 @@ public class DataViewService implements IDataViewService {
 
 				ExportImportHelper helper = new ExportImportHelper(connection);
 				helper.importFrom(new ByteArrayInputStream(xml.getBytes("UTF-8")));
+				List<? extends Map<String, Object>> reports = helper.getDataSets().get("report");
+				for (Map<String, Object> report : reports) {
+					importedReports.add(report.get("id").toString());
+				}
 
 				SqlHelper sqlHelper = new SqlHelper(connection);
 				sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
@@ -493,9 +509,9 @@ public class DataViewService implements IDataViewService {
 				Date now = new Date();
 				Map<String, Object> other = new HashMap<>();
 				other.put("d_creation", now);
-				other.put("f_creator_user", securityService.getCurrentUser().getUserId());
+				other.put("f_creator_user", currentUser.getUserId());
 				other.put("d_modification", now);
-				other.put("f_modifier_user", securityService.getCurrentUser().getUserId());
+				other.put("f_modifier_user", currentUser.getUserId());
 
 				helper.setCommonData(other);
 
@@ -523,8 +539,13 @@ public class DataViewService implements IDataViewService {
 			cacheService.clear(IDBConnectionService.CACHE_KEY_X_SCHEMA);
 			cacheService.clear(IStringTemplateService.CACHE_KEY);
 
-			logger.info("*** Importing Report Finished: user=[{}]", securityService.getCurrentUser());
+			logger.info("*** Importing Report Finished: user=[{}]", currentUser);
 			logger.info("**");
+
+			if (externalAuthorizationService != null) {
+				DBConnection dbConnection = dbConnectionService.loadByName(sentDBConnection);
+				externalAuthorizationService.importedReports(importedReports, dbConnection);
+			}
 
 		} catch (Exception e) {
 			logger.error("importReport", e);

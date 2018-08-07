@@ -52,10 +52,26 @@ public class ExportImportPanel extends DPanel {
 
 	private List<Report> reports;
 
+	private String sentDBConnection;
+
 	// ------------------------------
 
 	public ExportImportPanel(String id) {
 		super(id);
+	}
+
+	// ------------------------------
+
+	public ExportImportPanel setSentDBConnection(String sentDBConnection) {
+		this.sentDBConnection = sentDBConnection;
+		return this;
+	}
+
+	// ------------------------------
+
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 
 		panel = new WebMarkupContainer("panel");
 		panel.setOutputMarkupId(true);
@@ -188,7 +204,7 @@ public class ExportImportPanel extends DPanel {
 				List<FileUpload> fileUploads = file.getFileUpload();
 				for (FileUpload fileUpload : fileUploads) {
 					try {
-						dataViewService.importReport(fileUpload.getInputStream());
+						dataViewService.importReport(fileUpload.getInputStream(), sentDBConnection);
 
 						info("Ok <br/>File: " + fileUpload.getClientFileName());
 					} catch (Exception e) {

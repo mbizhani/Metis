@@ -49,5 +49,5 @@ public interface IDataViewService {
 
 	String exportReport(List<DataGroup> dataGroups, List<Report> reports);
 
-	void importReport(InputStream stream);
+	void importReport(InputStream stream, String sentDBConnection);
 }

@@ -71,7 +71,14 @@ public class ReportMenuDPage extends DPage {
 		protected void onInitialize() {
 			super.onInitialize();
 
-			WModalWindow modalWindow = new WModalWindow("modalWindow");
+			if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
+				sentDBConnection = getWebRequest()
+					.getRequestParameters()
+					.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
+					.toOptionalString();
+			}
+
+			final WModalWindow modalWindow = new WModalWindow("modalWindow");
 			add(modalWindow);
 
 			add(new WAjaxLink("exportImport", MetisIcon.EXPORT_IMPORT) {
@@ -82,20 +89,16 @@ public class ReportMenuDPage extends DPage {
 					modalWindow.getOptions()
 						.setWidth(OSize.fixed(400))
 						.setHeight(OSize.fixed(400));
-					modalWindow.setContent(new ExportImportPanel(modalWindow.getContentId()));
+					modalWindow.setContent(
+						new ExportImportPanel(modalWindow.getContentId())
+							.setSentDBConnection(sentDBConnection)
+					);
 					modalWindow.show(target);
 				}
 			}.setVisible(
 				hasPermission(MetisPrivilegeKey.ReportImport)
 					|| hasPermission(MetisPrivilegeKey.ReportExport)
 			));
-
-			if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
-				sentDBConnection = getWebRequest()
-					.getRequestParameters()
-					.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
-					.toOptionalString();
-			}
 
 			final Map<DataGroup, List<Report>> listPerGroup = reportService.listPerGroup(sentDBConnection);
 
