@@ -199,16 +199,24 @@ public class DataViewFilterPanel extends DPanel {
 
 			case Date:
 			case DateTime:
+				MetisConfigKey defaultTimeFrom = XDSFieldType.DateTime == fieldVO.getType() ?
+					MetisConfigKey.FormDateTimeDefaultFrom :
+					MetisConfigKey.FormDateDefaultTime;
+
+				MetisConfigKey defaultTimeTo = XDSFieldType.DateTime == fieldVO.getType() ?
+					MetisConfigKey.FormDateTimeDefaultTo :
+					MetisConfigKey.FormDateDefaultTime;
+
 				if (XDSFieldFilterType.Range == fieldVO.getFilterType()) {
-					final TimeFieldVO fromTime = dataService.extractTimeFields(MetisConfigKey.FormDateTimeDefaultFrom);
-					final TimeFieldVO toTime = dataService.extractTimeFields(MetisConfigKey.FormDateTimeDefaultTo);
+					final TimeFieldVO fromTime = dataService.extractTimeFields(defaultTimeFrom);
+					final TimeFieldVO toTime = dataService.extractTimeFields(defaultTimeTo);
 
 					fieldFormItem = new WDateRangeInput(fieldVO.getName())
 						.setTimePartVisible(XDSFieldType.DateTime == fieldVO.getType())
 						.setFromDefaultTime(fromTime)
 						.setToDefaultTime(toTime);
 				} else {
-					final TimeFieldVO timeFieldVO = dataService.extractTimeFields(MetisConfigKey.FormDateDefaultTime);
+					final TimeFieldVO timeFieldVO = dataService.extractTimeFields(defaultTimeFrom);
 
 					fieldFormItem = new WDateInput(fieldVO.getName())
 						.setTimePartVisible(XDSFieldType.DateTime == fieldVO.getType())
