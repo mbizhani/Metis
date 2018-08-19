@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE schema PUBLIC
+		"Devocative/Metis Mapping"
+		"http://www.devocative.org/dtd/metis-mapping.dtd">
+
+<schema>
+	<entities>
+
+		<entity name="Person" table="t_person">
+			<properties>
+				<property name="id" column="id" isId="true"/>
+				<property name="name" column="c_name"/>
+				<property name="birthDate" column="d_birth_date"/>
+				<property name="alive" column="b_alive"/>
+			</properties>
+		</entity>
+
+		<entity name="Category" table="t_category">
+			<properties>
+				<property name="id" column="id" isId="true"/>
+				<property name="code" column="c_code"/>
+				<property name="name" column="c_name"/>
+			</properties>
+		</entity>
+
+		<entity name="CategoryElement" table="t_category_element">
+			<properties>
+				<property name="id" column="id" isId="true"/>
+				<property name="code" column="c_code"/>
+				<property name="name" column="c_name"/>
+				<many2one name="category" column="f_category"/>
+			</properties>
+		</entity>
+
+	</entities>
+</schema>
