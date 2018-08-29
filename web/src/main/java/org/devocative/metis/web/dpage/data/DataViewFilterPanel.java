@@ -16,6 +16,7 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
+import org.devocative.metis.vo.query.LookupQueryQVO;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.wickomp.WDefaults;
 import org.devocative.wickomp.form.*;
@@ -267,12 +268,11 @@ public class DataViewFilterPanel extends DPanel {
 
 					try {
 						if (lookUpList == null) {
-							lookUpList = dataSourceService.executeLookUp(
-								dataSourceId,
-								fieldVO.getTargetDSId(),
-								sentDBConnection,
-								new HashMap<>()
-							).getResult();
+							LookupQueryQVO queryQVO = new LookupQueryQVO(dataSourceId, fieldVO.getTargetDSId());
+							queryQVO
+								.setSentDBConnection(sentDBConnection)
+								.setInputParams(new HashMap<>());
+							lookUpList = dataSourceService.execute(queryQVO).getResult();
 						}
 					} catch (Exception e) {
 						logger.error("DataViewFilterPanel -> createFieldFormComponent() for lookUp", e);

@@ -48,7 +48,7 @@ public interface IDataSourceService {
 
 	DsQueryRVO<List<Map<String, Object>>> execute(SelectQueryQVO queryQVO);
 
-	DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(String dataSourceId, String targetDataSourceId, String sentDBConnection, Map<String, Object> filter);
+	DsQueryRVO<List<KeyValueVO<Serializable, String>>> execute(LookupQueryQVO queryQVO);
 
 	DsQueryRVO<List<Map<String, Object>>> executeOfParent(SelectQueryQVO queryQVO, Serializable parentId);
 

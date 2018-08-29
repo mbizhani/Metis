@@ -45,7 +45,9 @@ public enum MetisConfigKey implements IConfigKey {
 	FormDateTimeDefaultTo("mts.form.datetime.default.to", "23:59:59.999"),
 
 	ODataReplaceCharForNonSystemParam("mts.odata.char.replace.non.system", "~"),
-	ODataConsiderParentRelation("mts.odata.consider.parent.relation", false, Arrays.asList(true, false));
+	ODataConsiderParentRelation("mts.odata.consider.parent.relation", false, Arrays.asList(true, false)),
+
+	SQLParamFromUrl("mts.sql.param.from.url", (Object) Arrays.asList("$$curuser"));
 
 	// ------------------------------
 

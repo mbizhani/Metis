@@ -9,6 +9,8 @@ public abstract class AbstractQueryQVO {
 
 	private String sentDBConnection;
 
+	private Map<String, Object> extraParams;
+
 	// ------------------------------
 
 	protected AbstractQueryQVO(String dataSourceId) {
@@ -45,6 +47,15 @@ public abstract class AbstractQueryQVO {
 
 	public AbstractQueryQVO setSentDBConnection(String sentDBConnection) {
 		this.sentDBConnection = sentDBConnection;
+		return this;
+	}
+
+	public Map<String, Object> getExtraParams() {
+		return extraParams;
+	}
+
+	public AbstractQueryQVO setExtraParams(Map<String, Object> extraParams) {
+		this.extraParams = extraParams;
 		return this;
 	}
 }

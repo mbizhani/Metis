@@ -6,6 +6,7 @@ import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.StringEncryptorUtil;
 import org.devocative.adroit.cache.ICache;
 import org.devocative.adroit.sql.NamedParameterStatement;
+import org.devocative.adroit.sql.plugin.ObjectNavigationPlugin;
 import org.devocative.adroit.sql.plugin.PaginationPlugin;
 import org.devocative.adroit.sql.plugin.SchemaPlugin;
 import org.devocative.adroit.xml.AdroitXStream;
@@ -316,6 +317,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 				.setIgnoreExtraPassedParam(true) //TODO
 				.setIgnoreMissedParam(true); //TODO
 
+			nps.addPlugin(new ObjectNavigationPlugin());
 			if (getSchemaForDB(dbConnId) != null) {
 				nps.addPlugin(new SchemaPlugin(getSchemaForDB(dbConnId)));
 			}
@@ -425,6 +427,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 				.setIgnoreExtraPassedParam(true) //TODO
 				.setIgnoreMissedParam(true); //TODO
 
+			nps.addPlugin(new ObjectNavigationPlugin());
 			if (getSchemaForDB(dbConnId) != null) {
 				nps.addPlugin(new SchemaPlugin(getSchemaForDB(dbConnId)));
 			}
@@ -523,6 +526,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 				.setIgnoreExtraPassedParam(true) //TODO
 				.setIgnoreMissedParam(true); //TODO
 
+			nps.addPlugin(new ObjectNavigationPlugin());
 			if (getSchemaForDB(dbConnId) != null) {
 				nps.addPlugin(new SchemaPlugin(getSchemaForDB(dbConnId)));
 			}

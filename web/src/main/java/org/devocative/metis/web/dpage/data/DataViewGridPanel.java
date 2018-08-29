@@ -103,6 +103,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private String execTime = "?";
 
+	private Map<String, Object> sqlParamsInUrl = new LinkedHashMap<>();
+
 	// ------------------------------
 
 	public DataViewGridPanel(String id, final DataVO dataVO, final Map<String, Object> filter) {
@@ -188,6 +190,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setPageSize(pageSize)
 			.setSortFieldList(sortFieldsMap)
 			.setFilter(getFilterMap())
+			.setExtraParams(sqlParamsInUrl)
 			.setSentDBConnection(sentDBConnection);
 
 		dataService.executeDTask(dataViewQVO, taskBehavior);
@@ -201,6 +204,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		dataViewQVO
 			.setName(dataVO.getName())
 			.setParentId(parentId)
+			.setExtraParams(sqlParamsInUrl)
 			.setSortFieldList(sortFieldsMap)
 			.setSentDBConnection(sentDBConnection);
 
@@ -318,6 +322,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						.setName(DataViewGridPanel.this.dataVO.getName())
 						//TODO .setSortFieldList(getSortFieldsMap(sortFields))
 						.setFilter(getFilterMap())
+						.setExtraParams(sqlParamsInUrl)
 						.setSortFieldList(sortFieldsMap)
 						.setSentDBConnection(sentDBConnection)
 						.setDoExport(true);
@@ -459,6 +464,16 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 		taskBehavior = new DTaskBehavior<>(this);
 		add(taskBehavior);
+
+		final List<String> paramsFromUrl = ConfigUtil.getList(MetisConfigKey.SQLParamFromUrl);
+		for (String param : paramsFromUrl) {
+			if (webParams.containsKey(param)) {
+				String value = webParams.get(param).get(0);
+				LinkedHashMap<String, Object> valueAsMap = WebUtil.fromJson(value, new TypeReference<LinkedHashMap<String, Object>>() {
+				});
+				sqlParamsInUrl.put(param, valueAsMap);
+			}
+		}
 	}
 
 	@Override

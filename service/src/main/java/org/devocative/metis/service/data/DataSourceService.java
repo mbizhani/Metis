@@ -507,9 +507,9 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> executeLookUp(String dataSourceId, String targetDataSourceId, String sentDBConnection, Map<String, Object> filter) {
-		DataSource dataSource = load(dataSourceId);
-		DataSource targetDataSource = load(targetDataSourceId);
+	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> execute(LookupQueryQVO queryQVO) {
+		DataSource dataSource = load(queryQVO.getTargetDataSourceId());
+		DataSource targetDataSource = load(queryQVO.getTargetDataSourceId());
 
 		XDataSource targetXDataSource = targetDataSource.getXDataSource();
 
@@ -517,12 +517,12 @@ public class DataSourceService implements IDataSourceService {
 		select.add(targetDataSource.getKeyField());
 		select.add(targetDataSource.getTitleField() != null ? targetDataSource.getTitleField() : targetDataSource.getKeyField());
 
-		DSQueryBuilder builder = new DSQueryBuilder(targetXDataSource)
+		DSQueryBuilder builder = new DSQueryBuilder(targetXDataSource, queryQVO, null)
 			.appendSelect(select)
 			.appendFrom()
-			.appendWhere(filter);
+			.appendWhere();
 
-		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
+		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
 		String comment = String.format("DsLkUp[%s > %s]", dataSource.getName(), targetDataSource.getName());
 		return dbConnectionService.executeQuery(
 			dbConnId,
@@ -818,6 +818,10 @@ public class DataSourceService implements IDataSourceService {
 			this.xDataSource = xDataSource;
 			this.queryQVO = queryQVO;
 			this.selfRelationField = selfRelationField;
+
+			if (queryQVO != null && queryQVO.getExtraParams() != null) {
+				this.queryParams.putAll(queryQVO.getExtraParams());
+			}
 		}
 
 		// ---------------

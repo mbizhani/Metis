@@ -310,6 +310,7 @@ public class DataService implements IDataService {
 			.setPagination(PaginationQVO.byPage(request.getPageIndex(), request.getPageSize()))
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
+			.setExtraParams(request.getExtraParams())
 			.setSentDBConnection(request.getSentDBConnection());
 		DsQueryRVO<List<Map<String, Object>>> listRVO = dataSourceService.execute(selectQVO);
 		result.setList(listRVO.getResult());
@@ -320,6 +321,7 @@ public class DataService implements IDataService {
 		CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceId());
 		countQVO
 			.setInputParams(request.getFilter())
+			.setExtraParams(request.getExtraParams())
 			.setSentDBConnection(request.getSentDBConnection());
 		DsQueryRVO<Long> countRVO = dataSourceService.execute(countQVO);
 		result.setCount(countRVO.getResult());
@@ -337,6 +339,7 @@ public class DataService implements IDataService {
 			AggregateQueryQVO agrQVO = new AggregateQueryQVO(xDataView.getDataSourceId(), agrFields);
 			agrQVO
 				.setInputParams(request.getFilter())
+				.setExtraParams(request.getExtraParams())
 				.setSentDBConnection(request.getSentDBConnection());
 			DsQueryRVO<List<Map<String, Object>>> footerRVO = dataSourceService.execute(agrQVO);
 			result.setFooter(footerRVO.getResult());
@@ -393,6 +396,7 @@ public class DataService implements IDataService {
 			//.setPagination(PaginationQVO.byPage(1L, 1000L))
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
+			.setExtraParams(request.getExtraParams())
 			.setSentDBConnection(request.getSentDBConnection());
 
 		if (ConfigUtil.getLong(MetisConfigKey.ExportExcelMaxSize) > 1) {
@@ -522,6 +526,7 @@ public class DataService implements IDataService {
 				.setSortFields(request.getOrderBy())
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams)
+				//TODO .setExtraParams(request.getExtraParams())
 				.setSentDBConnection(request.getSentDBConnection());
 
 			List<Map<String, Object>> list = dataSourceService.execute(selectQVO).getResult();
@@ -574,6 +579,7 @@ public class DataService implements IDataService {
 			countQVO
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams)
+				//TODO .setExtraParams(request.getExtraParams())
 				.setSentDBConnection(request.getSentDBConnection());
 
 			Long result = dataSourceService.execute(countQVO).getResult();
@@ -649,12 +655,11 @@ public class DataService implements IDataService {
 							XDSField keyField = targetXDS.getField(targetDS.getKeyField());
 							lookUpFilter.put(keyField.getName(), convertQueryParam(keyField.getType(), values));
 
-							List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
-								dataSourceId,
-								fieldVO.getTargetDSId(),
-								sentDBConnection,
-								lookUpFilter
-							).getResult();
+							LookupQueryQVO queryQVO = new LookupQueryQVO(dataSourceId, fieldVO.getTargetDSId());
+							queryQVO
+								.setSentDBConnection(sentDBConnection)
+								.setInputParams(lookUpFilter);
+							List<KeyValueVO<Serializable, String>> filtered = dataSourceService.execute(queryQVO).getResult();
 
 							boolean multiple = fieldVO.getTargetDSMultipleSelection() == null || fieldVO.getTargetDSMultipleSelection();
 							if (multiple) {
@@ -689,12 +694,12 @@ public class DataService implements IDataService {
 					DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
 					XDataSource targetXDS = targetDS.getXDataSource();
 					Map<String, Object> filterTargetDS = createMapOfFilterTargetDS(fieldVO.getTargetDSFilter(), targetXDS.getAllFields());
-					List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
-						dataSourceId,
-						fieldVO.getTargetDSId(),
-						sentDBConnection,
-						filterTargetDS
-					).getResult();
+
+					LookupQueryQVO queryQVO = new LookupQueryQVO(dataSourceId, fieldVO.getTargetDSId());
+					queryQVO
+						.setSentDBConnection(sentDBConnection)
+						.setInputParams(filterTargetDS);
+					List<KeyValueVO<Serializable, String>> filtered = dataSourceService.execute(queryQVO).getResult();
 					result.put(fieldName, filtered);
 				}
 			} catch (Exception e) {
@@ -757,12 +762,11 @@ public class DataService implements IDataService {
 							XDSField keyField = targetXDS.getField(targetDS.getKeyField());
 							lookUpFilter.put(keyField.getName(), convertFilterParam(keyField.getType(), value, true));
 
-							List<KeyValueVO<Serializable, String>> filtered = dataSourceService.executeLookUp(
-								dataSourceId,
-								fieldVO.getTargetDSId(),
-								sentDBConnection,
-								lookUpFilter
-							).getResult();
+							LookupQueryQVO queryQVO = new LookupQueryQVO(dataSourceId, fieldVO.getTargetDSId());
+							queryQVO
+								.setSentDBConnection(sentDBConnection)
+								.setInputParams(lookUpFilter);
+							List<KeyValueVO<Serializable, String>> filtered = dataSourceService.execute(queryQVO).getResult();
 
 							boolean multiple = fieldVO.getTargetDSMultipleSelection() == null || fieldVO.getTargetDSMultipleSelection();
 							if (multiple) {
