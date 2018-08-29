@@ -310,7 +310,6 @@ public class DataService implements IDataService {
 			.setPagination(PaginationQVO.byPage(request.getPageIndex(), request.getPageSize()))
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
-			.setExtraParams(request.getExtraParams())
 		;
 		DsQueryRVO<List<Map<String, Object>>> listRVO = dataSourceService.execute(selectQVO);
 		result.setList(listRVO.getResult());
@@ -321,7 +320,6 @@ public class DataService implements IDataService {
 		CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceId());
 		countQVO
 			.setInputParams(request.getFilter())
-			.setExtraParams(request.getExtraParams())
 		;
 		DsQueryRVO<Long> countRVO = dataSourceService.execute(countQVO);
 		result.setCount(countRVO.getResult());
@@ -339,7 +337,6 @@ public class DataService implements IDataService {
 			AggregateQueryQVO agrQVO = new AggregateQueryQVO(xDataView.getDataSourceId(), agrFields);
 			agrQVO
 				.setInputParams(request.getFilter())
-				.setExtraParams(request.getExtraParams())
 			;
 			DsQueryRVO<List<Map<String, Object>>> footerRVO = dataSourceService.execute(agrQVO);
 			result.setFooter(footerRVO.getResult());
@@ -395,7 +392,6 @@ public class DataService implements IDataService {
 			//.setPagination(PaginationQVO.byPage(1L, 1000L))
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
-			.setExtraParams(request.getExtraParams())
 		;
 
 		if (ConfigUtil.getLong(MetisConfigKey.ExportExcelMaxSize) > 1) {

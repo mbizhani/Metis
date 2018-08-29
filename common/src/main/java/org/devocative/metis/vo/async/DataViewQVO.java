@@ -16,8 +16,6 @@ public class DataViewQVO implements Serializable {
 
 	private boolean doExport = false;
 
-	private Map<String, Object> extraParams;
-
 	// ------------------------------
 
 	public String getName() {
@@ -80,15 +78,6 @@ public class DataViewQVO implements Serializable {
 
 	public DataViewQVO setDoExport(boolean doExport) {
 		this.doExport = doExport;
-		return this;
-	}
-
-	public Map<String, Object> getExtraParams() {
-		return extraParams;
-	}
-
-	public DataViewQVO setExtraParams(Map<String, Object> extraParams) {
-		this.extraParams = extraParams;
 		return this;
 	}
 }

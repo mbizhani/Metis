@@ -1,5 +1,6 @@
 package org.devocative.metis.service.data;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.thoughtworks.xstream.XStream;
 import org.devocative.adroit.ConfigUtil;
 import org.devocative.adroit.ObjectUtil;
@@ -830,9 +831,21 @@ public class DataSourceService implements IDataSourceService {
 			this.queryQVO = queryQVO;
 			this.selfRelationField = selfRelationField;
 
-			if (queryQVO != null && queryQVO.getExtraParams() != null) {
+			/*if (queryQVO != null && queryQVO.getExtraParams() != null) {
 				this.queryParams.putAll(queryQVO.getExtraParams());
+			}*/
+
+			Map<String, List<String>> params = requestService.getCurrentRequest().getParams();
+			final List<String> paramsFromUrl = ConfigUtil.getList(MetisConfigKey.SQLParamFromUrl);
+			for (String param : paramsFromUrl) {
+				if (params.containsKey(param)) {
+					String value = params.get(param).get(0);
+					LinkedHashMap<String, Object> valueAsMap = requestService.fromJson(value, new TypeReference<LinkedHashMap<String, Object>>() {
+					});
+					queryParams.put(param, valueAsMap);
+				}
 			}
+
 		}
 
 		// ---------------

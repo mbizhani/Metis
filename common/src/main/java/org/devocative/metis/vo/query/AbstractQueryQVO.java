@@ -7,8 +7,6 @@ public abstract class AbstractQueryQVO {
 	private Map<String, Object> inputParams;
 	private String filterExpression;
 
-	private Map<String, Object> extraParams;
-
 	// ------------------------------
 
 	protected AbstractQueryQVO(String dataSourceId) {
@@ -36,15 +34,6 @@ public abstract class AbstractQueryQVO {
 
 	public AbstractQueryQVO setFilterExpression(String filterExpression) {
 		this.filterExpression = filterExpression;
-		return this;
-	}
-
-	public Map<String, Object> getExtraParams() {
-		return extraParams;
-	}
-
-	public AbstractQueryQVO setExtraParams(Map<String, Object> extraParams) {
-		this.extraParams = extraParams;
 		return this;
 	}
 }
