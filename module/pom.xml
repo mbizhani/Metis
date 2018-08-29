@@ -31,8 +31,6 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
-			<version>${d.servlet.ver}</version>
-			<scope>provided</scope>
 		</dependency>
 
 		<!-- TEST SCOPED -->
@@ -40,29 +38,18 @@
 		<dependency>
 			<groupId>org.devocative</groupId>
 			<artifactId>demeter-module</artifactId>
-			<version>${d.demeter.ver}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.devocative</groupId>
 			<artifactId>demeter-module</artifactId>
-			<version>${d.demeter.ver}</version>
 			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc7</artifactId>
-			<version>12.1.0.2</version>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>2.4.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -85,20 +72,6 @@
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
-				<version>${p.jetty.ver}</version>
-				<configuration>
-					<useTestScope>true</useTestScope>
-					<webAppSourceDirectory>src/test/webapp</webAppSourceDirectory>
-					<webApp>
-						<contextPath>${jetty.context}</contextPath>
-					</webApp>
-					<httpConnector>
-						<port>${jetty.port}</port>
-					</httpConnector>
-
-					<stopKey>Metis</stopKey>
-					<stopPort>${jetty.port.stop}</stopPort>
-				</configuration>
 			</plugin>
 
 			<!-- Remote Resource -->

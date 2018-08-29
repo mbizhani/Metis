@@ -25,7 +25,6 @@
 		<dependency>
 			<groupId>org.devocative</groupId>
 			<artifactId>demeter-web</artifactId>
-			<version>${d.demeter.ver}</version>
 		</dependency>
 
 		<dependency>
@@ -43,8 +42,6 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
-			<version>${d.servlet.ver}</version>
-			<scope>provided</scope>
 		</dependency>
 
 	</dependencies>

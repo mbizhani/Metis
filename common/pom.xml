@@ -18,13 +18,11 @@
 		<dependency>
 			<groupId>org.devocative</groupId>
 			<artifactId>demeter-common</artifactId>
-			<version>${d.demeter.ver}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.thoughtworks.xstream</groupId>
 			<artifactId>xstream</artifactId>
-			<version>${d.xstream.ver}</version>
 		</dependency>
 	</dependencies>
 
