@@ -7,8 +7,6 @@ public abstract class AbstractQueryQVO {
 	private Map<String, Object> inputParams;
 	private String filterExpression;
 
-	private String sentDBConnection;
-
 	private Map<String, Object> extraParams;
 
 	// ------------------------------
@@ -38,15 +36,6 @@ public abstract class AbstractQueryQVO {
 
 	public AbstractQueryQVO setFilterExpression(String filterExpression) {
 		this.filterExpression = filterExpression;
-		return this;
-	}
-
-	public String getSentDBConnection() {
-		return sentDBConnection;
-	}
-
-	public AbstractQueryQVO setSentDBConnection(String sentDBConnection) {
-		this.sentDBConnection = sentDBConnection;
 		return this;
 	}
 

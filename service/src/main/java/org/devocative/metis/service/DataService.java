@@ -289,10 +289,10 @@ public class DataService implements IDataService {
 		DLogCtx
 			.put("action", "execute")
 			.put("dataView", request.getName())
-			.put("sentDB", request.getSentDBConnection());
+		;
 
-		logger.info("Executing DataView: DV=[{}] Usr=[{}] SentDB=[{}]",
-			request.getName(), securityService.getCurrentUser(), request.getSentDBConnection());
+		logger.info("Executing DataView: DV=[{}] Usr=[{}]",
+			request.getName(), securityService.getCurrentUser());
 		long start = System.currentTimeMillis();
 
 		DataView dataView = dataViewService.loadByName(request.getName());
@@ -311,7 +311,7 @@ public class DataService implements IDataService {
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
 			.setExtraParams(request.getExtraParams())
-			.setSentDBConnection(request.getSentDBConnection());
+		;
 		DsQueryRVO<List<Map<String, Object>>> listRVO = dataSourceService.execute(selectQVO);
 		result.setList(listRVO.getResult());
 		result.addQueryExecInfo(listRVO.getQueryExecInfoList());
@@ -322,7 +322,7 @@ public class DataService implements IDataService {
 		countQVO
 			.setInputParams(request.getFilter())
 			.setExtraParams(request.getExtraParams())
-			.setSentDBConnection(request.getSentDBConnection());
+		;
 		DsQueryRVO<Long> countRVO = dataSourceService.execute(countQVO);
 		result.setCount(countRVO.getResult());
 		result.addQueryExecInfo(countRVO.getQueryExecInfoList());
@@ -340,7 +340,7 @@ public class DataService implements IDataService {
 			agrQVO
 				.setInputParams(request.getFilter())
 				.setExtraParams(request.getExtraParams())
-				.setSentDBConnection(request.getSentDBConnection());
+			;
 			DsQueryRVO<List<Map<String, Object>>> footerRVO = dataSourceService.execute(agrQVO);
 			result.setFooter(footerRVO.getResult());
 			result.addQueryExecInfo(footerRVO.getQueryExecInfoList());
@@ -349,15 +349,15 @@ public class DataService implements IDataService {
 		// --------------- Check After of DataSource
 
 		result.addQueryExecInfo(
-			dataSourceService.executeAfterIfAny(xDataView.getDataSourceId(), request.getSentDBConnection())
+			dataSourceService.executeAfterIfAny(xDataView.getDataSourceId())
 		);
 
 		// ---------------
 
 		long dur = System.currentTimeMillis() - start;
 		DLogCtx.put("duration", dur);
-		logger.info("Executed DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}] Res#=[{}] Cnt=[{}] Ftr=[{}]",
-			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(),
+		logger.info("Executed DataView: DV=[{}] Usr=[{}] Dur=[{}] Res#=[{}] Cnt=[{}] Ftr=[{}]",
+			xDataView.getName(), securityService.getCurrentUser(),
 			dur, result.getList().size(), result.getCount(),
 			result.getFooter() != null ? result.getFooter().size() : null);
 
@@ -369,12 +369,11 @@ public class DataService implements IDataService {
 		DLogCtx
 			.put("action", "export")
 			.put("dataView", request.getName())
-			.put("sentDB", request.getSentDBConnection());
+		;
 
 		UserVO currentUser = securityService.getCurrentUser();
 
-		logger.info("Exporting DataView: DV=[{}] Usr=[{}] SentDB=[{}]",
-			request.getName(), currentUser, request.getSentDBConnection());
+		logger.info("Exporting DataView: DV=[{}] Usr=[{}]", request.getName(), currentUser);
 
 		long start = System.currentTimeMillis();
 
@@ -397,7 +396,7 @@ public class DataService implements IDataService {
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
 			.setExtraParams(request.getExtraParams())
-			.setSentDBConnection(request.getSentDBConnection());
+		;
 
 		if (ConfigUtil.getLong(MetisConfigKey.ExportExcelMaxSize) > 1) {
 			selectQVO.setPagination(PaginationQVO.byPage(1L, ConfigUtil.getLong(MetisConfigKey.ExportExcelMaxSize)));
@@ -454,8 +453,8 @@ public class DataService implements IDataService {
 
 		long dur = System.currentTimeMillis() - start;
 		DLogCtx.put("duration", dur);
-		logger.info("Exported DataView: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}]",
-			xDataView.getName(), securityService.getCurrentUser(), request.getSentDBConnection(), dur);
+		logger.info("Exported DataView: DV=[{}] Usr=[{}] Dur=[{}]",
+			xDataView.getName(), securityService.getCurrentUser(), dur);
 
 		return new DataViewRVO().setFileId(fileStoreHandler.getFileStore().getFileId());
 	}
@@ -465,7 +464,7 @@ public class DataService implements IDataService {
 		DLogCtx
 			.put("action", "execOfParent")
 			.put("dataView", request.getName())
-			.put("sentDB", request.getSentDBConnection());
+		;
 
 		logger.info("Executing DataView of Parent: DV=[{}] Prnt=[{}] Usr=[{}]",
 			request.getName(), request.getParentId(), securityService.getCurrentUser());
@@ -478,8 +477,7 @@ public class DataService implements IDataService {
 
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
 		selectQVO
-			.setSortFields(request.getSortFieldList())
-			.setSentDBConnection(request.getSentDBConnection());
+			.setSortFields(request.getSortFieldList());
 
 		List<Map<String, Object>> list = dataSourceService.executeOfParent(selectQVO, request.getParentId()).getResult();
 
@@ -501,8 +499,7 @@ public class DataService implements IDataService {
 			.put("action", "odata")
 			.put("dataView", request.getName());
 
-		logger.info("Executing OData: DV=[{}] Usr=[{}] SentDB=[{}]",
-			request.getName(), securityService.getCurrentUser(), request.getSentDBConnection());
+		logger.info("Executing OData: DV=[{}] Usr=[{}]", request.getName(), securityService.getCurrentUser());
 
 		long start = System.currentTimeMillis();
 
@@ -527,14 +524,14 @@ public class DataService implements IDataService {
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams)
 				//TODO .setExtraParams(request.getExtraParams())
-				.setSentDBConnection(request.getSentDBConnection());
+			;
 
 			List<Map<String, Object>> list = dataSourceService.execute(selectQVO).getResult();
 
 			long dur = System.currentTimeMillis() - start;
 			DLogCtx.put("duration", dur);
-			logger.info("Executed OData: DV=[{}] Usr=[{}] SentDB=[{}] Dur=[{}]",
-				request.getName(), securityService.getCurrentUser(), request.getSentDBConnection(), dur);
+			logger.info("Executed OData: DV=[{}] Usr=[{}] Dur=[{}]",
+				request.getName(), securityService.getCurrentUser(), dur);
 
 			return list;
 		} catch (MetisException e) {
@@ -579,8 +576,7 @@ public class DataService implements IDataService {
 			countQVO
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams)
-				//TODO .setExtraParams(request.getExtraParams())
-				.setSentDBConnection(request.getSentDBConnection());
+			;
 
 			Long result = dataSourceService.execute(countQVO).getResult();
 
@@ -606,8 +602,7 @@ public class DataService implements IDataService {
 		Map<String, Object> result,
 		String dataSourceId,
 		List<DataAbstractFieldVO> fields,
-		Map<String, List<String>> params,
-		String sentDBConnection) {
+		Map<String, List<String>> params) {
 
 		Set<String> finalWebParams = new HashSet<>();
 
@@ -657,7 +652,6 @@ public class DataService implements IDataService {
 
 							LookupQueryQVO queryQVO = new LookupQueryQVO(dataSourceId, fieldVO.getTargetDSId());
 							queryQVO
-								.setSentDBConnection(sentDBConnection)
 								.setInputParams(lookUpFilter);
 							List<KeyValueVO<Serializable, String>> filtered = dataSourceService.execute(queryQVO).getResult();
 
@@ -697,7 +691,6 @@ public class DataService implements IDataService {
 
 					LookupQueryQVO queryQVO = new LookupQueryQVO(dataSourceId, fieldVO.getTargetDSId());
 					queryQVO
-						.setSentDBConnection(sentDBConnection)
 						.setInputParams(filterTargetDS);
 					List<KeyValueVO<Serializable, String>> filtered = dataSourceService.execute(queryQVO).getResult();
 					result.put(fieldName, filtered);
@@ -716,8 +709,7 @@ public class DataService implements IDataService {
 	public Map<String, Object> convertFilterToFilter(
 		String dataSourceId,
 		List<DataAbstractFieldVO> fields,
-		Map<String, Object> filter,
-		String sentDBConnection) {
+		Map<String, Object> filter) {
 
 		Map<String, Object> result = new HashMap<>();
 
@@ -764,7 +756,6 @@ public class DataService implements IDataService {
 
 							LookupQueryQVO queryQVO = new LookupQueryQVO(dataSourceId, fieldVO.getTargetDSId());
 							queryQVO
-								.setSentDBConnection(sentDBConnection)
 								.setInputParams(lookUpFilter);
 							List<KeyValueVO<Serializable, String>> filtered = dataSourceService.execute(queryQVO).getResult();
 

@@ -40,7 +40,6 @@ public class DataViewFilterPanel extends DPanel {
 
 	private Map<String, Object> filter;
 	private String dataSourceId;
-	private String sentDBConnection;
 	private List<DataAbstractFieldVO> fields;
 	private Map<String, List<String>> webParams;
 	private Set<String> filterWithDefAndReqOrDis;
@@ -71,11 +70,6 @@ public class DataViewFilterPanel extends DPanel {
 
 	// ------------------------------
 
-	public DataViewFilterPanel setSentDBConnection(String sentDBConnection) {
-		this.sentDBConnection = sentDBConnection;
-		return this;
-	}
-
 	public DataViewFilterPanel setWebParams(Map<String, List<String>> webParams) {
 		this.webParams = webParams;
 		return this;
@@ -97,7 +91,7 @@ public class DataViewFilterPanel extends DPanel {
 		}
 
 		try {
-			Set<String> finalWebParams = dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, webParams, sentDBConnection);
+			Set<String> finalWebParams = dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, webParams);
 			filterWithDefAndReqOrDis.addAll(finalWebParams);
 		} catch (Exception e) {
 			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter(webParams)", e);
@@ -106,7 +100,7 @@ public class DataViewFilterPanel extends DPanel {
 
 		filterWithDef.putAll(findDefaultValue());
 		try {
-			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, filterWithDef, sentDBConnection);
+			dataService.convertSimpleParamsToFilter(filter, dataSourceId, fields, filterWithDef);
 		} catch (Exception e) {
 			logger.error("DataViewFilterPanel -> convertSimpleParamsToFilter(defaultValue)", e);
 			error(WDefaults.getExceptionToMessageHandler().handleMessage(this, e));
@@ -270,7 +264,6 @@ public class DataViewFilterPanel extends DPanel {
 						if (lookUpList == null) {
 							LookupQueryQVO queryQVO = new LookupQueryQVO(dataSourceId, fieldVO.getTargetDSId());
 							queryQVO
-								.setSentDBConnection(sentDBConnection)
 								.setInputParams(new HashMap<>());
 							lookUpList = dataSourceService.execute(queryQVO).getResult();
 						}
@@ -301,7 +294,6 @@ public class DataViewFilterPanel extends DPanel {
 							return new DataViewExecutorDPage(selectionPanelId, Collections.singletonList(targetDSName))
 								.setSelectionJSCallback(getJSCallback())
 								.setMultiSelect(multiple)
-								.setSentDBConnection(sentDBConnection)
 								.setFilterParams(fieldVO.getTargetDSFilter());
 						}
 

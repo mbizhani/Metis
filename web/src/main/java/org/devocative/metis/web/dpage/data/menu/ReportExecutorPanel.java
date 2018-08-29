@@ -68,7 +68,7 @@ public class ReportExecutorPanel extends WPanel {
 		filter.putAll(dataService.convertFilterToFilter(
 			dataVO.getDataSourceId(),
 			dataVO.getAllFields(),
-			targetFilter, null));
+			targetFilter));
 
 		Set<String> filterWithDefAndReqOrDis = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 		filterWithDefAndReqOrDis.addAll(filter.keySet());
@@ -78,7 +78,6 @@ public class ReportExecutorPanel extends WPanel {
 			new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
 				.setWebParams(targetParam)
 				.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
-				.setSentDBConnection(sentDBConnection)
 		);
 
 		search = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
@@ -102,7 +101,6 @@ public class ReportExecutorPanel extends WPanel {
 
 		mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
 		mainGrid
-			.setSentDBConnection(sentDBConnection)
 			.setWebParams(targetParam)
 			.setMultiSelect(false)
 		;

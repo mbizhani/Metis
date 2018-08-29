@@ -47,14 +47,12 @@ public interface IDataService {
 		Map<String, Object> result,
 		String dataSourceId,
 		List<DataAbstractFieldVO> fields,
-		Map<String, List<String>> params,
-		String sentDBConnection);
+		Map<String, List<String>> params);
 
 	Map<String, Object> convertFilterToFilter(
 		String dataSourceId,
 		List<DataAbstractFieldVO> fields,
-		Map<String, Object> filter,
-		String sentDBConnection);
+		Map<String, Object> filter);
 
 	void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams);
 

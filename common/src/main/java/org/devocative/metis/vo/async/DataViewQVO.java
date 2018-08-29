@@ -14,8 +14,6 @@ public class DataViewQVO implements Serializable {
 
 	private Serializable parentId;
 
-	private String sentDBConnection;
-
 	private boolean doExport = false;
 
 	private Map<String, Object> extraParams;
@@ -73,15 +71,6 @@ public class DataViewQVO implements Serializable {
 
 	public DataViewQVO setParentId(Serializable parentId) {
 		this.parentId = parentId;
-		return this;
-	}
-
-	public String getSentDBConnection() {
-		return sentDBConnection;
-	}
-
-	public DataViewQVO setSentDBConnection(String sentDBConnection) {
-		this.sentDBConnection = sentDBConnection;
 		return this;
 	}
 

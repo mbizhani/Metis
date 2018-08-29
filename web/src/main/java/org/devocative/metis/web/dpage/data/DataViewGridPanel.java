@@ -92,7 +92,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private DTaskBehavior<DataViewRVO> taskBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
 
-	private String sentDBConnection;
 	private String selectionJSCallback;
 	private Boolean multiSelect;
 	private Map<String, List<String>> webParams;
@@ -123,11 +122,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	public DataViewGridPanel setMultiSelect(boolean multiSelect) {
 		this.multiSelect = multiSelect;
-		return this;
-	}
-
-	public DataViewGridPanel setSentDBConnection(String sentDBConnection) {
-		this.sentDBConnection = sentDBConnection;
 		return this;
 	}
 
@@ -190,8 +184,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setPageSize(pageSize)
 			.setSortFieldList(sortFieldsMap)
 			.setFilter(getFilterMap())
-			.setExtraParams(sqlParamsInUrl)
-			.setSentDBConnection(sentDBConnection);
+			.setExtraParams(sqlParamsInUrl);
 
 		dataService.executeDTask(dataViewQVO, taskBehavior);
 	}
@@ -205,8 +198,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setName(dataVO.getName())
 			.setParentId(parentId)
 			.setExtraParams(sqlParamsInUrl)
-			.setSortFieldList(sortFieldsMap)
-			.setSentDBConnection(sentDBConnection);
+			.setSortFieldList(sortFieldsMap);
 
 		dataService.executeDTask(dataViewQVO, taskBehavior);
 	}
@@ -324,7 +316,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						.setFilter(getFilterMap())
 						.setExtraParams(sqlParamsInUrl)
 						.setSortFieldList(sortFieldsMap)
-						.setSentDBConnection(sentDBConnection)
 						.setDoExport(true);
 
 					dataService.executeDTask(dataViewQVO, taskBehavior);
@@ -609,7 +600,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
 							dPage
-								.setSentDBConnection(sentDBConnection)
 								.setConsiderWebParams(false)
 								.setWebParams(targetParams)
 								.addToFilter(targetFilter);

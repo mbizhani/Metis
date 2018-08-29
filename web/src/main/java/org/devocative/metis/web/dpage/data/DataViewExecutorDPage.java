@@ -38,7 +38,6 @@ public class DataViewExecutorDPage extends DPage {
 	private static final Logger logger = LoggerFactory.getLogger(DataViewExecutorDPage.class);
 
 	private DataVO dataVO;
-	private String sentDBConnection;
 	private DataViewGridPanel mainGrid;
 	private Map<String, Object> filter = new HashMap<>();
 	private String filterParams;
@@ -87,11 +86,6 @@ public class DataViewExecutorDPage extends DPage {
 		return this;
 	}
 
-	public DataViewExecutorDPage setSentDBConnection(String sentDBConnection) {
-		this.sentDBConnection = sentDBConnection;
-		return this;
-	}
-
 	public DataViewExecutorDPage setFilterParams(String filterParams) {
 		this.filterParams = filterParams;
 		return this;
@@ -109,8 +103,7 @@ public class DataViewExecutorDPage extends DPage {
 	}
 
 	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
-		Map<String, Object> map = dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(),
-			filter, sentDBConnection);
+		Map<String, Object> map = dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(), filter);
 
 		filterWithDefAndReqOrDis.addAll(map.keySet());
 
@@ -123,13 +116,6 @@ public class DataViewExecutorDPage extends DPage {
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
-
-		if (ConfigUtil.hasKey(MetisConfigKey.DBConnParamName)) {
-			sentDBConnection = getWebRequest()
-				.getRequestParameters()
-				.getParameterValue(ConfigUtil.getString(MetisConfigKey.DBConnParamName))
-				.toOptionalString();
-		}
 
 		if (considerWebParams) {
 			if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
@@ -158,7 +144,6 @@ public class DataViewExecutorDPage extends DPage {
 		Form<Map<String, Object>> form = new Form<>("form");
 		form.add(
 			new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
-				.setSentDBConnection(sentDBConnection)
 				.setWebParams(webParams)
 				.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
 		);
@@ -187,7 +172,6 @@ public class DataViewExecutorDPage extends DPage {
 		mainGrid
 			.setMultiSelect(multiSelect)
 			.setSelectionJSCallback(selectionJSCallback)
-			.setSentDBConnection(sentDBConnection)
 			.setWebParams(webParams);
 		centerPanel.add(mainGrid);
 

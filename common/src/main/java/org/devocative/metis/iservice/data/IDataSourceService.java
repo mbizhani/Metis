@@ -56,5 +56,5 @@ public interface IDataSourceService {
 
 	DsQueryRVO<List<Map<String, Object>>> execute(AggregateQueryQVO queryQVO);
 
-	List<QueryExecInfoRVO> executeAfterIfAny(String dsId, String sentDBConnection);
+	List<QueryExecInfoRVO> executeAfterIfAny(String dsId);
 }

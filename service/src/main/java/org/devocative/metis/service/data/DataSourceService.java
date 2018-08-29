@@ -12,6 +12,7 @@ import org.devocative.adroit.xml.AdroitXStream;
 import org.devocative.demeter.DLogCtx;
 import org.devocative.demeter.entity.User;
 import org.devocative.demeter.iservice.ICacheService;
+import org.devocative.demeter.iservice.IRequestService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.persistor.EJoinMode;
 import org.devocative.demeter.iservice.persistor.IPersistorService;
@@ -67,6 +68,9 @@ public class DataSourceService implements IDataSourceService {
 
 	@Autowired
 	private IStringTemplateService stringTemplateService;
+
+	@Autowired
+	private IRequestService requestService;
 
 	// ------------------------------
 
@@ -465,7 +469,7 @@ public class DataSourceService implements IDataSourceService {
 			.appendWhere()
 			.appendSort(queryQVO.getSortFields());
 
-		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
+		Long dbConnId = findProperDBConnection(dataSource);
 
 		String comment = String.format("DsExc[%s]", dataSource.getName());
 
@@ -497,8 +501,7 @@ public class DataSourceService implements IDataSourceService {
 					queryQVO.getDataSourceId(),
 					queryQVO.getSelectFields());
 				selectQueryQVO
-					.setSortFields(queryQVO.getSortFields())
-					.setSentDBConnection(queryQVO.getSentDBConnection());
+					.setSortFields(queryQVO.getSortFields());
 				list.getResult().addAll(findParentsToRoot(dataSource, selectQueryQVO, parentIds));
 			}
 		}
@@ -522,7 +525,7 @@ public class DataSourceService implements IDataSourceService {
 			.appendFrom()
 			.appendWhere();
 
-		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
+		Long dbConnId = findProperDBConnection(dataSource);
 		String comment = String.format("DsLkUp[%s > %s]", dataSource.getName(), targetDataSource.getName());
 		return dbConnectionService.executeQuery(
 			dbConnId,
@@ -555,7 +558,7 @@ public class DataSourceService implements IDataSourceService {
 			.appendSort(queryQVO.getSortFields());
 
 		String comment = String.format("DsChld[%s]", dataSource.getName());
-		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
+		Long dbConnId = findProperDBConnection(dataSource);
 
 		return dbConnectionService.executeQuery(
 			dbConnId,
@@ -580,7 +583,7 @@ public class DataSourceService implements IDataSourceService {
 
 		String main = builderVO.getQuery();
 
-		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
+		Long dbConnId = findProperDBConnection(dataSource);
 
 		String comment = String.format("DsCnt[%s]", dataSource.getName());
 
@@ -619,7 +622,7 @@ public class DataSourceService implements IDataSourceService {
 
 		String main = builderVO.getQuery();
 
-		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
+		Long dbConnId = findProperDBConnection(dataSource);
 
 		String comment = String.format("DsAgr[%s]", dataSource.getName());
 
@@ -663,11 +666,11 @@ public class DataSourceService implements IDataSourceService {
 	}
 
 	@Override
-	public List<QueryExecInfoRVO> executeAfterIfAny(String dsId, String sentDBConnection) {
+	public List<QueryExecInfoRVO> executeAfterIfAny(String dsId) {
 		DataSource dataSource = load(dsId);
 		XDataSource xDataSource = dataSource.getXDataSource();
 
-		Long dbConnId = findProperDBConnection(sentDBConnection, dataSource);
+		Long dbConnId = findProperDBConnection(dataSource);
 		String comment = String.format("AF_DsExc[%s]", dataSource.getName());
 
 		List<QueryExecInfoRVO> afterExecInfo = new ArrayList<>();
@@ -675,7 +678,7 @@ public class DataSourceService implements IDataSourceService {
 			String[] queries = xDataSource.getQuery().getAfter().split("[;]");
 			for (String query : queries) {
 				if (!query.isEmpty()) {
-					afterExecInfo.add(dbConnectionService.execute(dbConnId, query, comment, new HashMap<String, Object>()));
+					afterExecInfo.add(dbConnectionService.execute(dbConnId, query, comment, new HashMap<>()));
 				}
 			}
 		}
@@ -708,8 +711,16 @@ public class DataSourceService implements IDataSourceService {
 		}
 	}
 
-	private Long findProperDBConnection(String sentDBConn, DataSource dataSource) {
-		DLogCtx.put("connSelection", dataSource.getConnectionSelection());
+	private Long findProperDBConnection(DataSource dataSource) {
+		String sentDBConn = null;
+		Map<String, List<String>> params = requestService.getCurrentRequest().getParams();
+		if (params.containsKey(ConfigUtil.getString(MetisConfigKey.DBConnParamName))) {
+			sentDBConn = params.get(ConfigUtil.getString(MetisConfigKey.DBConnParamName)).get(0);
+		}
+
+		DLogCtx
+			.put("sentDBConnection", sentDBConn)
+			.put("connSelection", dataSource.getConnectionSelection());
 
 		if (EConnectionSelection.THREE_STEPS.equals(dataSource.getConnectionSelection())) {
 			if (sentDBConn != null) {
@@ -765,7 +776,7 @@ public class DataSourceService implements IDataSourceService {
 			.appendWhere()
 			.appendSort(queryQVO.getSortFields());
 
-		Long dbConnId = findProperDBConnection(queryQVO.getSentDBConnection(), dataSource);
+		Long dbConnId = findProperDBConnection(dataSource);
 
 		String comment = String.format("DsPar[%s]", dataSource.getName());
 

@@ -13,8 +13,6 @@ public class ODataQVO {
 	private long firstResult;
 	private long maxResults;
 
-	private String sentDBConnection;
-
 	// ------------------------------
 
 	public ODataQVO(String name) {
@@ -69,15 +67,6 @@ public class ODataQVO {
 
 	public ODataQVO setMaxResults(long maxResults) {
 		this.maxResults = maxResults;
-		return this;
-	}
-
-	public String getSentDBConnection() {
-		return sentDBConnection;
-	}
-
-	public ODataQVO setSentDBConnection(String sentDBConnection) {
-		this.sentDBConnection = sentDBConnection;
 		return this;
 	}
 }

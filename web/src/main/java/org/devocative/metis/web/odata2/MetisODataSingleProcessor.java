@@ -9,10 +9,8 @@ import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.KeyPredicate;
 import org.apache.olingo.odata2.api.uri.expression.OrderExpression;
 import org.apache.olingo.odata2.api.uri.info.*;
-import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.core.DemeterCore;
 import org.devocative.demeter.iservice.ISecurityService;
-import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
@@ -154,7 +152,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		*/
 
 		dataQVO.setInputParams(inputParams);
-		processCommonOfUri(customQueryOptions, dataQVO);
+		//processCommonOfUri(customQueryOptions, dataQVO);
 
 		List<Map<String, Object>> list = dataService.executeOData(dataQVO);
 
@@ -198,7 +196,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 
 		dataQVO.setInputParams(inputParams);
 
-		processCommonOfUri(customQueryOptions, dataQVO);
+		//processCommonOfUri(customQueryOptions, dataQVO);
 
 		Long dataCount = dataService.executeODataCount(dataQVO);
 
@@ -223,7 +221,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 				.setMaxResults(1);
 			dataQVO.setInputParams(inputParams);
 
-			processCommonOfUri(customQueryOptions, dataQVO);
+			//processCommonOfUri(customQueryOptions, dataQVO);
 
 			List<Map<String, Object>> list = dataService.executeOData(dataQVO);
 
@@ -240,7 +238,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		return null;
 	}
 
-	private void processCommonOfUri(Map<String, String> customQueryOptions, ODataQVO dataQVO) {
+	/*private void processCommonOfUri(Map<String, String> customQueryOptions, ODataQVO dataQVO) {
 		//NOTE: Olingo dose not allow custom parameters to start with '$' character, so here we replace one with '~'
 		String dbConnParamName = ConfigUtil.getString(MetisConfigKey.DBConnParamName);
 		if (dbConnParamName != null) {
@@ -249,5 +247,5 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 			}
 			dataQVO.setSentDBConnection(customQueryOptions.get(dbConnParamName));
 		}
-	}
+	}*/
 }
