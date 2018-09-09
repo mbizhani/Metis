@@ -6,6 +6,8 @@ import java.util.Map;
 public class DataViewQVO implements Serializable {
 	private static final long serialVersionUID = 5547889135754963068L;
 
+	public enum ExportType {Print, Excel, PDF}
+
 	private String name;
 	private long pageIndex;
 	private long pageSize;
@@ -14,7 +16,7 @@ public class DataViewQVO implements Serializable {
 
 	private Serializable parentId;
 
-	private boolean doExport = false;
+	private ExportType exportType;
 
 	// ------------------------------
 
@@ -73,11 +75,15 @@ public class DataViewQVO implements Serializable {
 	}
 
 	public boolean isDoExport() {
-		return doExport;
+		return exportType != null;
 	}
 
-	public DataViewQVO setDoExport(boolean doExport) {
-		this.doExport = doExport;
+	public ExportType getExportType() {
+		return exportType;
+	}
+
+	public DataViewQVO setExportType(ExportType exportType) {
+		this.exportType = exportType;
 		return this;
 	}
 }

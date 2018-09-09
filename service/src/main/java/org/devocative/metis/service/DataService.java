@@ -2,7 +2,6 @@ package org.devocative.metis.service;
 
 import org.devocative.adroit.AdroitList;
 import org.devocative.adroit.ConfigUtil;
-import org.devocative.adroit.ExcelExporter;
 import org.devocative.adroit.ObjectUtil;
 import org.devocative.adroit.date.EUniCalendar;
 import org.devocative.adroit.date.TimeFieldVO;
@@ -11,9 +10,7 @@ import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.vo.KeyValueVO;
 import org.devocative.adroit.vo.RangeVO;
 import org.devocative.demeter.DLogCtx;
-import org.devocative.demeter.entity.EFileStorage;
-import org.devocative.demeter.entity.EMimeType;
-import org.devocative.demeter.iservice.FileStoreHandler;
+import org.devocative.demeter.entity.FileStore;
 import org.devocative.demeter.iservice.IFileStoreService;
 import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.demeter.iservice.task.ITaskResultCallback;
@@ -47,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.*;
@@ -400,59 +396,60 @@ public class DataService implements IDataService {
 
 		DsQueryRVO<List<Map<String, Object>>> listRVO = dataSourceService.execute(selectQVO);
 
-		ExcelExporter exporter = new ExcelExporter(dataView.getTitle());
-		exporter.setColumnsHeader(titleFields);
+		ReportBuilder.Format format;
+		switch (request.getExportType()) {
+			case Print:
+				format = ReportBuilder.Format.Print;
+				break;
+			case Excel:
+				format = ReportBuilder.Format.Excel;
+				break;
+			case PDF:
+				format = ReportBuilder.Format.PDF;
+				break;
+			default:
+				format = ReportBuilder.Format.Print;
+		}
+
+		ReportBuilder rBuilder = new ReportBuilder(fileStoreService, dataView.getName(), currentUser, format)
+			.setTitle(dataView.getTitle());
+
+		for (int i = 0; i < selectFields.size(); i++) {
+			final String field = selectFields.get(i);
+			final String title = titleFields.get(i);
+			rBuilder.addColumn(new ReportBuilder.Column(field, title, String.class));
+		}
 
 		for (Map<String, Object> map : listRVO.getResult()) {
-			List<Object> row = new ArrayList<>();
 			for (String field : selectFields) {
 				final XDSField xdsField = xDataSource.getField(field);
 				final Object cell = map.get(field);
 				switch (xdsField.getType()) {
 					case Date:
 						if (cell instanceof Date) {
-							row.add(currentUser.formatDate((Date) cell));
-						} else {
-							row.add(cell);
+							map.put(field, currentUser.formatDate((Date) cell));
 						}
 						break;
 					case DateTime:
 						if (cell instanceof Date) {
-							row.add(currentUser.formatDateTime((Date) cell));
-						} else {
-							row.add(cell);
+							map.put(field, currentUser.formatDateTime((Date) cell));
 						}
 						break;
 					default:
-						row.add(cell);
+						map.put(field, cell != null ? cell.toString() : "");
 				}
 			}
-			exporter.addRowData(row);
 		}
 
-		UniDate now = UniDate.now();
-		UniDate expire = now.updateDay(ConfigUtil.getInteger(MetisConfigKey.ExportReportExpireDays));
-		String name = String.format("%s-%s.xlsx", dataView.getName(),
-			currentUser.formatDate(now.toDate(), "yyyyMMdd-HHmmss"));
-		FileStoreHandler fileStoreHandler = fileStoreService.create(
-			name,
-			EFileStorage.DISK,
-			EMimeType.EXCEL,
-			expire.toDate(),
-			dataView.getName());
-
-		try {
-			exporter.generate(fileStoreHandler);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		rBuilder.setRows(listRVO.getResult());
+		FileStore fileStore = rBuilder.build();
 
 		long dur = System.currentTimeMillis() - start;
 		DLogCtx.put("duration", dur);
 		logger.info("Exported DataView: DV=[{}] Usr=[{}] Dur=[{}]",
 			xDataView.getName(), securityService.getCurrentUser(), dur);
 
-		return new DataViewRVO().setFileId(fileStoreHandler.getFileStore().getFileId());
+		return new DataViewRVO().setFileId(fileStore.getFileId());
 	}
 
 	@Override
@@ -519,7 +516,7 @@ public class DataService implements IDataService {
 				.setSortFields(request.getOrderBy())
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams)
-				//TODO .setExtraParams(request.getExtraParams())
+			//TODO .setExtraParams(request.getExtraParams())
 			;
 
 			List<Map<String, Object>> list = dataSourceService.execute(selectQVO).getResult();

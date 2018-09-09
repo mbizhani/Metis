@@ -53,6 +53,7 @@ import org.devocative.wickomp.grid.toolbar.OAjaxLinkButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
 import org.devocative.wickomp.html.WMessager;
+import org.devocative.wickomp.html.icon.FontAwesome;
 import org.devocative.wickomp.html.icon.IconFont;
 import org.devocative.wickomp.html.window.WModalWindow;
 import org.devocative.wickomp.opt.IStyler;
@@ -151,7 +152,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			grid.pushData(handler, result.getList(), result.getCount(), result.getFooter());
 		} else {
 			//TODO
-			handler.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(result.getFileId())));
+			//handler.appendJavaScript(String.format("window.open('%s', '_blank');", UrlUtil.getFileUri(result.getFileId())));
+			handler.appendJavaScript(String.format("$('<a>').attr('href', '%s').attr('target', '_blank')[0].click();",
+				UrlUtil.getFileUri(result.getFileId())));
 		}
 	}
 
@@ -301,7 +304,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setIdField(keyField != null ? keyField.getName() : null)
 			.setTitleField(titleField != null ? titleField.getName() : null)
 			.setPageList(Arrays.asList(100, 200, 500, 1000))
-			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.EXPORT_EXCEL) {
+			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(((FontAwesome) MetisIcon.EXPORT_EXCEL).setColor("green")) {
 				private static final long serialVersionUID = 3303989238841000829L;
 
 				@Override
@@ -312,11 +315,35 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						//TODO .setSortFieldList(getSortFieldsMap(sortFields))
 						.setFilter(getFilterMap())
 						.setSortFieldList(sortFieldsMap)
-						.setDoExport(true);
+						.setPageSize(getPageSize())
+						.setPageIndex(getPageNum())
+						.setExportType(DataViewQVO.ExportType.Excel)
+					;
 
 					dataService.executeDTask(dataViewQVO, taskBehavior);
 
 					WMessager.show("Info", getString("msg.file.under.construction"), target);
+				}
+			})
+			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.PRINT) {
+				private static final long serialVersionUID = 3303989238841000829L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					DataViewQVO dataViewQVO = new DataViewQVO();
+					dataViewQVO
+						.setName(DataViewGridPanel.this.dataVO.getName())
+						//TODO .setSortFieldList(getSortFieldsMap(sortFields))
+						.setFilter(getFilterMap())
+						.setSortFieldList(sortFieldsMap)
+						.setPageSize(getPageSize())
+						.setPageIndex(getPageNum())
+						.setExportType(DataViewQVO.ExportType.Print)
+					;
+
+					dataService.executeDTask(dataViewQVO, taskBehavior);
+
+					//WMessager.show("Info", getString("msg.file.under.construction"), target);
 				}
 			})
 			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.ATTACHMENT) {
@@ -333,6 +360,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						new FileStoreListDPage(modalWindow.getContentId(), fvo)
 							.setGridFit(true)
 							.setFormVisible(false)
+							.setAddVisible(false)
 							.setRemoveColumns("mimeType", "storage", "status", "fileId",
 								"creatorUser", "modificationDate", "modifierUser", "version", "EDIT")
 					);

@@ -31,5 +31,32 @@
 			<artifactId>c3p0</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>ar.com.fdvs</groupId>
+			<artifactId>DynamicJasper</artifactId>
+			<version>5.1.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.ibm.icu</groupId>
+					<artifactId>icu4j</artifactId>
+				</exclusion>
+
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-annotations</artifactId>
+				</exclusion>
+
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
 	</dependencies>
 </project>

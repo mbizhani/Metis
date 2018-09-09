@@ -846,6 +846,9 @@ public class DataSourceService implements IDataSourceService {
 				}
 			}
 
+			if (ConfigUtil.getBoolean(MetisConfigKey.SQLParamCurrentUser)) {
+				queryParams.put("$$curuser", securityService.getCurrentUser());
+			}
 		}
 
 		// ---------------

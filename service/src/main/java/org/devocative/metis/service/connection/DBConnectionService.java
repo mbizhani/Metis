@@ -629,7 +629,7 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 	@Override
 	public DBConnection getDefaultConnectionOfCurrentUser() {
 		UserVO currentUser = securityService.getCurrentUser();
-		Long defaultConn = (Long) currentUser.getOtherProfileInfo(METIS_DEFAULT_CONNECTION);
+		Long defaultConn = (Long) currentUser.getOtherDataByKey(METIS_DEFAULT_CONNECTION);
 		if (defaultConn == null) {
 			MetisUserProfile metisUserProfile = persistorService.get(MetisUserProfile.class, currentUser.getUserId());
 			if (metisUserProfile != null && metisUserProfile.getDefaultConnectionId() != null) {
