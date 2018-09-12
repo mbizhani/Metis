@@ -37,7 +37,7 @@ import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.entity.data.config.XDataView;
-import org.devocative.metis.iservice.IExternalAuthorizationService;
+import org.devocative.metis.iservice.IMetisExternalService;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.iservice.data.IDataViewService;
@@ -84,7 +84,7 @@ public class DataViewService implements IDataViewService {
 	private IFileStoreService fileStoreService;
 
 	@Autowired(required = false)
-	private IExternalAuthorizationService externalAuthorizationService;
+	private IMetisExternalService metisExternalService;
 
 	@Autowired
 	private IDBConnectionService dbConnectionService;
@@ -250,7 +250,7 @@ public class DataViewService implements IDataViewService {
 			ExportImportHelper helper = new ExportImportHelper(connection);
 
 			SqlHelper sqlHelper = new SqlHelper(connection);
-			sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
+			sqlHelper.addXMLQueryFile(getClass().getResourceAsStream("/export_sql.xml"));
 
 			if (dataGroups != null) {
 				List<String> groupIds = dataGroups.stream().map(DataGroup::getId).collect(Collectors.toList());
@@ -322,6 +322,10 @@ public class DataViewService implements IDataViewService {
 				sqlHelper.selectAll("group_report", params, filter).toListOfMap()
 			);
 
+			if (metisExternalService != null) {
+				metisExternalService.onExportReport(helper, sqlHelper, filter);
+			}
+
 			String fileId = export2("exportDataView", "ALL", helper, ConfigUtil.getBoolean(MetisConfigKey.ExportAllWriteMeta));
 
 			logger.info("*** Exporting All Finished: user=[{}]", securityService.getCurrentUser());
@@ -349,7 +353,7 @@ public class DataViewService implements IDataViewService {
 				helper.importFrom(new ByteArrayInputStream(xml.getBytes("UTF-8")));
 
 				SqlHelper sqlHelper = new SqlHelper(connection);
-				sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
+				sqlHelper.addXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
 
 				Date now = new Date();
 				Map<String, Object> other = new HashMap<>();
@@ -371,6 +375,10 @@ public class DataViewService implements IDataViewService {
 
 				report(helper, sqlHelper);
 				group_report(helper, sqlHelper);
+
+				if (metisExternalService != null) {
+					metisExternalService.onImportReport(helper, sqlHelper);
+				}
 
 				connection.commit();
 			} catch (Exception e) {
@@ -406,7 +414,7 @@ public class DataViewService implements IDataViewService {
 			ExportImportHelper helper = new ExportImportHelper(connection);
 
 			SqlHelper sqlHelper = new SqlHelper(connection);
-			sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
+			sqlHelper.addXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
 
 			if (dataGroups != null) {
 				List<String> groupIds = dataGroups.stream().map(DataGroup::getId).collect(Collectors.toList());
@@ -469,6 +477,10 @@ public class DataViewService implements IDataViewService {
 				sqlHelper.selectAll("group_report", params, filter).toListOfMap()
 			);
 
+			if (metisExternalService != null) {
+				metisExternalService.onExportReport(helper, sqlHelper, filter);
+			}
+
 			String fileId = export2("export-report", "REPORT", helper, ConfigUtil.getBoolean(MetisConfigKey.ExportReportWriteMeta));
 
 			logger.info("*** Exporting Report Finished: user=[{}]", securityService.getCurrentUser());
@@ -504,7 +516,7 @@ public class DataViewService implements IDataViewService {
 				}
 
 				SqlHelper sqlHelper = new SqlHelper(connection);
-				sqlHelper.setXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
+				sqlHelper.addXMLQueryFile(DataViewService.class.getResourceAsStream("/export_sql.xml"));
 
 				Date now = new Date();
 				Map<String, Object> other = new HashMap<>();
@@ -527,6 +539,10 @@ public class DataViewService implements IDataViewService {
 				report(helper, sqlHelper);
 				group_report(helper, sqlHelper);
 
+				if (metisExternalService != null) {
+					metisExternalService.onImportReport(helper, sqlHelper);
+				}
+
 				connection.commit();
 			} catch (Exception e) {
 				connection.rollback();
@@ -542,9 +558,9 @@ public class DataViewService implements IDataViewService {
 			logger.info("*** Importing Report Finished: user=[{}]", currentUser);
 			logger.info("**");
 
-			if (externalAuthorizationService != null) {
+			if (metisExternalService != null) {
 				DBConnection dbConnection = dbConnectionService.loadByName(sentDBConnection);
-				externalAuthorizationService.importedReports(importedReports, dbConnection);
+				metisExternalService.afterImportedReports(importedReports, dbConnection);
 			}
 
 		} catch (Exception e) {

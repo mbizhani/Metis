@@ -31,6 +31,9 @@ import org.devocative.metis.MetisConfigKey;
 import java.util.List;
 import java.util.Map;
 
+/*
+URL: https://community.jaspersoft.com/wiki/adding-fonts-embedding-pdf
+ */
 public class ReportBuilder {
 	private final IFileStoreService fileStoreService;
 	private final String name;

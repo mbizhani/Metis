@@ -7,6 +7,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.ContentDisposition;
 import org.devocative.demeter.web.DPanel;
 import org.devocative.demeter.web.UrlUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
@@ -111,7 +112,7 @@ public class ExportImportPanel extends DPanel {
 			protected void onSubmit(AjaxRequestTarget target) {
 				if (dataGroups != null || dataViewNames != null) {
 					String fileId = dataViewService.exportAll(dataGroups, dbConnectionGroup, dataViewNames);
-					target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId)));
+					target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId, ContentDisposition.ATTACHMENT)));
 				} else {
 					WMessager.show("Error", "'Data Group' or 'DataView Names' are required!", target);
 				}
@@ -172,7 +173,7 @@ public class ExportImportPanel extends DPanel {
 			protected void onSubmit(AjaxRequestTarget target) {
 				if (dataGroups != null || reports != null) {
 					String fileId = dataViewService.exportReport(dataGroups, reports);
-					target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId)));
+					target.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(fileId, ContentDisposition.ATTACHMENT)));
 				} else {
 					WMessager.show("Error", "'Data Group' or 'Report' are required!", target);
 				}

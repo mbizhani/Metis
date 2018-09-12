@@ -1,6 +1,7 @@
 package org.devocative.metis.vo.async;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 public class DataViewQVO implements Serializable {
@@ -17,6 +18,10 @@ public class DataViewQVO implements Serializable {
 	private Serializable parentId;
 
 	private ExportType exportType;
+
+	private List<String> selectedRowsKeys;
+
+	private String reportId;
 
 	// ------------------------------
 
@@ -84,6 +89,24 @@ public class DataViewQVO implements Serializable {
 
 	public DataViewQVO setExportType(ExportType exportType) {
 		this.exportType = exportType;
+		return this;
+	}
+
+	public List<String> getSelectedRowsKeys() {
+		return selectedRowsKeys;
+	}
+
+	public DataViewQVO setSelectedRowsKeys(List<String> selectedRowsKeys) {
+		this.selectedRowsKeys = selectedRowsKeys;
+		return this;
+	}
+
+	public String getReportId() {
+		return reportId;
+	}
+
+	public DataViewQVO setReportId(String reportId) {
+		this.reportId = reportId;
 		return this;
 	}
 }

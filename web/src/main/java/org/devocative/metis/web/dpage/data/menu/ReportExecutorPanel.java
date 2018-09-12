@@ -57,6 +57,7 @@ public class ReportExecutorPanel extends WPanel {
 
 		final Report report = reportService.load(reportId);
 		final DataVO dataVO = dataService.loadDataVO(report.getDataViewId());
+		dataVO.setReportId(report.getId());
 
 		final Map<String, Object> filter = new HashMap<>();
 

@@ -30,7 +30,7 @@ public class EqlEntityNameMigration {
 		Connection connection = createConnection("/config.properties");
 
 		SqlHelper helper = new SqlHelper(connection);
-		helper.setXMLQueryFile(PkXmlMigrate.class.getResourceAsStream("/oracle_xml_mig.xml"));
+		helper.addXMLQueryFile(PkXmlMigrate.class.getResourceAsStream("/oracle_xml_mig.xml"));
 
 		NamedParameterStatement updateCfg = helper.createNPS("updateCfg");
 

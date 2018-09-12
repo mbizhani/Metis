@@ -21,6 +21,8 @@ public class DataVO implements Serializable {
 	 */
 	private String dataSourceId;
 
+	private String reportId;
+
 	/**
 	 * DataSource.connectionSelection
 	 */
@@ -128,6 +130,14 @@ public class DataVO implements Serializable {
 
 	public void setDataSourceId(String dataSourceId) {
 		this.dataSourceId = dataSourceId;
+	}
+
+	public String getReportId() {
+		return reportId;
+	}
+
+	public void setReportId(String reportId) {
+		this.reportId = reportId;
 	}
 
 	public Long getConnectionId() {

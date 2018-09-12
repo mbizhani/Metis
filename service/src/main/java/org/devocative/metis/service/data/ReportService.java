@@ -14,7 +14,7 @@ import org.devocative.metis.entity.connection.DBConnection;
 import org.devocative.metis.entity.data.DataGroup;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.Report;
-import org.devocative.metis.iservice.IExternalAuthorizationService;
+import org.devocative.metis.iservice.IMetisExternalService;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IReportService;
 import org.devocative.metis.vo.filter.data.ReportFVO;
@@ -42,7 +42,7 @@ public class ReportService implements IReportService {
 	private ISecurityService securityService;
 
 	@Autowired(required = false)
-	private IExternalAuthorizationService externalAuthorizationService;
+	private IMetisExternalService metisExternalService;
 
 	// ------------------------------
 
@@ -130,8 +130,8 @@ public class ReportService implements IReportService {
 
 		return reports.parallelStream()
 			.filter(report ->
-				externalAuthorizationService == null ||
-					externalAuthorizationService.authorizeReport(report, dbConnectionId, currentUser.getUserId())
+				metisExternalService == null ||
+					metisExternalService.authorizeReport(report, dbConnectionId, currentUser.getUserId())
 			)
 			.flatMap(report -> report.getGroups().stream().map(dataGroup -> new KeyValueVO<>(dataGroup, report)))
 			.collect(Collectors.groupingBy(
@@ -155,8 +155,8 @@ public class ReportService implements IReportService {
 
 		final Long userId = securityService.getCurrentUser().getUserId();
 
-		if (externalAuthorizationService != null &&
-			!externalAuthorizationService.authorizeReport(report, dbConnectionId, userId)) {
+		if (metisExternalService != null &&
+			!metisExternalService.authorizeReport(report, dbConnectionId, userId)) {
 			throw new MetisException(MetisErrorCode.ReportAccessDenied, report.getTitle());
 		}
 

@@ -52,6 +52,7 @@ import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
 import org.devocative.wickomp.grid.toolbar.OAjaxLinkButton;
 import org.devocative.wickomp.grid.toolbar.OGridGroupingButton;
 import org.devocative.wickomp.grid.toolbar.OTreeGridClientButton;
+import org.devocative.wickomp.html.HTMLBase;
 import org.devocative.wickomp.html.WMessager;
 import org.devocative.wickomp.html.icon.FontAwesome;
 import org.devocative.wickomp.html.icon.IconFont;
@@ -75,6 +76,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private static final String FIELD_PREFIX = "vv_";
 
+	private static final List<GridButton> OTHER_BUTTONS = new ArrayList<>();
+
 	@Inject
 	private IDataViewService dataViewService;
 
@@ -89,7 +92,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private DataVO dataVO;
 	private Map<String, Object> filter;
-	private Map<String, String> sortFieldsMap;
+	private Map<String, String> sortFieldsMap = new LinkedHashMap<>();
 	private DTaskBehavior<DataViewRVO> taskBehavior;
 	private WBaseGrid<Map<String, Object>> grid;
 
@@ -102,6 +105,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	private WebMarkupContainer layout;
 
 	private String execTime = "?";
+
+	// ------------------------------
+
+	public static void addOtherButton(GridButton button) {
+		OTHER_BUTTONS.add(button);
+	}
 
 	// ------------------------------
 
@@ -176,7 +185,13 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	@Override
 	public void asyncList(long pageIndex, long pageSize, List<WSortField> sortFields) {
-		sortFieldsMap = getSortFieldsMap(sortFields);
+		sortFieldsMap.clear();
+		if (sortFields != null && !sortFields.isEmpty()) {
+			sortFieldsMap = new LinkedHashMap<>();
+			for (WSortField sortField : sortFields) {
+				sortFieldsMap.put(sortField.getField(), sortField.getOrder());
+			}
+		}
 
 		DataViewQVO dataViewQVO = new DataViewQVO();
 		dataViewQVO
@@ -325,7 +340,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					WMessager.show("Info", getString("msg.file.under.construction"), target);
 				}
 			})
-			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.PRINT) {
+			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.FILE_TEXT_O) {
 				private static final long serialVersionUID = 3303989238841000829L;
 
 				@Override
@@ -342,8 +357,6 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					;
 
 					dataService.executeDTask(dataViewQVO, taskBehavior);
-
-					//WMessager.show("Info", getString("msg.file.under.construction"), target);
 				}
 			})
 			.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(MetisIcon.ATTACHMENT) {
@@ -390,6 +403,30 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			.setAsyncLoadingEnabled(ConfigUtil.getBoolean(MetisConfigKey.GridAsyncLoadingShow))
 			.setFit(true)
 		;
+
+		OTHER_BUTTONS.forEach(gridButton ->
+			oBaseGrid.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(gridButton.icon) {
+				private static final long serialVersionUID = -2383587968527780982L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					DataViewQVO dataViewQVO = new DataViewQVO();
+					dataViewQVO
+						.setName(DataViewGridPanel.this.dataVO.getName())
+						//TODO .setSortFieldList(getSortFieldsMap(sortFields))
+						.setFilter(getFilterMap())
+						.setSortFieldList(sortFieldsMap)
+						.setPageSize(getPageSize())
+						.setPageIndex(getPageNum())
+						.setSelectedRowsKeys(getSelectedRowsKeys())
+						.setReportId(DataViewGridPanel.this.dataVO.getReportId())
+					;
+
+					gridButton.setWindow(modalWindow);
+					gridButton.onClick(target, dataViewQVO);
+				}
+			})
+		);
 
 		if (ConfigUtil.getBoolean(MetisConfigKey.GridNoResultShow)) {
 			oBaseGrid.setNoResultMessage(getString("err.mts.NoResult"));
@@ -645,20 +682,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		return filtersCloned;
 	}
 
-	private Map<String, String> getSortFieldsMap(List<WSortField> sortFieldList) {
-		Map<String, String> sortFieldsMap = null;
-		if (sortFieldList != null && !sortFieldList.isEmpty()) {
-			sortFieldsMap = new LinkedHashMap<>();
-			for (WSortField sortField : sortFieldList) {
-				sortFieldsMap.put(sortField.getField(), sortField.getOrder());
-			}
-		}
-		return sortFieldsMap;
-	}
-
 	// ------------------------------
 
-	public static class ActionBut implements Serializable {
+	private static class ActionBut implements Serializable {
 		private static final long serialVersionUID = 5208870063013803094L;
 
 		private String name;
@@ -710,5 +736,26 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				", icon='" + icon + '\'' +
 				'}';
 		}
+	}
+
+	public static abstract class GridButton implements Serializable {
+		private static final long serialVersionUID = -2224908468548615487L;
+
+		private final HTMLBase icon;
+		private WModalWindow window;
+
+		public GridButton(HTMLBase icon) {
+			this.icon = icon;
+		}
+
+		public WModalWindow getWindow() {
+			return window;
+		}
+
+		public void setWindow(WModalWindow window) {
+			this.window = window;
+		}
+
+		public abstract void onClick(AjaxRequestTarget target, DataViewQVO qvo);
 	}
 }

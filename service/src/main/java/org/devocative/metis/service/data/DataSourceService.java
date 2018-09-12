@@ -948,7 +948,7 @@ public class DataSourceService implements IDataSourceService {
 
 		public DSQueryBuilder appendSort(Map<String, String> sortFields) {
 			if (sortFields != null && sortFields.size() > 0) {
-				query.append("order by\n");
+				query.append("\norder by\n");
 				boolean firstAdded = false;
 				for (Map.Entry<String, String> sortField : sortFields.entrySet()) {
 					//TODO check field
