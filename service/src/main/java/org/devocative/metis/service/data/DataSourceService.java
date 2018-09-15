@@ -518,8 +518,13 @@ public class DataSourceService implements IDataSourceService {
 		XDataSource targetXDataSource = targetDataSource.getXDataSource();
 
 		List<String> select = new ArrayList<>();
-		select.add(targetDataSource.getKeyField());
-		select.add(targetDataSource.getTitleField() != null ? targetDataSource.getTitleField() : targetDataSource.getKeyField());
+		select.add(targetDataSource.getKeyField() + " key_field ");
+		select.add(
+			(targetDataSource.getTitleField() != null ?
+				targetDataSource.getTitleField() :
+				targetDataSource.getKeyField()) +
+				" title_field "
+		);
 
 		DSQueryBuilder builder = new DSQueryBuilder(targetXDataSource, queryQVO, null)
 			.appendSelect(select)

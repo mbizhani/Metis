@@ -484,8 +484,8 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 			return result;
 		} catch (Exception e) {
-			logger.error("Execute Query: Cmnt=[{}] User=[{}] Conn=[{}]",
-				comment, securityService.getCurrentUser(), dbConnName, e);
+			logger.error("Execute Query: Cmnt=[{}] User=[{}] Conn=[{}] Query=[{}]",
+				comment, securityService.getCurrentUser(), dbConnName, query, e);
 
 			result.getQueryExecInfo()
 				.setException(e)
@@ -547,8 +547,8 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 
 			return execInfo;
 		} catch (SQLException e) {
-			logger.error("Execute SQL: Cmnt=[{}] User=[{}] Conn=[{}]",
-				comment, securityService.getCurrentUser(), dbConnName, e);
+			logger.error("Execute SQL: Cmnt=[{}] User=[{}] Conn=[{}] Query=[{}]",
+				comment, securityService.getCurrentUser(), dbConnName, query, e);
 
 			execInfo
 				.setException(e)
