@@ -7,6 +7,7 @@ import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.entity.data.config.XDataView;
+import org.devocative.metis.iservice.IImportEventHandler;
 import org.devocative.metis.vo.filter.data.DataViewFVO;
 
 import java.io.InputStream;
@@ -42,6 +43,8 @@ public interface IDataViewService {
 	void saveOrUpdate(String dataViewId, String title, XDataView xDataView, List<DataGroup> groups);
 
 	List<String> listForOData();
+
+	void addImportEventHandler(IImportEventHandler handler);
 
 	String exportAll(List<DataGroup> dataGroups, DBConnectionGroup dbConnectionGroup, String dataViewNames);
 

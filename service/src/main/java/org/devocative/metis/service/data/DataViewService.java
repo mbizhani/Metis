@@ -37,6 +37,7 @@ import org.devocative.metis.entity.data.DataSource;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.entity.data.config.XDataView;
+import org.devocative.metis.iservice.IImportEventHandler;
 import org.devocative.metis.iservice.IMetisExternalService;
 import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
@@ -67,6 +68,8 @@ public class DataViewService implements IDataViewService {
 
 	private XStream xStream;
 	private ICache<String, DataView> dataViewCache;
+
+	private List<IImportEventHandler> handlers = Collections.synchronizedList(new ArrayList<>());
 
 	@Autowired
 	private IPersistorService persistorService;
@@ -237,6 +240,11 @@ public class DataViewService implements IDataViewService {
 	}
 
 	@Override
+	public void addImportEventHandler(IImportEventHandler handler) {
+		handlers.add(handler);
+	}
+
+	@Override
 	public String exportAll(List<DataGroup> dataGroups, DBConnectionGroup dbConnectionGroup, String dataViewNames) {
 		logger.info("**");
 		logger.info("*** Exporting All Start: user=[{}]", securityService.getCurrentUser());
@@ -264,7 +272,16 @@ public class DataViewService implements IDataViewService {
 
 			if (dataViewNames != null) {
 				String[] lines = dataViewNames.split("[\n]");
-				List<String> names = Arrays.stream(lines).filter(s -> s.trim().length() > 0).collect(Collectors.toList());
+				List<String> names = Arrays.stream(lines)
+					.map(String::trim)
+					.filter(s -> s.length() > 0)
+					.collect(Collectors.toList());
+
+				Set<String> invalidDVNames = findInvalidDataView(names);
+				if (!invalidDVNames.isEmpty()) {
+					throw new RuntimeException("Invalid DataView: " + invalidDVNames);
+				}
+
 				dvNames.addAll(names);
 
 				/*List<String> grpIds = sqlHelper.firstColAsList("dataGroupsByDataView",
@@ -346,6 +363,7 @@ public class DataViewService implements IDataViewService {
 		String xml = readText("ALL", stream, ConfigUtil.getBoolean(MetisConfigKey.ImportAllVerify));
 
 		try (Connection connection = persistorService.createSqlConnection()) {
+			Collection<Object> affectedDataViews;
 			try {
 				connection.setAutoCommit(false);
 
@@ -370,7 +388,7 @@ public class DataViewService implements IDataViewService {
 				dataSrc(helper, sqlHelper);
 				dataSrcRel(helper, sqlHelper);
 
-				dataView(helper, sqlHelper);
+				affectedDataViews = dataView(helper, sqlHelper);
 				group_dataView(helper, sqlHelper);
 
 				report(helper, sqlHelper);
@@ -391,6 +409,8 @@ public class DataViewService implements IDataViewService {
 			cacheService.clear(IDBConnectionService.CACHE_KEY_DB_CONNECTION);
 			cacheService.clear(IDBConnectionService.CACHE_KEY_X_SCHEMA);
 			cacheService.clear(IStringTemplateService.CACHE_KEY);
+
+			handlers.forEach(handler -> handler.handleDataViewImport(affectedDataViews));
 
 			logger.info("*** Importing DataView Finished: user=[{}]", securityService.getCurrentUser());
 			logger.info("**");
@@ -505,6 +525,8 @@ public class DataViewService implements IDataViewService {
 		String xml = readText("REPORT", stream, ConfigUtil.getBoolean(MetisConfigKey.ImportReportVerify));
 
 		try (Connection connection = persistorService.createSqlConnection()) {
+			Collection<Object> affectedDataViews;
+
 			try {
 				connection.setAutoCommit(false);
 
@@ -533,7 +555,7 @@ public class DataViewService implements IDataViewService {
 				dataSrc(helper, sqlHelper);
 				//dataSrcRel(helper, sqlHelper);
 
-				dataView(helper, sqlHelper);
+				affectedDataViews = dataView(helper, sqlHelper);
 				group_dataView(helper, sqlHelper);
 
 				report(helper, sqlHelper);
@@ -555,6 +577,8 @@ public class DataViewService implements IDataViewService {
 			cacheService.clear(IDBConnectionService.CACHE_KEY_X_SCHEMA);
 			cacheService.clear(IStringTemplateService.CACHE_KEY);
 
+			handlers.forEach(handler -> handler.handleDataViewImport(affectedDataViews));
+
 			logger.info("*** Importing Report Finished: user=[{}]", currentUser);
 			logger.info("**");
 
@@ -570,6 +594,20 @@ public class DataViewService implements IDataViewService {
 	}
 
 	// ------------------------------
+
+	private Set<String> findInvalidDataView(Collection<String> dvNames) {
+		Set<String> allDv = new HashSet<>(dvNames);
+
+		List<String> validNames = persistorService.createQueryBuilder()
+			.addSelect("select ent.name")
+			.addFrom(DataView.class, "ent")
+			.addWhere("and ent.name in (:names)", "names", dvNames)
+			.list();
+
+		validNames.forEach(allDv::remove);
+
+		return allDv;
+	}
 
 	private String export2(String name, String target, ExportImportHelper helper, boolean writeMeta) {
 		try {
@@ -750,7 +788,7 @@ public class DataViewService implements IDataViewService {
 		nps.executeBatch();
 	}
 
-	private void dataView(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
+	private Collection<Object> dataView(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {
 		Map<Object, Object> currentDataView = sqlHelper.twoCellsAsMap(sql("select id, n_version from t_mts_data_view"));
 		logger.info("Current DataView: size=[{}]", currentDataView.size());
 
@@ -766,7 +804,7 @@ public class DataViewService implements IDataViewService {
 			Collections.singletonList("f_config:id")
 		);
 
-		helper.merge("dataView", "id", "n_version", currentDataView, dataViewLob, dataView);
+		return helper.merge("dataView", "id", "n_version", currentDataView, dataViewLob, dataView);
 	}
 
 	private void report(ExportImportHelper helper, SqlHelper sqlHelper) throws SQLException {

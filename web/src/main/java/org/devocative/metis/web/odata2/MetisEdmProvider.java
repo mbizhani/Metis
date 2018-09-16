@@ -9,6 +9,7 @@ import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.iservice.IDataEventHandler;
 import org.devocative.metis.iservice.IDataService;
+import org.devocative.metis.iservice.IImportEventHandler;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataFieldVO;
@@ -18,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class MetisEdmProvider extends EdmProvider implements IDataEventHandler {
+public class MetisEdmProvider extends EdmProvider implements IDataEventHandler, IImportEventHandler {
 	private static final Logger logger = LoggerFactory.getLogger(MetisEdmProvider.class);
 
 	private static final String NAMESPACE = "Metis";
@@ -43,6 +44,8 @@ public class MetisEdmProvider extends EdmProvider implements IDataEventHandler {
 		dataService.addDataEventHandler(this);
 
 		dataViewService = DemeterCore.get().getApplicationContext().getBean(IDataViewService.class);
+		dataViewService.addImportEventHandler(this);
+
 		securityService = DemeterCore.get().getApplicationContext().getBean(ISecurityService.class);
 
 		try {
@@ -108,6 +111,25 @@ public class MetisEdmProvider extends EdmProvider implements IDataEventHandler {
 
 		if (!ENTITY_SET_MAP.containsKey(dataVO.getName())) {
 			ENTITY_SET_MAP.put(dataVO.getName(), getEntitySet(dataVO.getName()));
+		}
+
+		createAndSetSchemaObject();
+	}
+
+	@Override
+	public void handleDataViewImport(Collection<Object> ids) {
+		logger.info("MetisEdmProvider.DataViewImported: size=[{}]", ids.size());
+
+		for (Object id : ids) {
+			try {
+				DataVO dataVO = dataService.loadDataVO(id.toString());
+				EntityType entityType = getEntityType(dataVO);
+				ENTITY_TYPE_MAP.put(dataVO.getName(), entityType);
+
+				ENTITY_SET_MAP.put(dataVO.getName(), getEntitySet(dataVO.getName()));
+			} catch (Exception e) {
+				logger.error("OData: importedDataView", e);
+			}
 		}
 
 		createAndSetSchemaObject();
