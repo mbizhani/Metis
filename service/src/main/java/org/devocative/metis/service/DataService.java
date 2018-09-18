@@ -567,6 +567,7 @@ public class DataService implements IDataService {
 
 			CountQueryQVO countQVO = new CountQueryQVO(xDataView.getDataSourceId());
 			countQVO
+				.setConsiderParent(ConfigUtil.getBoolean(MetisConfigKey.ODataConsiderParentRelation))
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams)
 			;

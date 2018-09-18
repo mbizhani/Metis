@@ -464,7 +464,8 @@ public class DataSourceService implements IDataSourceService {
 		DataSource dataSource = load(queryQVO.getDataSourceId());
 		XDataSource xDataSource = dataSource.getXDataSource();
 
-		DSQueryBuilder queryBuilder = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
+		DSQueryBuilder queryBuilder = new DSQueryBuilder(xDataSource, queryQVO,
+			queryQVO.isConsiderParent() ? dataSource.getSelfRelPointerField() : null)
 			.appendSelect(queryQVO.getSelectFields())
 			.appendFrom()
 			.appendWhere()
@@ -582,7 +583,8 @@ public class DataSourceService implements IDataSourceService {
 		DataSource dataSource = load(queryQVO.getDataSourceId());
 		XDataSource xDataSource = dataSource.getXDataSource();
 
-		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
+		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO,
+			queryQVO.isConsiderParent() ? dataSource.getSelfRelPointerField() : null)
 			.appendSelect(Collections.singletonList("count(1) as cnt"))
 			.appendFrom()
 			.appendWhere();
@@ -827,11 +829,7 @@ public class DataSourceService implements IDataSourceService {
 
 		// ---------------
 
-		public DSQueryBuilder(XDataSource xDataSource) {
-			this(xDataSource, null, null);
-		}
-
-		public DSQueryBuilder(XDataSource xDataSource, AbstractQueryQVO queryQVO, String selfRelationField) {
+		DSQueryBuilder(XDataSource xDataSource, AbstractQueryQVO queryQVO, String selfRelationField) {
 			this.xDataSource = xDataSource;
 			this.queryQVO = queryQVO;
 			this.selfRelationField = selfRelationField;
