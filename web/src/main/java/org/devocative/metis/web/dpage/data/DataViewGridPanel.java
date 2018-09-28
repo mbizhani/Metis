@@ -162,8 +162,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		} else {
 			//TODO
 			//handler.appendJavaScript(String.format("window.open('%s', '_blank');", UrlUtil.getFileUri(result.getFileId())));
-			handler.appendJavaScript(String.format("$('<a>').attr('href', '%s').attr('target', '_blank')[0].click();",
-				UrlUtil.getFileUri(result.getFileId())));
+			if (result.isInline()) {
+				handler.appendJavaScript(String.format("$('<a>').attr('href', '%s').attr('target', '_blank')[0].click();",
+					UrlUtil.getFileUri(result.getFileId())));
+			} else {
+				handler.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(result.getFileId())));
+			}
 		}
 	}
 
@@ -332,7 +336,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 						.setSortFieldList(sortFieldsMap)
 						.setPageSize(getPageSize())
 						.setPageIndex(getPageNum())
-						.setExportType(DataViewQVO.ExportType.Excel)
+						.setExportType(DataViewQVO.ExportType.Data)
 					;
 
 					dataService.executeDTask(dataViewQVO, taskBehavior);

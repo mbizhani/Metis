@@ -7,7 +7,7 @@ import java.util.Map;
 public class DataViewQVO implements Serializable {
 	private static final long serialVersionUID = 5547889135754963068L;
 
-	public enum ExportType {Print, Excel, PDF}
+	public enum ExportType {Data, Print, Excel, PDF}
 
 	private String name;
 	private long pageIndex;

@@ -18,6 +18,7 @@ public class DataViewRVO implements Serializable {
 	private List<QueryExecInfoRVO> queryExecInfoList = new ArrayList<>();
 
 	private String fileId;
+	private boolean inline = false;
 
 	// ------------------------------
 
@@ -67,6 +68,15 @@ public class DataViewRVO implements Serializable {
 
 	public DataViewRVO setFileId(String fileId) {
 		this.fileId = fileId;
+		return this;
+	}
+
+	public boolean isInline() {
+		return inline;
+	}
+
+	public DataViewRVO setInline(boolean inline) {
+		this.inline = inline;
 		return this;
 	}
 

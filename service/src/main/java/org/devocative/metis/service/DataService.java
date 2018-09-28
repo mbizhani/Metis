@@ -398,6 +398,9 @@ public class DataService implements IDataService {
 
 		ReportBuilder.Format format;
 		switch (request.getExportType()) {
+			case Data:
+				format = ReportBuilder.Format.Data;
+				break;
 			case Print:
 				format = ReportBuilder.Format.Print;
 				break;
@@ -449,7 +452,9 @@ public class DataService implements IDataService {
 		logger.info("Exported DataView: DV=[{}] Usr=[{}] Dur=[{}]",
 			xDataView.getName(), securityService.getCurrentUser(), dur);
 
-		return new DataViewRVO().setFileId(fileStore.getFileId());
+		return new DataViewRVO()
+			.setFileId(fileStore.getFileId())
+			.setInline(fileStore.getMimeType().isInline());
 	}
 
 	@Override
