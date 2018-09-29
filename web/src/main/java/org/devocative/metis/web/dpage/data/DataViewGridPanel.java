@@ -160,11 +160,20 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		} else if (result.getFileId() == null) {
 			grid.pushData(handler, result.getList(), result.getCount(), result.getFooter());
 		} else {
-			//TODO
-			//handler.appendJavaScript(String.format("window.open('%s', '_blank');", UrlUtil.getFileUri(result.getFileId())));
 			if (result.isInline()) {
+				WMessager.show("Info",
+					String.format("%s: <a target='_blank' href='%s'>%s</a>",
+						getString("msg.file.print.ready"),
+						UrlUtil.getFileUri(result.getFileId()),
+						getString("msg.file.print.ready.link")),
+					new WMessager.OMessager().setTimeout(0),
+					handler);
+				/*
+				TIP: Following solutions results in browser popup blocker!
+
+				handler.appendJavaScript(String.format("window.open('%s', '_blank');", UrlUtil.getFileUri(result.getFileId())));
 				handler.appendJavaScript(String.format("$('<a>').attr('href', '%s').attr('target', '_blank')[0].click();",
-					UrlUtil.getFileUri(result.getFileId())));
+					UrlUtil.getFileUri(result.getFileId())));*/
 			} else {
 				handler.appendJavaScript(String.format("location.href='%s';", UrlUtil.getFileUri(result.getFileId())));
 			}
