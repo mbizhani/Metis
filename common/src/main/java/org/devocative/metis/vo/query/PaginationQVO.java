@@ -15,12 +15,12 @@ public class PaginationQVO implements Serializable {
 
 	// ------------------------------
 
-	public PaginationQVO setPageIndex(Long pageIndex) {
+	public PaginationQVO setPageIndex(long pageIndex) {
 		this.pageIndex = pageIndex;
 		return this;
 	}
 
-	public PaginationQVO setPageSize(Long pageSize) {
+	public PaginationQVO setPageSize(long pageSize) {
 		this.pageSize = pageSize;
 		return this;
 	}
@@ -33,7 +33,7 @@ public class PaginationQVO implements Serializable {
 		}
 	}
 
-	public PaginationQVO setFirstResult(Long firstResult) {
+	public PaginationQVO setFirstResult(long firstResult) {
 		this.firstResult = firstResult;
 		return this;
 	}
@@ -46,20 +46,20 @@ public class PaginationQVO implements Serializable {
 		}
 	}
 
-	public PaginationQVO setMaxResults(Long maxResults) {
+	public PaginationQVO setMaxResults(long maxResults) {
 		this.maxResults = maxResults;
 		return this;
 	}
 
 	// ------------------------------
 
-	public static PaginationQVO byPage(Long pageIndex, Long pageSize) {
+	public static PaginationQVO byPage(long pageIndex, long pageSize) {
 		return new PaginationQVO()
 			.setPageIndex(pageIndex)
 			.setPageSize(pageSize);
 	}
 
-	public static PaginationQVO byResult(Long firstResult, Long maxResults) {
+	public static PaginationQVO byResult(long firstResult, long maxResults) {
 		return new PaginationQVO()
 			.setFirstResult(firstResult)
 			.setMaxResults(maxResults);

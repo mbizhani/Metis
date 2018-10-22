@@ -303,7 +303,7 @@ public class DataService implements IDataService {
 
 		SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
 		selectQVO
-			.setPagination(PaginationQVO.byPage(request.getPageIndex(), request.getPageSize()))
+			.setPagination(request.getPagination())
 			.setSortFields(request.getSortFieldList())
 			.setInputParams(request.getFilter())
 		;
@@ -492,7 +492,7 @@ public class DataService implements IDataService {
 	}
 
 	@Override
-	public List<Map<String, Object>> executeOData(ODataQVO request) {
+	public List<Map<String, Object>> executeOData(DataViewQVO request) {
 		DLogCtx
 			.put("action", "odata")
 			.put("dataView", request.getName());
@@ -508,8 +508,8 @@ public class DataService implements IDataService {
 			List<String> selectFields = getSelectedFields(xDataView, true);
 
 			Map<String, Object> inputParams = new HashMap<>();
-			if (request.getInputParams() != null) {
-				for (Map.Entry<String, Object> entry : request.getInputParams().entrySet()) {
+			if (request.getFilter() != null) {
+				for (Map.Entry<String, Object> entry : request.getFilter().entrySet()) {
 					inputParams.put(entry.getKey().toLowerCase(), entry.getValue());
 				}
 			}
@@ -517,8 +517,8 @@ public class DataService implements IDataService {
 			SelectQueryQVO selectQVO = new SelectQueryQVO(xDataView.getDataSourceId(), selectFields);
 			selectQVO
 				.setConsiderParent(ConfigUtil.getBoolean(MetisConfigKey.ODataConsiderParentRelation)) //NOTE: in OData just fetch related records
-				.setPagination(PaginationQVO.byResult(request.getFirstResult(), request.getMaxResults()))
-				.setSortFields(request.getOrderBy())
+				.setPagination(request.getPagination())
+				.setSortFields(request.getSortFieldList())
 				.setFilterExpression(request.getFilterExpression())
 				.setInputParams(inputParams)
 			//TODO .setExtraParams(request.getExtraParams())
@@ -551,7 +551,7 @@ public class DataService implements IDataService {
 	}
 
 	@Override
-	public Long executeODataCount(ODataQVO request) {
+	public Long executeODataCount(DataViewQVO request) {
 		DLogCtx
 			.put("action", "odataCount")
 			.put("dataView", request.getName());
@@ -564,8 +564,8 @@ public class DataService implements IDataService {
 			XDataView xDataView = dataView.getXDataView();
 
 			Map<String, Object> inputParams = new HashMap<>();
-			if (request.getInputParams() != null) {
-				for (Map.Entry<String, Object> entry : request.getInputParams().entrySet()) {
+			if (request.getFilter() != null) {
+				for (Map.Entry<String, Object> entry : request.getFilter().entrySet()) {
 					inputParams.put(entry.getKey().toLowerCase(), entry.getValue());
 				}
 			}

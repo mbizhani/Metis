@@ -14,8 +14,6 @@ import java.util.Map;
 public class XDataSource implements Serializable {
 	private static final long serialVersionUID = -7499548167115676540L;
 
-	// ---------------------- XML FIELDS
-
 	@XStreamAsAttribute
 	private String name;
 
@@ -28,7 +26,15 @@ public class XDataSource implements Serializable {
 
 	private List<XDSParameter> params;
 
-	// ---------------------- ACCESSORS
+	// ---------------
+
+	@XStreamOmitField
+	private Map<String, XDSField> fieldMap;
+
+	@XStreamOmitField
+	private Map<String, XDSAbstractField> allFieldMap;
+
+	// ------------------------------
 
 	public String getName() {
 		return name;
@@ -91,13 +97,7 @@ public class XDataSource implements Serializable {
 		return result;
 	}
 
-	// ---------------------- OTHERS
-
-	@XStreamOmitField
-	private Map<String, XDSField> fieldMap;
-
-	@XStreamOmitField
-	private Map<String, XDSAbstractField> allFieldMap;
+	// ---------------
 
 	public XDSField getField(String name) {
 		buildFieldMap();
@@ -109,10 +109,7 @@ public class XDataSource implements Serializable {
 		return allFieldMap.get(name);
 	}
 
-	/*public boolean hasField(String name) {
-		buildFieldMap();
-		return fieldMap.containsKey(name);
-	}*/
+	// ------------------------------
 
 	private void buildFieldMap() {
 		if (fieldMap == null) {

@@ -14,7 +14,9 @@ import org.devocative.demeter.iservice.ISecurityService;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
-import org.devocative.metis.vo.query.ODataQVO;
+import org.devocative.metis.vo.async.DataViewQVO;
+import org.devocative.metis.vo.async.DataViewQVO.TargetType;
+import org.devocative.metis.vo.query.PaginationQVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,16 +117,15 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 			top = uriInfo.getTop();
 		}
 
-		ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName())
-			.setFirstResult(skip + 1)
-			.setMaxResults(top - skip);
+		DataViewQVO dataQVO = new DataViewQVO(TargetType.OData, entitySet.getEntityType().getName())
+			.setPagination(PaginationQVO.byResult(skip + 1, top - skip));
 
 		if (uriInfo.getOrderBy() != null) {
 			Map<String, String> orderBy = new LinkedHashMap<>();
 			for (OrderExpression orderExpression : uriInfo.getOrderBy().getOrders()) {
 				orderBy.put(orderExpression.getExpression().getUriLiteral(), orderExpression.getSortOrder().toString());
 			}
-			dataQVO.setOrderBy(orderBy);
+			dataQVO.setSortFieldList(orderBy);
 		}
 
 		Map<String, Object> inputParams = new HashMap<>();
@@ -151,7 +152,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		}
 		*/
 
-		dataQVO.setInputParams(inputParams);
+		dataQVO.setFilter(inputParams);
 		//processCommonOfUri(customQueryOptions, dataQVO);
 
 		List<Map<String, Object>> list = dataService.executeOData(dataQVO);
@@ -174,7 +175,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 		logger.info("OData Count: DataView=[{}] User=[{}] CustomQueryParams=[{}]",
 			entitySet.getEntityType().getName(), securityService.getCurrentUser(), customQueryOptions);
 
-		ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName());
+		DataViewQVO dataQVO = new DataViewQVO(TargetType.ODataCount, entitySet.getEntityType().getName());
 
 		Map<String, Object> inputParams = new HashMap<>();
 
@@ -194,7 +195,7 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 			dataQVO.setFilterExpression(accept.toString());
 		}
 
-		dataQVO.setInputParams(inputParams);
+		dataQVO.setFilter(inputParams);
 
 		//processCommonOfUri(customQueryOptions, dataQVO);
 
@@ -216,10 +217,9 @@ public class MetisODataSingleProcessor extends ODataSingleProcessor {
 			Map<String, Object> inputParams = new HashMap<>();
 			inputParams.put(keyPredicate.getProperty().getName(), keyPredicate.getLiteral());
 
-			ODataQVO dataQVO = new ODataQVO(entitySet.getEntityType().getName())
-				.setFirstResult(1)
-				.setMaxResults(1);
-			dataQVO.setInputParams(inputParams);
+			DataViewQVO dataQVO = new DataViewQVO(TargetType.OData, entitySet.getEntityType().getName())
+				.setPagination(PaginationQVO.byResult(1, 1));
+			dataQVO.setFilter(inputParams);
 
 			//processCommonOfUri(customQueryOptions, dataQVO);
 

@@ -36,7 +36,9 @@ import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.async.DataViewQVO;
+import org.devocative.metis.vo.async.DataViewQVO.TargetType;
 import org.devocative.metis.vo.async.DataViewRVO;
+import org.devocative.metis.vo.query.PaginationQVO;
 import org.devocative.metis.vo.query.QueryExecInfoRVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
@@ -206,11 +208,9 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 		}
 
-		DataViewQVO dataViewQVO = new DataViewQVO();
+		DataViewQVO dataViewQVO = new DataViewQVO(TargetType.Main, dataVO.getName());
 		dataViewQVO
-			.setName(dataVO.getName())
-			.setPageIndex(pageIndex)
-			.setPageSize(pageSize)
+			.setPagination(PaginationQVO.byPage(pageIndex, pageSize))
 			.setSortFieldList(sortFieldsMap)
 			.setFilter(getFilterMap())
 		;
@@ -222,9 +222,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	@Override
 	public void asyncListByParent(Serializable parentId, List<WSortField> sortFields) {
-		DataViewQVO dataViewQVO = new DataViewQVO();
+		DataViewQVO dataViewQVO = new DataViewQVO(TargetType.ByParent, dataVO.getName());
 		dataViewQVO
-			.setName(dataVO.getName())
 			.setParentId(parentId)
 			.setSortFieldList(sortFieldsMap);
 
@@ -337,14 +336,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 				@Override
 				public void onClick(AjaxRequestTarget target) {
-					DataViewQVO dataViewQVO = new DataViewQVO();
+					DataViewQVO dataViewQVO = new DataViewQVO(TargetType.Export, DataViewGridPanel.this.dataVO.getName());
 					dataViewQVO
-						.setName(DataViewGridPanel.this.dataVO.getName())
 						//TODO .setSortFieldList(getSortFieldsMap(sortFields))
 						.setFilter(getFilterMap())
 						.setSortFieldList(sortFieldsMap)
-						.setPageSize(getPageSize())
-						.setPageIndex(getPageNum())
+						.setPagination(PaginationQVO.byPage(getPageNum(), getPageSize()))
 						.setExportType(DataViewQVO.ExportType.Data)
 					;
 
@@ -358,14 +355,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 				@Override
 				public void onClick(AjaxRequestTarget target) {
-					DataViewQVO dataViewQVO = new DataViewQVO();
+					DataViewQVO dataViewQVO = new DataViewQVO(TargetType.Export, DataViewGridPanel.this.dataVO.getName());
 					dataViewQVO
-						.setName(DataViewGridPanel.this.dataVO.getName())
 						//TODO .setSortFieldList(getSortFieldsMap(sortFields))
 						.setFilter(getFilterMap())
 						.setSortFieldList(sortFieldsMap)
-						.setPageSize(getPageSize())
-						.setPageIndex(getPageNum())
+						.setPagination(PaginationQVO.byPage(getPageNum(), getPageSize()))
 						.setExportType(DataViewQVO.ExportType.Print)
 					;
 
@@ -423,14 +418,13 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 				@Override
 				public void onClick(AjaxRequestTarget target) {
-					DataViewQVO dataViewQVO = new DataViewQVO();
+					//TODO target?
+					DataViewQVO dataViewQVO = new DataViewQVO(TargetType.Main, DataViewGridPanel.this.dataVO.getName());
 					dataViewQVO
-						.setName(DataViewGridPanel.this.dataVO.getName())
 						//TODO .setSortFieldList(getSortFieldsMap(sortFields))
 						.setFilter(getFilterMap())
 						.setSortFieldList(sortFieldsMap)
-						.setPageSize(getPageSize())
-						.setPageIndex(getPageNum())
+						.setPagination(PaginationQVO.byPage(getPageNum(), getPageSize()))
 						.setSelectedRowsKeys(getSelectedRowsKeys())
 						.setReportId(DataViewGridPanel.this.dataVO.getReportId())
 					;

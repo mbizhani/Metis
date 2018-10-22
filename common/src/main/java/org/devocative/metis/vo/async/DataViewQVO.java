@@ -1,5 +1,7 @@
 package org.devocative.metis.vo.async;
 
+import org.devocative.metis.vo.query.PaginationQVO;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -7,13 +9,16 @@ import java.util.Map;
 public class DataViewQVO implements Serializable {
 	private static final long serialVersionUID = 5547889135754963068L;
 
+	public enum TargetType {Main, ByParent, LookUp, Export, OData, ODataCount}
 	public enum ExportType {Data, Print, Excel, PDF}
 
-	private String name;
-	private long pageIndex;
-	private long pageSize;
+	private final TargetType target;
+	private final String name;
+
+	private PaginationQVO pagination;
 	private Map<String, String> sortFieldList;
 	private Map<String, Object> filter;
+	private String filterExpression;
 
 	private Serializable parentId;
 
@@ -25,30 +30,27 @@ public class DataViewQVO implements Serializable {
 
 	// ------------------------------
 
+	public DataViewQVO(TargetType target, String name) {
+		this.target = target;
+		this.name = name;
+	}
+
+	// ------------------------------
+
+	public TargetType getTarget() {
+		return target;
+	}
+
 	public String getName() {
 		return name;
 	}
 
-	public DataViewQVO setName(String name) {
-		this.name = name;
-		return this;
+	public PaginationQVO getPagination() {
+		return pagination;
 	}
 
-	public long getPageIndex() {
-		return pageIndex;
-	}
-
-	public DataViewQVO setPageIndex(long pageIndex) {
-		this.pageIndex = pageIndex;
-		return this;
-	}
-
-	public long getPageSize() {
-		return pageSize;
-	}
-
-	public DataViewQVO setPageSize(long pageSize) {
-		this.pageSize = pageSize;
+	public DataViewQVO setPagination(PaginationQVO pagination) {
+		this.pagination = pagination;
 		return this;
 	}
 
@@ -67,6 +69,15 @@ public class DataViewQVO implements Serializable {
 
 	public DataViewQVO setFilter(Map<String, Object> filter) {
 		this.filter = filter;
+		return this;
+	}
+
+	public String getFilterExpression() {
+		return filterExpression;
+	}
+
+	public DataViewQVO setFilterExpression(String filterExpression) {
+		this.filterExpression = filterExpression;
 		return this;
 	}
 

@@ -309,7 +309,7 @@ public class DataViewService implements IDataViewService {
 
 			FilterPlugin filter = new FilterPlugin();
 			if (!dvNames.isEmpty()) {
-				filter.add("dv.c_name", FilterValue.equal(dvNames));
+				filter.add(FilterValue.equal("dv.c_name", dvNames));
 			}
 
 			helper.exportBySql("dataSource",
@@ -474,7 +474,7 @@ public class DataViewService implements IDataViewService {
 					.get());
 
 			FilterPlugin filter = new FilterPlugin();
-			filter.add("dv.id", FilterValue.equal(dataViewIds));
+			filter.add(FilterValue.equal("dv.id", dataViewIds));
 
 			helper.exportBySql("dataSource",
 				sqlHelper.selectAll("dataSource", params, filter).toListOfMap()
@@ -488,7 +488,7 @@ public class DataViewService implements IDataViewService {
 				sqlHelper.selectAll("group_dataView", params, filter).toListOfMap()
 			);
 
-			filter = new FilterPlugin().add("rp.id", FilterValue.equal(reportIds));
+			filter = new FilterPlugin().add(FilterValue.equal("rp.id", reportIds));
 			helper.exportBySql("report",
 				sqlHelper.selectAll("report", params, filter).toListOfMap()
 			);
