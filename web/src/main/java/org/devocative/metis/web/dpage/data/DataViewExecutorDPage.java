@@ -20,6 +20,7 @@ import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.FilterInputParamsVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
 import org.devocative.metis.web.dpage.data.form.DataViewFormDPage;
@@ -40,16 +41,13 @@ public class DataViewExecutorDPage extends DPage {
 	private DataVO dataVO;
 	private DataViewGridPanel mainGrid;
 	private Map<String, Object> filter = new HashMap<>();
-	private String filterParams;
-	private Set<String> filterWithDefAndReqOrDis = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-	private Map<String, List<String>> webParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+	private FilterInputParamsVO inputParamsVO = new FilterInputParamsVO();
 
 	private IModel<String> title;
 	private boolean multiSelect;
 	private String selectionJSCallback;
 	private boolean considerWebParams = true;
 
-	private boolean searchOnStart = false;
 	private DAjaxButton search;
 
 	@Inject
@@ -86,28 +84,13 @@ public class DataViewExecutorDPage extends DPage {
 		return this;
 	}
 
-	public DataViewExecutorDPage setFilterParams(String filterParams) {
-		this.filterParams = filterParams;
-		return this;
-	}
-
 	public DataViewExecutorDPage setConsiderWebParams(boolean considerWebParams) {
 		this.considerWebParams = considerWebParams;
 		return this;
 	}
 
-	public DataViewExecutorDPage setWebParams(Map<String, List<String>> webParams) {
-		this.webParams.putAll(webParams);
-		filterWithDefAndReqOrDis.addAll(webParams.keySet());
-		return this;
-	}
-
-	public DataViewExecutorDPage addToFilter(Map<String, Object> filter) {
-		Map<String, Object> map = dataService.convertFilterToFilter(dataVO.getDataSourceId(), dataVO.getAllFields(), filter);
-
-		filterWithDefAndReqOrDis.addAll(map.keySet());
-
-		this.filter.putAll(map);
+	public DataViewExecutorDPage addParams(Map<String, ?> params) {
+		inputParamsVO.putAll(params);
 		return this;
 	}
 
@@ -120,19 +103,15 @@ public class DataViewExecutorDPage extends DPage {
 		if (considerWebParams) {
 			if (ConfigUtil.hasKey(MetisConfigKey.IgnoreParameterValues)) {
 				List<String> ignoredValues = Arrays.asList(ConfigUtil.getString(MetisConfigKey.IgnoreParameterValues).split("[,]"));
-				webParams.putAll(WebUtil.toMap(true, true, ignoredValues));
+				inputParamsVO.putAll(WebUtil.toMap(true, true, ignoredValues));
 			} else {
-				webParams.putAll(WebUtil.toMap(true, true));
+				inputParamsVO.putAll(WebUtil.toMap(true, true));
 			}
-		}
-
-		if (filterParams != null) {
-			webParams.putAll(WebUtil.toMap(filterParams, true, true));
 		}
 
 		DLogCtx
 			.put("dataView", dataVO.getName())
-			.put("webParams", webParams);
+			.put("inoutParams", inputParamsVO);
 
 		WebMarkupContainer north = new WebMarkupContainer("north");
 		north.add(new Label("dvTitle", title));
@@ -143,9 +122,8 @@ public class DataViewExecutorDPage extends DPage {
 
 		Form<Map<String, Object>> form = new Form<>("form");
 		form.add(
-			new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
-				.setWebParams(webParams)
-				.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
+			new DataViewFilterPanel2("filterPanel", dataVO, filter)
+				.setInputParamsVO(inputParamsVO)
 		);
 		search = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
 			private static final long serialVersionUID = -8066384058553336246L;
@@ -161,10 +139,6 @@ public class DataViewExecutorDPage extends DPage {
 		search.setOutputMarkupId(true);
 		form.add(search);
 
-		if (webParams.containsKey(MetisWebParam.SEARCH_ON_START)) {
-			searchOnStart = "1".equals(webParams.get(MetisWebParam.SEARCH_ON_START).get(0));
-		}
-
 		WebMarkupContainer centerPanel = new WebMarkupContainer("centerPanel");
 		centerPanel.add(new AttributeModifier("title", getString("label.result") + " - " + dataVO.getTitle()));
 
@@ -172,7 +146,7 @@ public class DataViewExecutorDPage extends DPage {
 		mainGrid
 			.setMultiSelect(multiSelect)
 			.setSelectionJSCallback(selectionJSCallback)
-			.setWebParams(webParams);
+			.setInputParamsVO(inputParamsVO);
 		centerPanel.add(mainGrid);
 
 		WebMarkupContainer filterPanel = new WebMarkupContainer("filterPanel");
@@ -192,7 +166,8 @@ public class DataViewExecutorDPage extends DPage {
 
 		WMessager.writeErrorsInAfterRender(this);
 
-		if (searchOnStart) {
+		if (inputParamsVO.containsKey(MetisWebParam.SEARCH_ON_START) &&
+			"1".equals(inputParamsVO.getAsString(MetisWebParam.SEARCH_ON_START))) {
 			String script = String.format("$('#%s').click();", search.getMarkupId());
 			WebUtil.writeJQueryCall(script, true);
 		}

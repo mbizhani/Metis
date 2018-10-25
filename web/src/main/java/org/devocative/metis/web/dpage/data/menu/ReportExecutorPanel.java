@@ -9,9 +9,10 @@ import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IReportService;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.FilterInputParamsVO;
 import org.devocative.metis.web.MetisIcon;
 import org.devocative.metis.web.MetisWebParam;
-import org.devocative.metis.web.dpage.data.DataViewFilterPanel;
+import org.devocative.metis.web.dpage.data.DataViewFilterPanel2;
 import org.devocative.metis.web.dpage.data.DataViewGridPanel;
 import org.devocative.wickomp.WPanel;
 import org.devocative.wickomp.WebUtil;
@@ -20,7 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ReportExecutorPanel extends WPanel {
 	private static final long serialVersionUID = -4821094866554886611L;
@@ -61,24 +65,16 @@ public class ReportExecutorPanel extends WPanel {
 
 		final Map<String, Object> filter = new HashMap<>();
 
-		Map<String, Object> targetFilter = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 		Map<String, List<String>> targetParam = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+		dataService.processDynamicFilterAndParam(report.getConfig(), targetParam, null, null);
 
-		dataService.processDynamicFilterAndParam(report.getConfig(), targetFilter, targetParam, null, null);
-
-		filter.putAll(dataService.convertFilterToFilter(
-			dataVO.getDataSourceId(),
-			dataVO.getAllFields(),
-			targetFilter));
-
-		Set<String> filterWithDefAndReqOrDis = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-		filterWithDefAndReqOrDis.addAll(filter.keySet());
+		FilterInputParamsVO inputParamsVO = new FilterInputParamsVO();
+		inputParamsVO.putAll(targetParam);
 
 		Form<Map<String, Object>> form = new Form<>("form");
 		form.add(
-			new DataViewFilterPanel("filterPanel", dataVO.getDataSourceId(), filter, dataVO.getAllFields())
-				.setWebParams(targetParam)
-				.setFilterWithDefAndReqOrDis(filterWithDefAndReqOrDis)
+			new DataViewFilterPanel2("filterPanel", dataVO, filter)
+				.setInputParamsVO(inputParamsVO)
 		);
 
 		search = new DAjaxButton("search", new ResourceModel("label.search"), MetisIcon.SEARCH) {
@@ -96,13 +92,12 @@ public class ReportExecutorPanel extends WPanel {
 		search.setOutputMarkupId(true);
 		form.add(search);
 
-		if (targetParam.containsKey(MetisWebParam.SEARCH_ON_START)) {
-			searchOnStart = "1".equals(targetParam.get(MetisWebParam.SEARCH_ON_START).get(0));
-		}
+		searchOnStart = inputParamsVO.containsKey(MetisWebParam.SEARCH_ON_START) &&
+			"1".equals(inputParamsVO.getAsString(MetisWebParam.SEARCH_ON_START));
 
 		mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
 		mainGrid
-			.setWebParams(targetParam)
+			.setInputParamsVO(inputParamsVO)
 			.setMultiSelect(false)
 		;
 

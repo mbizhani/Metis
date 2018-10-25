@@ -35,6 +35,7 @@ import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.FilterInputParamsVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewQVO.TargetType;
 import org.devocative.metis.vo.async.DataViewRVO;
@@ -100,7 +101,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 
 	private String selectionJSCallback;
 	private Boolean multiSelect;
-	private Map<String, List<String>> webParams;
+	private FilterInputParamsVO inputParamsVO;
 
 	private List<QueryExecInfoRVO> queryExecInfoList;
 	private WModalWindow modalWindow;
@@ -135,8 +136,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		return this;
 	}
 
-	public DataViewGridPanel setWebParams(Map<String, List<String>> webParams) {
-		this.webParams = webParams;
+	public DataViewGridPanel setInputParamsVO(FilterInputParamsVO inputParamsVO) {
+		this.inputParamsVO = inputParamsVO;
 		return this;
 	}
 
@@ -283,7 +284,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			multiSelect = dataVO.getSelectionModeSafely() == XDVGridSelectionMode.Multiple;
 		}
 
-		if (webParams.containsKey(MetisWebParam.MULTI_SELECT)) {
+		if (inputParamsVO.containsKey(MetisWebParam.MULTI_SELECT)) {
 			multiSelect = getWebRequest()
 				.getRequestParameters()
 				.getParameterValue(MetisWebParam.MULTI_SELECT)
@@ -454,13 +455,13 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		sendButtons.setVisible(false);
 
 		final String returnVer;
-		if (webParams.containsKey(MetisWebParam.RETURN_VERSION)) {
-			returnVer = webParams.get(MetisWebParam.RETURN_VERSION).get(0);
+		if (inputParamsVO.containsKey(MetisWebParam.RETURN_VERSION)) {
+			returnVer = inputParamsVO.getAsString(MetisWebParam.RETURN_VERSION);
 		} else {
 			returnVer = ConfigUtil.getString(MetisConfigKey.GridReturnResultVersion);
 		}
 
-		if (selectionJSCallback == null && webParams.containsKey(MetisWebParam.WINDOW)) {
+		if (selectionJSCallback == null && inputParamsVO.containsKey(MetisWebParam.WINDOW)) {
 			if ("1".equals(returnVer)) { // LIST (just rows)
 				if (dataVO.getSelectionValidationJS() == null) {
 					selectionJSCallback = "function(rows){parent.postMessage(JSON.stringify(rows),'*');}";
@@ -483,12 +484,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 		}
 
-		if (selectionJSCallback != null || webParams.containsKey(MetisWebParam.WINDOW)) {
+		if (selectionJSCallback != null || inputParamsVO.containsKey(MetisWebParam.WINDOW)) {
 			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
 
 			List<ActionBut> actions = new ArrayList<>();
-			if (webParams.containsKey(MetisWebParam.ACTIONS)) {
-				String sentActions = webParams.get(MetisWebParam.ACTIONS).get(0);
+			if (inputParamsVO.containsKey(MetisWebParam.ACTIONS)) {
+				String sentActions = inputParamsVO.getAsString(MetisWebParam.ACTIONS);
 				List<ActionBut> list = WebUtil.fromJson(sentActions, new TypeReference<List<ActionBut>>() {
 				});
 				actions.addAll(list);
@@ -536,11 +537,11 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 	// ------------------------------
 
 	private OColumnList<Map<String, Object>> createColumns(final DataVO dataVO) {
-		List<String> disabledSortColumns = webParams.getOrDefault(MetisWebParam.DISABLE_SORT_COLUMN, Collections.emptyList());
+		List<String> disabledSortColumns = inputParamsVO.getAsStringList(MetisWebParam.DISABLE_SORT_COLUMN);
 
 		boolean disableAllSorts = false;
-		if (webParams.containsKey(MetisWebParam.DISABLE_SORT_ALL_COLUMN)) {
-			disableAllSorts = "1".equals(webParams.get(MetisWebParam.DISABLE_SORT_ALL_COLUMN).get(0));
+		if (inputParamsVO.containsKey(MetisWebParam.DISABLE_SORT_ALL_COLUMN)) {
+			disableAllSorts = "1".equals(inputParamsVO.getAsString(MetisWebParam.DISABLE_SORT_ALL_COLUMN));
 		}
 
 		OColumnList<Map<String, Object>> columns = new OColumnList<>();
@@ -643,24 +644,23 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 					public void onClick(AjaxRequestTarget target, IModel<Map<String, Object>> rowData) {
 						try {
 							Map<String, Object> prevParamsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-							prevParamsMap.putAll(webParams);
+							prevParamsMap.putAll(inputParamsVO.unwrap());
 							prevParamsMap.putAll(filter);
 
 							Map<String, Object> rowMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 							rowMap.putAll(rowData.getObject());
 
-							Map<String, Object> targetFilter = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 							Map<String, List<String>> targetParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-							dataService.processDynamicFilterAndParam(xdvLink.getSentData(), targetFilter, targetParams, rowMap, prevParamsMap);
+							dataService.processDynamicFilterAndParam(xdvLink.getSentData(), targetParams, rowMap, prevParamsMap);
 
-							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetFilter);
+							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetParams);
 
 							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
 							dPage
 								.setConsiderWebParams(false)
-								.setWebParams(targetParams)
-								.addToFilter(targetFilter);
+								.addParams(targetParams)
+							;
 
 							modalWindow.setContent(dPage);
 							modalWindow

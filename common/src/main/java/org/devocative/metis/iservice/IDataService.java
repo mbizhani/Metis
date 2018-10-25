@@ -11,7 +11,6 @@ import org.devocative.metis.vo.async.DataViewRVO;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface IDataService {
 	DataVO loadDataVO(String dataViewId);
@@ -42,18 +41,7 @@ public interface IDataService {
 
 	Long executeODataCount(DataViewQVO request);
 
-	Set<String> convertSimpleParamsToFilter(
-		Map<String, Object> result,
-		String dataSourceId,
-		List<DataAbstractFieldVO> fields,
-		Map<String, List<String>> params);
-
-	Map<String, Object> convertFilterToFilter(
-		String dataSourceId,
-		List<DataAbstractFieldVO> fields,
-		Map<String, Object> filter);
-
-	void processDynamicFilterAndParam(String script, Map<String, ?> filter, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams);
+	void processDynamicFilterAndParam(String script, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams);
 
 	void addDataEventHandler(IDataEventHandler handler);
 

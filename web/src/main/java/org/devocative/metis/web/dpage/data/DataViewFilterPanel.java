@@ -1,6 +1,6 @@
 package org.devocative.metis.web.dpage.data;
 
-import org.apache.wicket.Component;
+/*import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -31,10 +31,11 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.*;*/
 
-public class DataViewFilterPanel extends DPanel {
-	private static final long serialVersionUID = -8467382200091757194L;
+@Deprecated
+public class DataViewFilterPanel /*extends DPanel*/ {
+	/*private static final long serialVersionUID = -8467382200091757194L;
 
 	private static final Logger logger = LoggerFactory.getLogger(DataViewFilterPanel.class);
 
@@ -181,12 +182,10 @@ public class DataViewFilterPanel extends DPanel {
 			case Real:
 				if (XDSFieldFilterType.Range == fieldVO.getFilterType()) {
 					fieldFormItem = new WNumberRangeInput(fieldVO.getName(), BigDecimal.class)
-						.setPrecision(2)
 						.setThousandSeparator(',')
 						.setPrecision(3);
 				} else {
 					fieldFormItem = new WNumberInput(fieldVO.getName(), BigDecimal.class)
-						.setPrecision(2)
 						.setThousandSeparator(',')
 						.setPrecision(3);
 				}
@@ -230,12 +229,12 @@ public class DataViewFilterPanel extends DPanel {
 					List<KeyValueVO<Serializable, String>> lookUpList = null;
 
 					if (filter.containsKey(fieldVO.getName())) {
-						/**
+						*//**
 						 * NOTE:
 						 * Since DataService.convertSimpleParamsToFilter() is called in the beginning of onInitialize(),
 						 * so the sent of params from URL or method or targetDSFilter is calculated and added
 						 * correctly to the filter!
-						 */
+	 *//*
 						if (filter.get(fieldVO.getName()) instanceof List) {
 							lookUpList = new ArrayList<>((List<KeyValueVO<Serializable, String>>) filter.get(fieldVO.getName()));
 						} else {
@@ -243,9 +242,9 @@ public class DataViewFilterPanel extends DPanel {
 							lookUpList = Collections.singletonList(keyValueVO);
 						}
 
-						/*
+						*//*
 						if the lookup is filtered by passing targetDSFilter, the result should not be selected
-						*/
+						*//*
 						if (fieldVO.getTargetDSFilter() != null &&
 							!filterWithDefAndReqOrDis.contains(fieldVO.getName()) &&
 							!filterWithDef.containsKey(fieldVO.getName())) {
@@ -294,7 +293,8 @@ public class DataViewFilterPanel extends DPanel {
 							return new DataViewExecutorDPage(selectionPanelId, Collections.singletonList(targetDSName))
 								.setSelectionJSCallback(getJSCallback())
 								.setMultiSelect(multiple)
-								.setFilterParams(fieldVO.getTargetDSFilter());
+								.setFilterParams(fieldVO.getTargetDSFilter())
+								;
 						}
 
 						@Override
@@ -338,5 +338,5 @@ public class DataViewFilterPanel extends DPanel {
 			}
 		}
 		return result;
-	}
+	}*/
 }

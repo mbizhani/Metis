@@ -45,6 +45,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service("mtsDataSourceService")
 public class DataSourceService implements IDataSourceService {
@@ -778,7 +779,8 @@ public class DataSourceService implements IDataSourceService {
 
 		queryQVO.setFilterExpression(dataSource.getKeyField() + " in (:ids)");
 
-		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField())
+		//TODO
+		DSQueryBuilder builderVO = new DSQueryBuilder(xDataSource, queryQVO, dataSource.getSelfRelPointerField(), true)
 			.appendSelect(queryQVO.getSelectFields())
 			.appendFrom()
 			.appendWhere()
@@ -830,6 +832,10 @@ public class DataSourceService implements IDataSourceService {
 		// ---------------
 
 		DSQueryBuilder(XDataSource xDataSource, AbstractQueryQVO queryQVO, String selfRelationField) {
+			this(xDataSource, queryQVO, selfRelationField, true);
+		}
+
+		DSQueryBuilder(XDataSource xDataSource, AbstractQueryQVO queryQVO, String selfRelationField, boolean applyExternalParams) {
 			this.xDataSource = xDataSource;
 			this.queryQVO = queryQVO;
 			this.selfRelationField = selfRelationField;
@@ -838,25 +844,27 @@ public class DataSourceService implements IDataSourceService {
 				this.queryParams.putAll(queryQVO.getExtraParams());
 			}*/
 
-			Map<String, List<String>> params = requestService.getCurrentRequest().getParams();
-			final List<String> paramsFromUrl = ConfigUtil.getList(MetisConfigKey.SQLParamFromUrl);
-			for (String param : paramsFromUrl) {
-				if (params.containsKey(param)) {
-					String value = params.get(param).get(0);
-					LinkedHashMap<String, Object> valueAsMap = requestService.fromJson(value, new TypeReference<LinkedHashMap<String, Object>>() {
-					});
-					queryParams.put(param, valueAsMap);
+			if (applyExternalParams) {
+				Map<String, List<String>> params = requestService.getCurrentRequest().getParams();
+				final List<String> paramsFromUrl = ConfigUtil.getList(MetisConfigKey.SQLParamFromUrl);
+				for (String param : paramsFromUrl) {
+					if (params.containsKey(param)) {
+						String value = params.get(param).get(0);
+						LinkedHashMap<String, Object> valueAsMap = requestService.fromJson(value, new TypeReference<LinkedHashMap<String, Object>>() {
+						});
+						queryParams.put(param, valueAsMap);
+					}
 				}
-			}
 
-			if (ConfigUtil.getBoolean(MetisConfigKey.SQLParamCurrentUser)) {
-				queryParams.put("$$curuser", securityService.getCurrentUser());
+				if (ConfigUtil.getBoolean(MetisConfigKey.SQLParamCurrentUser)) {
+					queryParams.put("$$curuser", securityService.getCurrentUser());
+				}
 			}
 		}
 
 		// ---------------
 
-		public String getQuery() {
+		String getQuery() {
 			if (ObjectUtil.isTrue(xDataSource.getQuery().getDynamic())) {
 				return processDynamicQuery(query.toString(), queryParams);
 			} else {
@@ -864,13 +872,13 @@ public class DataSourceService implements IDataSourceService {
 			}
 		}
 
-		public Map<String, Object> getQueryParams() {
+		Map<String, Object> getQueryParams() {
 			return queryParams;
 		}
 
 		// ---------------
 
-		public DSQueryBuilder appendSelect(List<String> selectFields) {
+		DSQueryBuilder appendSelect(List<String> selectFields) {
 			query
 				.append("select\n")
 				.append("\t")
@@ -887,7 +895,7 @@ public class DataSourceService implements IDataSourceService {
 			return this;
 		}
 
-		public DSQueryBuilder appendFrom() {
+		DSQueryBuilder appendFrom() {
 			/*Map<String, Object> params;
 			if (queryQVO != null && queryQVO.getInputParams() != null) {
 				params = queryQVO.getInputParams();
@@ -903,7 +911,7 @@ public class DataSourceService implements IDataSourceService {
 			return this;
 		}
 
-		public DSQueryBuilder appendWhere() {
+		DSQueryBuilder appendWhere() {
 			if (queryQVO == null) {
 				throw new RuntimeException("No AbstractQueryQVO!");
 			}
@@ -940,16 +948,16 @@ public class DataSourceService implements IDataSourceService {
 			return this;
 		}
 
-		public DSQueryBuilder appendWhere(Map<String, Object> filter) {
+		/*public DSQueryBuilder appendWhere(Map<String, Object> filter) {
 			if (filter != null && filter.size() > 0) {
 				query
 					.append("where\n\t1=1\n")
 					.append(appendFilters(xDataSource, filter));
 			}
 			return this;
-		}
+		}*/
 
-		public DSQueryBuilder appendSort(Map<String, String> sortFields) {
+		DSQueryBuilder appendSort(Map<String, String> sortFields) {
 			if (sortFields != null && sortFields.size() > 0) {
 				query.append("\norder by\n");
 				boolean firstAdded = false;
@@ -982,41 +990,43 @@ public class DataSourceService implements IDataSourceService {
 				for (Map.Entry<String, Object> filter : filters.entrySet()) {
 					XDSField xdsField = dataSource.getField(filter.getKey());
 					if (xdsField != null) {
+						final String filterName = xdsField.getName();
+						Object value = filter.getValue();
+
 						switch (xdsField.getFilterType()) {
 
 							case Equal: // All types
-								Object value = filter.getValue();
 								if (value instanceof KeyValueVO) {
 									value = ((KeyValueVO) value).getKey();
 								}
 								if (value instanceof Collection) { //TODO?
-									filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
+									filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", filterName));
 								} else {
-									filterClauses.append(String.format("\tand %1$s  = :%1$s\n", xdsField.getName()));
+									filterClauses.append(String.format("\tand %1$s  = :%1$s\n", filterName));
 								}
-								queryParams.put(xdsField.getName(), value);
+								queryParams.put(filterName, value);
 								break;
 
 							case Contain: // Only String
 								if (xDataSource.getCaseSensitiveFilter() == null || !xDataSource.getCaseSensitiveFilter()) {
-									filterClauses.append(String.format("\tand lower(%1$s) like lower(:%1$s)\n", xdsField.getName()));
+									filterClauses.append(String.format("\tand lower(%1$s) like lower(:%1$s)\n", filterName));
 								} else {
-									filterClauses.append(String.format("\tand %1$s like :%1$s\n", xdsField.getName()));
+									filterClauses.append(String.format("\tand %1$s like :%1$s\n", filterName));
 								}
-								queryParams.put(xdsField.getName(), filter.getValue());
+								queryParams.put(filterName, value);
 								break;
 
 							case Range: // Date & Number
-								RangeVO rangeVO = (RangeVO) filter.getValue();
+								RangeVO rangeVO = (RangeVO) value;
 								if (rangeVO.getLower() != null) {
-									filterClauses.append(String.format("\tand %1$s >= :%1$s_l\n", xdsField.getName()));
-									queryParams.put(xdsField.getName() + "_l", rangeVO.getLower());
+									filterClauses.append(String.format("\tand %1$s >= :%1$s_l\n", filterName));
+									queryParams.put(filterName + "_l", rangeVO.getLower());
 								}
 								if (rangeVO.getUpper() != null) {
 									if (equalOnUpper && xdsField.getType() != XDSFieldType.Date) {
-										filterClauses.append(String.format("\tand %1$s <= :%1$s_u\n", xdsField.getName()));
+										filterClauses.append(String.format("\tand %1$s <= :%1$s_u\n", filterName));
 									} else {
-										filterClauses.append(String.format("\tand %1$s < :%1$s_u\n", xdsField.getName()));
+										filterClauses.append(String.format("\tand %1$s < :%1$s_u\n", filterName));
 									}
 
 									Object upper;
@@ -1026,24 +1036,26 @@ public class DataSourceService implements IDataSourceService {
 									} else {
 										upper = rangeVO.getUpper();
 									}
-									queryParams.put(xdsField.getName() + "_u", upper);
+									queryParams.put(filterName + "_u", upper);
 								}
 								break;
 
 							case List: // All types (except boolean)
 							case Search:
-								if (filter.getValue() instanceof List) {
-									filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", xdsField.getName()));
-									List<Serializable> items = new ArrayList<>();
-									List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) filter.getValue();
-									for (KeyValueVO<Serializable, String> keyValue : list) {
-										items.add(keyValue.getKey());
-									}
-									queryParams.put(xdsField.getName(), items);
+								if (value instanceof Collection) {
+									filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", filterName));
+
+									List<Object> items = ((Collection<?>) filter.getValue())
+										.stream()
+										.filter(o -> o instanceof KeyValueVO)
+										.map(o -> ((KeyValueVO) o).getKey())
+										.collect(Collectors.toList());
+									queryParams.put(filterName, items);
 								} else {
-									filterClauses.append(String.format("\tand %1$s = :%1$s\n", xdsField.getName()));
-									KeyValueVO<Serializable, String> keyValueVO = (KeyValueVO<Serializable, String>) filter.getValue();
-									queryParams.put(xdsField.getName(), keyValueVO.getKey());
+									filterClauses.append(String.format("\tand %1$s = :%1$s\n", filterName));
+
+									KeyValueVO keyValueVO = (KeyValueVO) value;
+									queryParams.put(filterName, keyValueVO.getKey());
 								}
 								break;
 						}
@@ -1061,26 +1073,25 @@ public class DataSourceService implements IDataSourceService {
 										value = ((KeyValueVO) value).getKey();
 									}
 									break;
-								case Contain:
-									break;
-								case Range:
-									throw new RuntimeException("Invalid parameter as range: " + xdsParameter.getName());
 								case List:
 								case Search:
-									if (value instanceof List) {
-										List<Serializable> items = new ArrayList<>();
-										List<KeyValueVO<Serializable, String>> list = (List<KeyValueVO<Serializable, String>>) value;
-										for (KeyValueVO<Serializable, String> keyValue : list) {
-											items.add(keyValue.getKey());
-										}
-										value = items;
-									} else {
-										value = ((KeyValueVO<Serializable, String>) value).getKey();
+									if (value instanceof Collection) {
+										value = ((Collection<?>) value)
+											.stream()
+											.filter(o -> o instanceof KeyValueVO)
+											.map(o -> ((KeyValueVO) o).getKey())
+											.collect(Collectors.toList());
+									} else if (value instanceof KeyValueVO) {
+										value = ((KeyValueVO) value).getKey();
 									}
 									break;
+
+								default:
+									throw new RuntimeException(String.format("Invalid parameter filter type: name=%s type=%s",
+										xdsParameter.getName(), xdsParameter.getFilterType()));
 							}
+							queryParams.put(xdsParameter.getName(), value);
 						}
-						queryParams.put(xdsParameter.getName(), value);
 					}
 				}
 			}
