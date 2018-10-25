@@ -48,7 +48,8 @@ public enum MetisConfigKey implements IConfigKey {
 	ODataConsiderParentRelation("mts.odata.consider.parent.relation", false, Arrays.asList(true, false)),
 
 	SQLParamFromUrl("mts.sql.param.from.url"/*, (Object) Arrays.asList("$$curuser")*/),
-	SQLParamCurrentUser("mts.sql.param.cur.user", true, Arrays.asList(true, false));
+	SQLParamCurrentUser("mts.sql.param.cur.user", true, Arrays.asList(true, false)),
+	SQLTextSearchSplitter("mts.sql.text.search.splitter", "\\s+");
 
 	// ------------------------------
 

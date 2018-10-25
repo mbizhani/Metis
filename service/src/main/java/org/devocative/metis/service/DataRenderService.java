@@ -245,6 +245,7 @@ public class DataRenderService implements IDataRenderService {
 				break;
 
 			case Contain:
+			case TextSearch:
 				if (inputParamsVO.containsKey(name)) {
 					Object v = inputParamsVO.get(name);
 					if (v instanceof List) {

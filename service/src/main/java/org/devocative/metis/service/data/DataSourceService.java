@@ -1016,6 +1016,12 @@ public class DataSourceService implements IDataSourceService {
 								queryParams.put(filterName, value);
 								break;
 
+							case TextSearch:
+								filterClauses.append(String.format("\tand regexp_like(%1$s, regexp_replace(trim(:%1$s), '%2$s', '|'), 'i')\n",
+									filterName, ConfigUtil.getString(MetisConfigKey.SQLTextSearchSplitter)));
+								queryParams.put(filterName, value);
+								break;
+
 							case Range: // Date & Number
 								RangeVO rangeVO = (RangeVO) value;
 								if (rangeVO.getLower() != null) {

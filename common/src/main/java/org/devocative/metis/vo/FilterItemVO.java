@@ -6,6 +6,7 @@ import org.devocative.metis.entity.data.config.XDSFieldType;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class FilterItemVO implements Serializable {
 	private static final long serialVersionUID = -9179829849945087859L;
@@ -13,7 +14,7 @@ public class FilterItemVO implements Serializable {
 	public enum ComponentType {
 		TextContain(XDSFieldType.String, XDSFieldFilterType.Contain),
 		TextRange(XDSFieldType.String, XDSFieldFilterType.Range),
-		TextSimple(XDSFieldType.String, XDSFieldFilterType.Equal),
+		TextSimple(XDSFieldType.String, XDSFieldFilterType.Equal, XDSFieldFilterType.TextSearch),
 
 		IntRange(XDSFieldType.Integer, XDSFieldFilterType.Range),
 		IntSimple(XDSFieldType.Integer, XDSFieldFilterType.Equal),
@@ -33,15 +34,15 @@ public class FilterItemVO implements Serializable {
 		LookUpSearch(XDSFieldType.LookUp, XDSFieldFilterType.Search);
 
 		private final XDSFieldType type;
-		private final XDSFieldFilterType filterType;
+		private final XDSFieldFilterType[] filterType;
 
-		ComponentType(XDSFieldType type, XDSFieldFilterType filterType) {
+		ComponentType(XDSFieldType type, XDSFieldFilterType... filterType) {
 			this.type = type;
 			this.filterType = filterType;
 		}
 
 		public boolean match(DataAbstractFieldVO field) {
-			return field.getType() == type && field.getFilterType() == filterType;
+			return field.getType() == type && Stream.of(filterType).anyMatch(it -> it == field.getFilterType());
 		}
 	}
 
