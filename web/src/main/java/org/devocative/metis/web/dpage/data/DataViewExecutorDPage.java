@@ -2,6 +2,7 @@ package org.devocative.metis.web.dpage.data;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -151,6 +152,10 @@ public class DataViewExecutorDPage extends DPage {
 
 		WebMarkupContainer filterPanel = new WebMarkupContainer("filterPanel");
 		filterPanel.add(form);
+
+		if (inputParamsVO.getAsStringOrDefault(MetisWebParam.HIDE_FILTER, "").equals("1")) {
+			filterPanel.add(new AttributeAppender("data-options", "collapsed:true", ",")); //TODO the comma
+		}
 
 		WEasyLayout layout = new WEasyLayout("layout");
 		layout.add(north);

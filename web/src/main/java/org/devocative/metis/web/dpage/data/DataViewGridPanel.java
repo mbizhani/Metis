@@ -527,12 +527,12 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			}
 		}
 
-		if (selectionJSCallback != null || inputParamsVO.containsKey(MetisWebParam.WINDOW)) {
+		String sentActions = inputParamsVO.getAsString(MetisWebParam.ACTIONS);
+		if ((selectionJSCallback != null || inputParamsVO.containsKey(MetisWebParam.WINDOW)) && !"_NONE_".equals(sentActions)) {
 			oBaseGrid.setSelectionJSHandler(selectionJSCallback);
 
 			List<ActionBut> actions = new ArrayList<>();
 			if (inputParamsVO.containsKey(MetisWebParam.ACTIONS)) {
-				String sentActions = inputParamsVO.getAsString(MetisWebParam.ACTIONS);
 				List<ActionBut> list = WebUtil.fromJson(sentActions, new TypeReference<List<ActionBut>>() {
 				});
 				actions.addAll(list);

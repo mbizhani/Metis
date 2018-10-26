@@ -4,13 +4,10 @@ public interface MetisWebParam {
 	String WINDOW = "$window";
 	String MULTI_SELECT = "$multiselect";
 	String RETURN_FIELD = "$return";
-	String DISABLED_FILTER_INPUT = "$disableFilter";
-	String INVISIBLE_FILTER_INPUT = "$invisibleFilter";
 	String DISABLE_SORT_COLUMN = "$disableSort";
 	String DISABLE_SORT_ALL_COLUMN = "$disableAllSorts";
-	String REQUIRED_FILTER_INPUT = "$required";
-	String DEFAULT_FILTER_VALUE = "$default";
 	String SEARCH_ON_START = "$searchOnStart";
 	String ACTIONS = "$actions";
 	String RETURN_VERSION = "$retVer"; // values: 1, 2
+	String HIDE_FILTER = "$hideFilter";
 }
