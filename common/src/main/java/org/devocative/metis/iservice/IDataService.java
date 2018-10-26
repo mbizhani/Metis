@@ -6,6 +6,7 @@ import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.vo.DataAbstractFieldVO;
 import org.devocative.metis.vo.DataParameterVO;
 import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.RowInputVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
 
@@ -41,7 +42,7 @@ public interface IDataService {
 
 	Long executeODataCount(DataViewQVO request);
 
-	void processDynamicFilterAndParam(String script, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams);
+	void processDynamicFilterAndParam(String script, Map<String, ?> params, Map<String, ?> prevParams, RowInputVO rowInputVO);
 
 	void addDataEventHandler(IDataEventHandler handler);
 

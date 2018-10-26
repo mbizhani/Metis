@@ -30,12 +30,13 @@ import org.devocative.metis.MetisException;
 import org.devocative.metis.entity.data.DataView;
 import org.devocative.metis.entity.data.config.XDSFieldResultType;
 import org.devocative.metis.entity.data.config.XDVGridSelectionMode;
-import org.devocative.metis.entity.data.config.XDVLink;
+import org.devocative.metis.entity.data.config.XDVLinkType;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.DataFieldVO;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.metis.vo.FilterInputParamsVO;
+import org.devocative.metis.vo.RowInputVO;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewQVO.TargetType;
 import org.devocative.metis.vo.async.DataViewRVO;
@@ -436,6 +437,48 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			})
 		);
 
+		if (dataVO.getLinksToDV() != null) {
+			dataVO.getLinksToDV()
+				.stream()
+				.filter(it -> it.getLinkType() == XDVLinkType.MultiRows)
+				.forEach(xdvLink -> oBaseGrid.addToolbarButton(new OAjaxLinkButton<Map<String, Object>>(new HTMLBase(xdvLink.getTitle())) {
+					private static final long serialVersionUID = -2383587968527780982L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						final DataView dataView = dataViewService.load(xdvLink.getTargetDVId());
+
+						try {
+							Map<String, Object> prevParamsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+							prevParamsMap.putAll(inputParamsVO.unwrap());
+							prevParamsMap.putAll(filter);
+
+
+							Map<String, List<String>> targetParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+							dataService.processDynamicFilterAndParam(xdvLink.getSentData(), targetParams, prevParamsMap, new RowInputVO(getSelectedRowsKeys()));
+
+							logger.info("Cross-Report(multiple.rows): {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetParams);
+
+							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
+							dPage
+								.setConsiderWebParams(false)
+								.addParams(targetParams)
+							;
+
+							modalWindow.setContent(dPage);
+							modalWindow
+								.getOptions()
+								.setFit(true);
+							modalWindow.show(target);
+						} catch (Exception e) {
+							logger.error("Cross-Report(multiple.rows): {} -> {}", dataVO.getName(), dataView.getName(), e);
+							WMessager.show(e, target);
+						}
+					}
+				}));
+		}
+
 		if (ConfigUtil.getBoolean(MetisConfigKey.GridNoResultShow)) {
 			oBaseGrid.setNoResultMessage(getString("err.mts.NoResult"));
 		}
@@ -632,48 +675,52 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 		}
 
 		if (dataVO.getLinksToDV() != null) {
-			for (final XDVLink xdvLink : dataVO.getLinksToDV()) {
-				final DataView dataView = dataViewService.load(xdvLink.getTargetDVId());
+			dataVO.getLinksToDV()
+				.stream()
+				.filter(it -> it.getLinkType() == XDVLinkType.SingleRow)
+				.forEach(xdvLink -> {
+					DataView dataView = dataViewService.load(xdvLink.getTargetDVId());
+					String targetName = dataView.getName();
 
-				IconFont iconFont = MetisIcon.SEARCH.copyTo().setTooltip(new Model<>(dataView.getTitle()));
+					IconFont iconFont = MetisIcon.SEARCH.copyTo().setTooltip(new Model<>(dataView.getTitle()));
 
-				columns.add(new OAjaxLinkColumn<Map<String, Object>>(new Model<>(xdvLink.getTitle()), iconFont) {
-					private static final long serialVersionUID = 4824658945146230957L;
+					columns.add(new OAjaxLinkColumn<Map<String, Object>>(new Model<>(xdvLink.getTitle()), iconFont) {
+						private static final long serialVersionUID = 4824658945146230957L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target, IModel<Map<String, Object>> rowData) {
-						try {
-							Map<String, Object> prevParamsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-							prevParamsMap.putAll(inputParamsVO.unwrap());
-							prevParamsMap.putAll(filter);
+						@Override
+						public void onClick(AjaxRequestTarget target, IModel<Map<String, Object>> rowData) {
+							try {
+								Map<String, Object> prevParamsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+								prevParamsMap.putAll(inputParamsVO.unwrap());
+								prevParamsMap.putAll(filter);
 
-							Map<String, Object> rowMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-							rowMap.putAll(rowData.getObject());
+								Map<String, Object> rowMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+								rowMap.putAll(rowData.getObject());
 
-							Map<String, List<String>> targetParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+								Map<String, List<String>> targetParams = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-							dataService.processDynamicFilterAndParam(xdvLink.getSentData(), targetParams, rowMap, prevParamsMap);
+								dataService.processDynamicFilterAndParam(xdvLink.getSentData(), targetParams, prevParamsMap, new RowInputVO(rowMap));
 
-							logger.info("Cross-Report: {} -> {}: params={}", dataVO.getName(), dataView.getName(), targetParams);
+								logger.info("Cross-Report(single.row): {} -> {}: params={}", dataVO.getName(), targetName, targetParams);
 
-							DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), dataView.getName());
-							dPage
-								.setConsiderWebParams(false)
-								.addParams(targetParams)
-							;
+								DataViewExecutorDPage dPage = new DataViewExecutorDPage(modalWindow.getContentId(), targetName);
+								dPage
+									.setConsiderWebParams(false)
+									.addParams(targetParams)
+								;
 
-							modalWindow.setContent(dPage);
-							modalWindow
-								.getOptions()
-								.setFit(true);
-							modalWindow.show(target);
-						} catch (Exception e) {
-							logger.error("Cross-Report: {} -> {}", dataVO.getName(), dataView.getName(), e);
-							WMessager.show(e, target);
+								modalWindow.setContent(dPage);
+								modalWindow
+									.getOptions()
+									.setFit(true);
+								modalWindow.show(target);
+							} catch (Exception e) {
+								logger.error("Cross-Report(single.row): {} -> {}", dataVO.getName(), dataView.getName(), e);
+								WMessager.show(e, target);
+							}
 						}
-					}
+					});
 				});
-			}
 		}
 
 		return columns;
@@ -744,6 +791,8 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 				'}';
 		}
 	}
+
+	// ------------------------------
 
 	public static abstract class GridButton implements Serializable {
 		private static final long serialVersionUID = -2224908468548615487L;

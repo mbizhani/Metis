@@ -28,7 +28,9 @@ public enum MetisErrorCode implements DErrorCode {
 
 	InvalidFilterValue("Invalid filter value"),
 
-	ReportAccessDenied("Report Access Denied");
+	ReportAccessDenied("Report Access Denied"),
+
+	NoRowSelected("No Row Selected");
 
 	private String defaultDescription;
 

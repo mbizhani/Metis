@@ -8,6 +8,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.devocative.metis.entity.data.config.XDVLink;
+import org.devocative.metis.entity.data.config.XDVLinkType;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.vo.DataVO;
 import org.devocative.wickomp.form.WAjaxButton;
@@ -18,6 +19,7 @@ import org.devocative.wickomp.html.WAjaxLink;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class LinksToDataViewStep extends WWizardStepPanel {
 	private static final long serialVersionUID = 6693655081502853685L;
@@ -59,6 +61,13 @@ public class LinksToDataViewStep extends WWizardStepPanel {
 						.setLabelVisible(false)
 						.setLabel(new Model<>("targetDV"))
 						.setRequired(true)
+				);
+
+				item.add(
+					new WSelectionInput("linkType",
+						new PropertyModel(xdvLink, "linkType"),
+						Arrays.asList(XDVLinkType.values()),
+						false)
 				);
 
 				item.add(

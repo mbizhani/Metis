@@ -19,6 +19,9 @@ public class XDVLink implements Serializable {
 	@XStreamAsAttribute
 	private String targetDVName;
 
+	@XStreamAsAttribute
+	private XDVLinkType linkType;
+
 	private String sentData;
 
 	// ------------------------------
@@ -47,6 +50,15 @@ public class XDVLink implements Serializable {
 
 	public XDVLink setTargetDVName(String targetDVName) {
 		this.targetDVName = targetDVName;
+		return this;
+	}
+
+	public XDVLinkType getLinkType() {
+		return linkType == null ? XDVLinkType.SingleRow : linkType;
+	}
+
+	public XDVLink setLinkType(XDVLinkType linkType) {
+		this.linkType = linkType;
 		return this;
 	}
 

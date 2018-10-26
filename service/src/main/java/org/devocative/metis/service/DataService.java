@@ -26,10 +26,7 @@ import org.devocative.metis.iservice.connection.IDBConnectionService;
 import org.devocative.metis.iservice.data.IDataSourceService;
 import org.devocative.metis.iservice.data.IDataViewService;
 import org.devocative.metis.service.task.ExecuteDataViewDTask;
-import org.devocative.metis.vo.DataAbstractFieldVO;
-import org.devocative.metis.vo.DataFieldVO;
-import org.devocative.metis.vo.DataParameterVO;
-import org.devocative.metis.vo.DataVO;
+import org.devocative.metis.vo.*;
 import org.devocative.metis.vo.async.DataViewQVO;
 import org.devocative.metis.vo.async.DataViewRVO;
 import org.devocative.metis.vo.query.*;
@@ -103,7 +100,6 @@ public class DataService implements IDataService {
 		return result;
 	}
 
-	@Deprecated // moved to DataRenderService
 	@Override
 	public List<DataAbstractFieldVO> findFilteringFields(List<DataAbstractFieldVO> allFields) {
 		List<DataAbstractFieldVO> result = new ArrayList<>();
@@ -591,13 +587,21 @@ public class DataService implements IDataService {
 	// ---------------
 
 	@Override
-	public void processDynamicFilterAndParam(String script, Map<String, ?> params, Map<String, ?> row, Map<String, ?> prevParams) {
+	public void processDynamicFilterAndParam(String script, Map<String, ?> params, Map<String, ?> prevParams, RowInputVO rowInputVO) {
 		Map<String, Object> bindings = new HashMap<>();
 		bindings.put("filter", params);
 		bindings.put("params", params);
-		if (row != null) {
-			bindings.put("row", row);
+
+		if (rowInputVO != null) {
+			if (rowInputVO.getRow() != null) {
+				bindings.put("row", rowInputVO.getRow());
+			} else if (rowInputVO.getRowsKeys() != null && !rowInputVO.getRowsKeys().isEmpty()) {
+				bindings.put("rows", rowInputVO);
+			} else {
+				throw new MetisException(MetisErrorCode.NoRowSelected);
+			}
 		}
+
 		if (prevParams != null) {
 			bindings.put("prevParams", prevParams);
 		}
@@ -637,7 +641,7 @@ public class DataService implements IDataService {
 		throw new RuntimeException(String.format("Invalid format for %s: %s", configKey.getKey(), text));
 	}
 
-	// ------------------------------ PRIVATE METHODS
+	// ------------------------------
 
 	private DataVO loadDataVOByDataView(DataView dataView) {
 		logger.info("Loading DataView data: DV=[{}] Usr=[{}]", dataView.getName(), securityService.getCurrentUser());
