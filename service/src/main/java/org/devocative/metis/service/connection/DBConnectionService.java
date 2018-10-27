@@ -9,6 +9,8 @@ import org.devocative.adroit.sql.NamedParameterStatement;
 import org.devocative.adroit.sql.plugin.ObjectNavigationPlugin;
 import org.devocative.adroit.sql.plugin.PaginationPlugin;
 import org.devocative.adroit.sql.plugin.SchemaPlugin;
+import org.devocative.adroit.sql.result.EColumnNameCase;
+import org.devocative.adroit.sql.result.ResultSetProcessor;
 import org.devocative.adroit.xml.AdroitXStream;
 import org.devocative.demeter.DBConstraintViolationException;
 import org.devocative.demeter.DLogCtx;
@@ -405,10 +407,11 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 		PaginationQVO pagination) {
 
 		NamedParameterStatement nps = null;
-		DbQueryRVO result = new DbQueryRVO();
-
 		String dbConnName = load(dbConnId).getName();
+
+		DbQueryRVO result = new DbQueryRVO();
 		result.getQueryExecInfo().setDbConnName(dbConnName);
+
 		long start = System.currentTimeMillis();
 		logger.info("Executing Query: Cmnt=[{}] User=[{}] Conn=[{}]",
 			comment, securityService.getCurrentUser(), dbConnName);
@@ -445,36 +448,9 @@ public class DBConnectionService implements IDBConnectionService, IRequestLifecy
 			}
 
 			ResultSet rs = nps.executeQuery();
-			ResultSetMetaData metaData = rs.getMetaData();
-
-			for (int i = 1; i <= metaData.getColumnCount(); i++) {
-				result.addHeader(metaData.getColumnName(i).toLowerCase());
-			}
-
-			while (rs.next()) {
-				List<Object> row = new ArrayList<>();
-				for (int i = 0; i < result.getHeader().size(); i++) {
-					String column = result.getHeader().get(i);
-					Object value;
-					switch (metaData.getColumnType(i + 1)) {
-						case Types.DATE:
-							value = rs.getDate(column);
-							break;
-						case Types.TIME:
-							value = rs.getTime(column);
-							break;
-						case Types.TIMESTAMP:
-							value = rs.getTimestamp(column);
-							break;
-						default:
-							value = rs.getObject(column);
-					}
-					row.add(value);
-				}
-				result.addRow(row);
-			}
-
-			result.getQueryExecInfo()
+			result
+				.setQueryVO(ResultSetProcessor.process(rs, EColumnNameCase.LOWER))
+				.getQueryExecInfo()
 				.fromNamedParameterStatement(nps)
 				.setDuration(System.currentTimeMillis() - start);
 

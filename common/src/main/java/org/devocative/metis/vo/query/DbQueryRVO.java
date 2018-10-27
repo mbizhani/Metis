@@ -1,19 +1,18 @@
 package org.devocative.metis.vo.query;
 
+import org.devocative.adroit.sql.result.QueryVO;
 import org.devocative.adroit.vo.KeyValueVO;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DbQueryRVO implements Serializable {
 	private static final long serialVersionUID = -1129436995334750688L;
 
-	private List<String> header = new ArrayList<>();
-
-	private List<List<Object>> rows = new ArrayList<>();
+	private QueryVO queryVO;
 
 	// ---------------
 
@@ -21,20 +20,17 @@ public class DbQueryRVO implements Serializable {
 
 	// ------------------------------
 
+	public DbQueryRVO setQueryVO(QueryVO queryVO) {
+		this.queryVO = queryVO;
+		return this;
+	}
+
 	public List<String> getHeader() {
-		return header;
-	}
-
-	public void addHeader(String header) {
-		this.header.add(header);
-	}
-
-	public void addRow(List<Object> row) {
-		rows.add(row);
+		return queryVO.getHeader();
 	}
 
 	public List<List<Object>> getRows() {
-		return rows;
+		return queryVO.getRows();
 	}
 
 	// ---------------
@@ -46,26 +42,15 @@ public class DbQueryRVO implements Serializable {
 	// ------------------------------
 
 	public DsQueryRVO<List<Map<String, Object>>> toListOfMap() {
-		List<Map<String, Object>> list = new ArrayList<>();
-		for (List<Object> row : rows) {
-			Map<String, Object> rowAsMap = new HashMap<>();
-			for (int i = 0; i < header.size(); i++) {
-				rowAsMap.put(header.get(i), row.get(i));
-			}
-			list.add(rowAsMap);
-		}
-
-		return new DsQueryRVO<>(list, queryExecInfo);
+		return new DsQueryRVO<>(new ArrayList<>(queryVO.toListOfMap()), queryExecInfo);
 	}
 
 	public DsQueryRVO<List<KeyValueVO<Serializable, String>>> toListOfKeyValues() {
-		List<KeyValueVO<Serializable, String>> list = new ArrayList<>();
-		for (List<Object> row : rows) {
-			KeyValueVO<Serializable, String> rowAsKeyValue = new KeyValueVO<>();
-			rowAsKeyValue.setKey((Serializable) row.get(0));
-			rowAsKeyValue.setValue(row.get(1) != null ? row.get(1).toString() : "");
-			list.add(rowAsKeyValue);
-		}
+		List<KeyValueVO<Serializable, String>> list = getRows()
+			.stream()
+			.filter(it -> it.size() > 1)
+			.map(it -> new KeyValueVO<>((Serializable) it.get(0), it.get(1) != null ? it.get(1).toString() : ""))
+			.collect(Collectors.toList());
 
 		return new DsQueryRVO<>(list, queryExecInfo);
 	}
