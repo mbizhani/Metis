@@ -4,7 +4,9 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.ResourceModel;
+import org.devocative.adroit.ConfigUtil;
 import org.devocative.demeter.web.component.DAjaxButton;
+import org.devocative.metis.MetisConfigKey;
 import org.devocative.metis.entity.data.Report;
 import org.devocative.metis.iservice.IDataService;
 import org.devocative.metis.iservice.data.IReportService;
@@ -98,7 +100,7 @@ public class ReportExecutorPanel extends WPanel {
 		mainGrid = new DataViewGridPanel("mainGrid", dataVO, filter);
 		mainGrid
 			.setInputParamsVO(inputParamsVO)
-			.setMultiSelect(false)
+			.setMultiSelect(ConfigUtil.getBoolean(MetisConfigKey.ReportGridMultiSelect))
 		;
 
 		WebMarkupContainer filterPanel = new WebMarkupContainer("filterPanel");

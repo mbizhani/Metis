@@ -49,7 +49,9 @@ public enum MetisConfigKey implements IConfigKey {
 
 	SQLParamFromUrl("mts.sql.param.from.url"/*, (Object) Arrays.asList("$$curuser")*/),
 	SQLParamCurrentUser("mts.sql.param.cur.user", true, Arrays.asList(true, false)),
-	SQLTextSearchSplitter("mts.sql.text.search.splitter", "\\s+");
+	SQLTextSearchSplitter("mts.sql.text.search.splitter", "\\s+"),
+
+	ReportGridMultiSelect("mts.report.gird.multiselect", true, Arrays.asList(true, false));
 
 	// ------------------------------
 
