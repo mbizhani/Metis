@@ -21,6 +21,7 @@ public enum MetisConfigKey implements IConfigKey {
 
 	ExportReportExpireDays("mts.export.days", 3),
 	ExportExcelMaxSize("mts.export.excel.max.size", 10000L),
+	ExportConsiderParentRelation("mts.export.consider.parent.relation", false, Arrays.asList(true, false)),
 	ExportAllWriteMeta("mts.export.all.meta.data", true, Arrays.asList(true, false)),
 	ImportAllVerify("mts.import.all.verify", false, Arrays.asList(true, false)),
 	ExportReportWriteMeta("mts.export.report.meta.data", true, Arrays.asList(true, false)),
