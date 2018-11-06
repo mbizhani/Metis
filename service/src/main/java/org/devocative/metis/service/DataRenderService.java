@@ -96,7 +96,8 @@ public class DataRenderService implements IDataRenderService {
 				}
 			}
 
-			Object defaultValue = processDefault(name, fieldVO.getType(), fieldVO.getFilterType(), inputParamsVO, defaultMapByInput);
+			boolean invisibleItem = mode == PresentationMode.Invisible;
+			Object defaultValue = processDefault(name, fieldVO.getType(), fieldVO.getFilterType(), inputParamsVO, defaultMapByInput, invisibleItem);
 			List<KeyValueVO<Serializable, String>> listValues = new ArrayList(); //TODO: just for test
 
 			if (fieldVO.getType() == XDSFieldType.LookUp) {
@@ -132,7 +133,7 @@ public class DataRenderService implements IDataRenderService {
 								.stream()
 								.filter(it -> map.containsKey(it.getName()))
 								.forEach(it -> lookUpFilter.put(it.getName(),
-									processDefault(it.getName(), it.getType(), it.getFilterType(), new FilterInputParamsVO(), map)));
+									processDefault(it.getName(), it.getType(), it.getFilterType(), new FilterInputParamsVO(), map, invisibleItem)));
 
 							LookupQueryQVO queryQVO = new LookupQueryQVO(dataVO.getDataSourceId(), fieldVO.getTargetDSId());
 							queryQVO.setInputParams(lookUpFilter);
@@ -227,14 +228,22 @@ public class DataRenderService implements IDataRenderService {
 		XDSFieldType type,
 		XDSFieldFilterType filterType,
 		FilterInputParamsVO inputParamsVO,
-		Map<String, List<String>> defaultMapByInput) {
+		Map<String, List<String>> defaultMapByInput,
+		boolean invisible) {
 
 		switch (filterType) {
 			case Equal:
 				if (inputParamsVO.containsKey(name)) {
 					Object v = inputParamsVO.get(name);
 					if (v instanceof List) {
-						return convertQueryParam(type, ((List) v).get(0));
+						if (invisible) {
+							((List) v)
+								.stream()
+								.map(it -> convertQueryParam(type, it))
+								.collect(Collectors.toList());
+						} else {
+							return convertQueryParam(type, ((List) v).get(0));
+						}
 					} else if (v instanceof KeyValueVO) {
 						return convertQueryParam(type, ((KeyValueVO) v).getKey());
 					}
