@@ -261,8 +261,12 @@ public class DataRenderService implements IDataRenderService {
 			case TextSearch:
 				if (inputParamsVO.containsKey(name)) {
 					Object v = inputParamsVO.get(name);
-					if (v instanceof List) {
-						return ((List) v).get(0).toString();
+					if (v instanceof Collection) {
+						Collection col = (Collection) v;
+						final Optional first = col.stream().findFirst();
+						if (first.isPresent()) {
+							return first.get().toString();
+						}
 					} else if (v instanceof KeyValueVO) {
 						return ((KeyValueVO) v).getKey().toString();
 					}
@@ -306,12 +310,14 @@ public class DataRenderService implements IDataRenderService {
 					if (value instanceof KeyValueVO) {
 						return Collections.singletonList(((KeyValueVO) value).getKey());
 					} else if (value instanceof Collection) {
-						return ((Collection) value).stream().map(it -> {
-							if (it instanceof KeyValueVO) {
-								return ((KeyValueVO) it).getKey();
-							}
-							return it;
-						}).collect(Collectors.toList());
+						return ((Collection) value)
+							.stream()
+							.map(it -> {
+								if (it instanceof KeyValueVO) {
+									return ((KeyValueVO) it).getKey();
+								}
+								return it;
+							}).collect(Collectors.toList());
 					} else {
 						return value;
 					}
