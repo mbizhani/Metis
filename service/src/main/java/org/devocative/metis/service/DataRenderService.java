@@ -235,14 +235,18 @@ public class DataRenderService implements IDataRenderService {
 			case Equal:
 				if (inputParamsVO.containsKey(name)) {
 					Object v = inputParamsVO.get(name);
-					if (v instanceof List) {
-						if (invisible) {
-							((List) v)
+					if (v instanceof Collection) {
+						Collection col = (Collection) v;
+						if (invisible && type != XDSFieldType.Boolean) {
+							return col
 								.stream()
 								.map(it -> convertQueryParam(type, it))
 								.collect(Collectors.toList());
 						} else {
-							return convertQueryParam(type, ((List) v).get(0));
+							final Optional first = col.stream().findFirst();
+							if (first.isPresent()) {
+								return convertQueryParam(type, first.get());
+							}
 						}
 					} else if (v instanceof KeyValueVO) {
 						return convertQueryParam(type, ((KeyValueVO) v).getKey());
