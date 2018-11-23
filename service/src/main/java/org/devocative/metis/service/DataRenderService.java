@@ -133,7 +133,7 @@ public class DataRenderService implements IDataRenderService {
 								.stream()
 								.filter(it -> map.containsKey(it.getName()))
 								.forEach(it -> lookUpFilter.put(it.getName(),
-									processDefault(it.getName(), it.getType(), it.getFilterType(), new FilterInputParamsVO(), map, invisibleItem)));
+									processDefault(it.getName(), it.getType(), it.getFilterType(), new FilterInputParamsVO(), map, true)));
 
 							LookupQueryQVO queryQVO = new LookupQueryQVO(dataVO.getDataSourceId(), fieldVO.getTargetDSId());
 							queryQVO.setInputParams(lookUpFilter);
@@ -253,7 +253,13 @@ public class DataRenderService implements IDataRenderService {
 					}
 					return convertQueryParam(type, v);
 				} else if (defaultMapByInput.containsKey(name)) {
-					return convertQueryParam(type, defaultMapByInput.get(name).get(0));
+					/*
+					Note: from fieldVO.getTargetDSFilter() it may be a list of filters
+					 */
+					return defaultMapByInput.get(name)
+						.stream()
+						.map(o -> convertQueryParam(type, o))
+						.collect(Collectors.toList());
 				}
 				break;
 

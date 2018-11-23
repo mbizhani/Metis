@@ -1051,10 +1051,17 @@ public class DataSourceService implements IDataSourceService {
 								if (value instanceof Collection) {
 									filterClauses.append(String.format("\tand %1$s in (:%1$s)\n", filterName));
 
+									/*
+									Note: from UI it KeyValueVO, however from fieldVO.getTargetDSFilter() it is simple string
+									 */
 									List<Object> items = ((Collection<?>) filter.getValue())
 										.stream()
-										.filter(o -> o instanceof KeyValueVO)
-										.map(o -> ((KeyValueVO) o).getKey())
+										.map(o -> {
+											if (o instanceof KeyValueVO) {
+												return ((KeyValueVO) o).getKey();
+											}
+											return o;
+										})
 										.collect(Collectors.toList());
 									queryParams.put(filterName, items);
 								} else {
