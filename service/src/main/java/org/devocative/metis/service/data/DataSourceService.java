@@ -1091,8 +1091,12 @@ public class DataSourceService implements IDataSourceService {
 									if (value instanceof Collection) {
 										value = ((Collection<?>) value)
 											.stream()
-											.filter(o -> o instanceof KeyValueVO)
-											.map(o -> ((KeyValueVO) o).getKey())
+											.map(o -> {
+												if (o instanceof KeyValueVO) {
+													return ((KeyValueVO) o).getKey();
+												}
+												return o;
+											})
 											.collect(Collectors.toList());
 									} else if (value instanceof KeyValueVO) {
 										value = ((KeyValueVO) value).getKey();

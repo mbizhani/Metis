@@ -237,9 +237,8 @@ public class DataRenderService implements IDataRenderService {
 					Object v = inputParamsVO.get(name);
 					if (v instanceof Collection) {
 						Collection col = (Collection) v;
-						if (invisible && type != XDSFieldType.Boolean) {
-							return col
-								.stream()
+						if (invisible && type != XDSFieldType.Boolean && col.size() > 1) {
+							return col.stream()
 								.map(it -> convertQueryParam(type, it))
 								.collect(Collectors.toList());
 						} else {
@@ -256,10 +255,15 @@ public class DataRenderService implements IDataRenderService {
 					/*
 					Note: from fieldVO.getTargetDSFilter() it may be a list of filters
 					 */
-					return defaultMapByInput.get(name)
-						.stream()
-						.map(o -> convertQueryParam(type, o))
-						.collect(Collectors.toList());
+					final List<String> strings = defaultMapByInput.get(name);
+					if (strings.size() == 1) {
+						return convertQueryParam(type, strings.get(0));
+					} else if (strings.size() > 1) {
+						return strings
+							.stream()
+							.map(o -> convertQueryParam(type, o))
+							.collect(Collectors.toList());
+					}
 				}
 				break;
 
