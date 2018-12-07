@@ -411,6 +411,7 @@ public class DataViewGridPanel extends DPanel implements ITreeGridAsyncDataSourc
 			})
 			.setReturnField(returnField)
 			.setAsyncLoadingEnabled(ConfigUtil.getBoolean(MetisConfigKey.GridAsyncLoadingShow))
+			.setCellAutoDir(ConfigUtil.getBoolean(MetisConfigKey.GridCellAutoDir))
 			.setFit(true)
 		;
 
