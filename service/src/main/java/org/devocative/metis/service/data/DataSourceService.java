@@ -91,7 +91,13 @@ public class DataSourceService implements IDataSourceService {
 				.addParam("id", key)
 				.object();
 
-			ds.setXDataSource((XDataSource) xStream.fromXML(ds.getConfig().getValue()));
+			/*
+			The following if statement is necessary due to malformed export/import of DataSources
+			resulting in missing target's lookup
+			 */
+			if (ds != null) {
+				ds.setXDataSource((XDataSource) xStream.fromXML(ds.getConfig().getValue()));
+			}
 
 			return ds;
 		});
@@ -121,8 +127,13 @@ public class DataSourceService implements IDataSourceService {
 				.addWhere("and ent.name = :name")
 				.addParam("name", name)
 				.object();
-			ds.setXDataSource((XDataSource) xStream.fromXML(ds.getConfig().getValue()));
-			dataSourceCache.put(ds.getId(), ds);
+
+			if (ds != null) {
+				ds.setXDataSource((XDataSource) xStream.fromXML(ds.getConfig().getValue()));
+				dataSourceCache.put(ds.getId(), ds);
+			} else {
+				throw new MetisException(MetisErrorCode.InvalidDataSourceName, name);
+			}
 		}
 		return ds;
 	}

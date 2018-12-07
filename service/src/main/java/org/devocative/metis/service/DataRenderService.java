@@ -98,34 +98,36 @@ public class DataRenderService implements IDataRenderService {
 
 			boolean invisibleItem = mode == PresentationMode.Invisible;
 			Object defaultValue = processDefault(name, fieldVO.getType(), fieldVO.getFilterType(), inputParamsVO, defaultMapByInput, invisibleItem);
-			List<KeyValueVO<Serializable, String>> listValues = new ArrayList(); //TODO: just for test
+			final List<KeyValueVO<Serializable, String>> listValues = new ArrayList(); //TODO: just for test
 
 			if (fieldVO.getType() == XDSFieldType.LookUp) {
 				final boolean multiple = fieldVO.getTargetDSMultipleSelection() == null || fieldVO.getTargetDSMultipleSelection();
 				item.setMultipleSelection(multiple);
 
-				final DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
-				final XDataSource targetXDS = targetDS.getXDataSource();
-
 				Map<String, Object> lookUpFilter = new HashMap<>();
-
-				final Map<String, List<String>> map = fieldVO.getTargetDSFilter() != null ?
-					Stream.of(fieldVO.getTargetDSFilter().split("[&]"))
-						.map(s -> s.split("[=]"))
-						.filter(s -> s.length == 2 && !s[0].isEmpty() && !s[1].isEmpty())
-						.collect(Collectors.groupingBy(
-							o -> o[0].trim(),
-							() -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER),
-							Collectors.mapping(o -> o[1].trim(), Collectors.toList())
-						)) :
-					Collections.emptyMap();
-
-				if (defaultValue != null && inputParamsVO.containsKey(fieldVO.getName())) {
-					lookUpFilter.put(targetDS.getKeyField(), defaultValue);
-				}
-
 				List defaultListValue = Collections.emptyList();
+
 				try {
+					final DataSource targetDS = dataSourceService.load(fieldVO.getTargetDSId());
+					if (targetDS == null) {
+						throw new RuntimeException(String.format("Target DataSource Not Found (maybe with name=[%s])", fieldVO.getTargetDSName()));
+					}
+					final XDataSource targetXDS = targetDS.getXDataSource();
+
+					final Map<String, List<String>> map = fieldVO.getTargetDSFilter() != null ?
+						Stream.of(fieldVO.getTargetDSFilter().split("[&]"))
+							.map(s -> s.split("[=]"))
+							.filter(s -> s.length == 2 && !s[0].isEmpty() && !s[1].isEmpty())
+							.collect(Collectors.groupingBy(
+								o -> o[0].trim(),
+								() -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER),
+								Collectors.mapping(o -> o[1].trim(), Collectors.toList())
+							)) :
+						Collections.emptyMap();
+
+					if (defaultValue != null && inputParamsVO.containsKey(fieldVO.getName())) {
+						lookUpFilter.put(targetDS.getKeyField(), defaultValue);
+					}
 
 					switch (fieldVO.getFilterType()) {
 						case List:
@@ -137,7 +139,7 @@ public class DataRenderService implements IDataRenderService {
 
 							LookupQueryQVO queryQVO = new LookupQueryQVO(dataVO.getDataSourceId(), fieldVO.getTargetDSId());
 							queryQVO.setInputParams(lookUpFilter);
-							listValues = dataSourceService.execute(queryQVO).getResult();
+							listValues.addAll(dataSourceService.execute(queryQVO).getResult());
 
 							if (inputParamsVO.containsKey(fieldVO.getName())) {
 								defaultListValue = listValues;
@@ -174,10 +176,10 @@ public class DataRenderService implements IDataRenderService {
 					}
 
 				} catch (Exception e) {
-					logger.error("Selecting Lookup: SearchName=[{}] LookupField=[{}]", dataVO.getName(), name, e);
+					logger.error("Preparing Lookup: SearchName=[{}] LookupField=[{}]", dataVO.getName(), name, e);
 
 					final String err = String.format("%s(%s): %s", item.getCaption(), name, e.getMessage()); //TODO process error cause
-					defaultListValue = listValues = Collections.singletonList(new KeyValueVO<>("?", err)); //TODO
+					listValues.add(new KeyValueVO<>("?", err)); //TODO
 					item.setError(err);
 				}
 

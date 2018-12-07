@@ -21,6 +21,7 @@ public enum MetisErrorCode implements DErrorCode {
 	DuplicateDBConnectionName("Duplicate DBConnection Name"),
 
 	DuplicateDataSourceName("Duplicate DataSource name"),
+	InvalidDataSourceName("Invalid DataSource name"),
 
 	InvalidDataViewName("Invalid data view name"),
 	NoDataViewName("No data view name"),

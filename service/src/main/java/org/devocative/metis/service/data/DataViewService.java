@@ -108,7 +108,11 @@ public class DataViewService implements IDataViewService {
 				.addWhere("and ent.id = :id")
 				.addParam("id", key)
 				.object();
-			dv.setXDataView((XDataView) xStream.fromXML(dv.getConfig().getValue()));
+
+			if (dv != null) {
+				dv.setXDataView((XDataView) xStream.fromXML(dv.getConfig().getValue()));
+			}
+
 			return dv;
 		});
 	}

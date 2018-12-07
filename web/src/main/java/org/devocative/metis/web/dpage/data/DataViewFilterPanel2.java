@@ -1,5 +1,6 @@
 package org.devocative.metis.web.dpage.data;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -118,6 +119,13 @@ public class DataViewFilterPanel2 extends DPanel {
 								fieldFormItem.setEnabled(false);
 						}
 						break;
+				}
+
+				if (fieldVO.hasError()) {
+					fieldFormItem
+						.setRequired(false)
+						.setEnabled(false)
+						.add(new AttributeModifier("style", "border: 2px solid red"));
 				}
 
 				RepeatingView view = new RepeatingView("field");

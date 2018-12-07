@@ -155,6 +155,10 @@ public class FilterItemVO implements Serializable {
 
 	// ---------------
 
+	public boolean hasError() {
+		return getError() != null;
+	}
+
 	@Override
 	public String toString() {
 		return getName();
