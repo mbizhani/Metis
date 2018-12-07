@@ -237,7 +237,7 @@ public class DataRenderService implements IDataRenderService {
 					Object v = inputParamsVO.get(name);
 					if (v instanceof Collection) {
 						Collection col = (Collection) v;
-						if (invisible && type != XDSFieldType.Boolean && col.size() > 1) {
+						if (invisible && col.size() > 1) {
 							return col.stream()
 								.map(it -> convertQueryParam(type, it))
 								.collect(Collectors.toList());
