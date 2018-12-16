@@ -27,6 +27,7 @@ import org.devocative.wickomp.grid.WSortField;
 import org.devocative.wickomp.grid.column.OColumnList;
 import org.devocative.wickomp.grid.column.OPropertyColumn;
 import org.devocative.wickomp.grid.column.link.OAjaxLinkColumn;
+import org.devocative.wickomp.grid.toolbar.OExportExcelButton;
 import org.devocative.wickomp.html.WAjaxLink;
 import org.devocative.wickomp.html.WFloatTable;
 import org.devocative.wickomp.html.window.WModalWindow;
@@ -162,6 +163,9 @@ public class ReportListDPage extends DPage implements IGridDataSource<Report> {
 		oGrid
 			.setColumns(columnList)
 			.setMultiSort(false)
+			.addToolbarButton(new OExportExcelButton<>(MetisIcon.EXPORT_EXCEL, this)
+				.setMaxRowsCount(Integer.MAX_VALUE)
+				.setFileName("ReportsList"))
 			.setHeight(gridHeight)
 			.setWidth(gridWidth)
 			.setFit(gridFit);

@@ -125,7 +125,8 @@ public class DataViewFilterPanel2 extends DPanel {
 					fieldFormItem
 						.setRequired(false)
 						.setEnabled(false)
-						.add(new AttributeModifier("style", "border: 2px solid red"));
+						.add(new AttributeModifier("style", "border: 2px solid red"))
+						.add(new AttributeModifier("title", fieldVO.getError()));
 				}
 
 				RepeatingView view = new RepeatingView("field");

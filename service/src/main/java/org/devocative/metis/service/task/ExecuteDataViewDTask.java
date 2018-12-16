@@ -19,29 +19,32 @@ public class ExecuteDataViewDTask extends DTask<DataViewRVO> {
 	@Override
 	public void init() {
 		data = (DataViewQVO) getInputData();
+
+		if (data != null) {
+			String action = data.isDoExport() ? "EXPT" : data.getParentId() == null ? "EXEC" : "XPRT";
+			setDetail(action + ": " + data.getName());
+		}
 	}
 
 	@Override
 	public boolean canStart() {
-		return true;
+		return data != null;
 	}
 
 	@Override
 	public void execute() {
-		if (data != null) {
-			DataViewRVO result;
-			if (data.getParentId() == null) {
-				if (data.isDoExport()) {
-					result = dataService.exportDataView(data);
-				} else {
-					result = dataService.executeDataView(data);
-				}
+		DataViewRVO result;
+		if (data.getParentId() == null) {
+			if (data.isDoExport()) {
+				result = dataService.exportDataView(data);
 			} else {
-				result = dataService.executeDataViewForParent(data);
+				result = dataService.executeDataView(data);
 			}
-
-			sendResult(result);
+		} else {
+			result = dataService.executeDataViewForParent(data);
 		}
+
+		sendResult(result);
 	}
 
 	@Override
